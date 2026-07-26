@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- QRCode.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Tesseract.js for Image OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <!-- Firebase App & Database -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -206,11 +208,21 @@
       <div id="qr-generator" class="tab-content active">
         <div class="card">
           <h3>🪪 CNIC QR Code Generator</h3>
+          
+          <!-- Manual Input -->
           <div class="input-group">
             <input type="text" id="cnic-input" class="input-field" placeholder="Enter 13 Digit CNIC" maxlength="13">
             <i class="fa-solid fa-id-card"></i>
           </div>
+
+          <!-- CNIC Picture Upload Option -->
+          <div style="margin: 15px 0; text-align: left;">
+            <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 5px;">Or Upload CNIC Picture:</label>
+            <input type="file" id="cnic-file" accept="image/*" class="input-field" style="padding: 10px; cursor: pointer;" onchange="handleImageUpload(event)">
+          </div>
+
           <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
+          
           <div style="display: flex; justify-content: center; width: 100%;">
             <div id="qrcode-box"></div>
           </div>
@@ -316,6 +328,37 @@
       
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+    }
+
+    // IMAGE UPLOAD & OCR SCANNING LOGIC
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const cnicInput = document.getElementById('cnic-input');
+      cnicInput.value = "Scanning image...";
+
+      try {
+        const result = await Tesseract.recognize(file, 'eng', {
+          logger: m => console.log(m)
+        });
+
+        const text = result.data.text;
+        const match = text.match(/\d{5}-\d{7}-\d{1}|\d{13}/);
+
+        if (match) {
+          const cleanCNIC = match[0].replace(/-/g, "");
+          cnicInput.value = cleanCNIC;
+          generateQR();
+        } else {
+          cnicInput.value = "";
+          alert("❌ CNIC number image mein nahi mila. Barah-e-karam manual type karein.");
+        }
+      } catch (err) {
+        console.error(err);
+        cnicInput.value = "";
+        alert("❌ Error reading image!");
+      }
     }
 
     function generateQR() {
