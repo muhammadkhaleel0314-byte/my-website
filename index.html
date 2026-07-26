@@ -330,7 +330,6 @@
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
 
-      // Agar QR generator se hatein toh camera band kar dein
       if (tabId !== 'qr-generator' && html5QrCode) {
         html5QrCode.stop().catch(err => console.log(err));
       }
@@ -345,33 +344,39 @@
       }
 
       html5QrCode.start(
-        { facingMode: "environment" }, // Back camera
+        { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 250, height: 100 }
+          qrbox: { width: 300, height: 150 }
         },
         (decodedText, decodedResult) => {
-          console.log(`Scan result: ${decodedText}`, decodedResult);
+          console.log(`Scanned Data: ${decodedText}`);
           
-          // Sirf numbers filter out karna ya 13 digits nikalna
-          const digitsOnly = decodedText.replace(/\D/g, "");
-          const match13 = digitsOnly.match(/\d{13}/);
+          let cnicNumber = "";
+          const match13 = decodedText.match(/\d{13}/);
 
           if (match13) {
-            cnicInput.value = match13[0];
-            generateQR();
-            // Scan hone ke baad camera band kar dena
-            html5QrCode.stop().catch(err => console.log(err));
-            alert("✔ CNIC Scanned Successfully!");
+            cnicNumber = match13[0];
           } else {
-            cnicInput.value = digitsOnly.slice(0, 13); // First 13 digits agar available hon
+            const cleanDigits = decodedText.replace(/\D/g, "");
+            if (cleanDigits.length >= 13) {
+              cnicNumber = cleanDigits.substring(0, 13);
+            }
+          }
+
+          if (cnicNumber && cnicNumber.length === 13) {
+            cnicInput.value = cnicNumber;
+            
+            html5QrCode.stop().then(() => {
+              generateQR();
+            }).catch(err => console.log(err));
+
+            alert("✔ CNIC Barcode Successfully Scanned & QR Generated!");
           }
         },
-        (errorMessage) => {
-          // Scanning errors ko ignore karein jab tak code detect na ho
-        }
+        (errorMessage) => {}
       ).catch((err) => {
-        alert("❌ Camera start karne mein masla hua. Permission check karein.");
+        alert("❌ Camera start karne mein masla hua. Browser permissions check karein.");
         console.error(err);
       });
     }
