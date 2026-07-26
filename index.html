@@ -33,6 +33,7 @@
 .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
 .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
 .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+.login-btn:active { transform: scale(0.98); }
 .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
 .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
 .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
@@ -55,7 +56,7 @@
 .action-btn:hover { opacity: 0.9; }
     #qrcode-box { margin-top: 20px; display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto; }
     #qrcode-box:empty { display: none; }
-    #reader { border: 2px dashed var(--primary); }
+    #reader { border: 2px dashed var(--primary); min-height: 200px; }
 .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
 .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
@@ -67,9 +68,11 @@
       <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
       <h2>Welcome Portal</h2>
       <p class="subtitle">Sign in with your assigned ID</p>
-      <div class="input-group"><input type="text" id="username" class="input-field" placeholder="Username"><i class="fa-solid fa-user"></i></div>
-      <div class="input-group"><input type="password" id="password" class="input-field" placeholder="Password"><i class="fa-solid fa-lock"></i></div>
-      <button class="login-btn" onclick="handleLogin()">Sign In</button>
+      <form id="login-form">
+        <div class="input-group"><input type="text" id="username" class="input-field" placeholder="Username" required><i class="fa-solid fa-user"></i></div>
+        <div class="input-group"><input type="password" id="password" class="input-field" placeholder="Password" required><i class="fa-solid fa-lock"></i></div>
+        <button type="submit" class="login-btn" id="login-btn">Sign In</button>
+      </form>
       <p id="login-err" style="color: #ef4444; margin-top: 12px; font-size: 12px; font-weight: 600;"></p>
     </div>
   </div>
@@ -77,14 +80,14 @@
   <div class="app-container" id="app-container">
     <div class="header">
       <div class="user-info"><i class="fa-solid fa-circle-user fa-lg" style="color: var(--primary);"></i><span id="display-user">Guest</span></div>
-      <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      <button class="logout-btn" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
     <div class="main-wrapper">
       <div class="sidebar">
         <div class="menu-title">NAVIGATION</div>
-        <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
-        <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> QR Generator & Scanner</button>
-        <button class="nav-sub-btn" onclick="switchTab('pdf-tab', this)"><i class="fa-solid fa-file-pdf"></i> PDF Generator</button>
+        <button class="nav-sub-btn active" data-tab="dashboard-tab"><i class="fa-solid fa-gauge"></i> Dashboard</button>
+        <button class="nav-sub-btn" data-tab="qr-tab"><i class="fa-solid fa-qrcode"></i> QR Generator & Scanner</button>
+        <button class="nav-sub-btn" data-tab="pdf-tab"><i class="fa-solid fa-file-pdf"></i> PDF Generator</button>
       </div>
       <div class="main-content">
         <div id="dashboard-tab" class="tab-content active">
@@ -96,15 +99,15 @@
             <div class="input-group"><input type="text" id="cnic-input" class="input-field" placeholder="13 Digit CNIC Number" maxlength="13"><i class="fa-solid fa-id-card"></i></div>
 
             <div style="margin: 10px 0;">
-              <button class="action-btn" style="background: var(--primary-hover); margin-bottom: 8px;" onclick="startScanner()">📷 Live Camera Scan - 2 Sec</button>
+              <button class="action-btn" style="background: var(--primary-hover); margin-bottom: 8px;" id="scan-btn">📷 Live Camera Scan - 2 Sec</button>
               <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
             </div>
 
-            <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
+            <button class="action-btn" id="generate-btn">✨ Generate QR Code</button>
 
             <div style="margin: 15px 0; border-top: 1px dashed #334155; padding-top:15px;">
-              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">اب Gemini AI - 3 سیکنڈ میں</p>
-              <label class="action-btn" style="background: var(--primary); cursor: pointer;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Gemini AI - 3 سیکنڈ میں CNIC نکالیں</p>
+              <label class="action-btn" style="background: var(--primary); cursor: pointer;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" style="display: none;"></label>
               <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
               <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:5px;"></p>
             </div>
@@ -113,7 +116,7 @@
           </div>
         </div>
         <div id="pdf-tab" class="tab-content">
-          <div class="card"><h3>📄 Excel to PDF Generator</h3><p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Excel.xlsx فائل Upload کریں، PDF خود بن جائے گی</p><label class="action-btn" style="background: var(--primary); cursor: pointer;">📤 Choose Excel File<input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)" style="display: none;"></label></div>
+          <div class="card"><h3>📄 Excel to PDF Generator</h3><p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Excel.xlsx فائل Upload کریں، PDF خود بن جائے گی</p><label class="action-btn" style="background: var(--primary); cursor: pointer;">📤 Choose Excel File<input type="file" id="excel-upload" accept=".xlsx,.xls" style="display: none;"></label></div>
         </div>
       </div>
     </div>
@@ -122,10 +125,9 @@
   <script>
     const FIXED_FIRST_12 = "421011234567";
 
-    // ✅ Secret Scanner Fix: Key کوڈ میں نہیں، Popup سے آئے گی
     let GEMINI_API_KEY = localStorage.getItem('gemini_key');
     if(!GEMINI_API_KEY){
-        GEMINI_API_KEY = prompt("🔑 پہلی بار: اپنی Gemini API Key یہاں paste کریں\nKey لینے کے لیے: aistudio.google.com");
+        GEMINI_API_KEY = prompt("🔑 پہلی بار: اپنی Gemini API Key یہاں paste کریں\nKey: aistudio.google.com");
         if(GEMINI_API_KEY) localStorage.setItem('gemini_key', GEMINI_API_KEY);
     }
 
@@ -141,31 +143,60 @@
       return devId;
     }
 
-    async function handleLogin() {
+    // ✅ اب Event Listener سے چلے گا، onclick نہیں
+    document.getElementById('login-form').addEventListener('submit', function(e){
+      e.preventDefault();
+      handleLogin();
+    });
+
+    function handleLogin() {
       const user = document.getElementById('username').value.trim();
       const pass = document.getElementById('password').value.trim();
       const errEl = document.getElementById('login-err');
+      const btn = document.getElementById('login-btn');
+
       if (!user ||!pass) { errEl.innerText = "Please fill all fields!"; return; }
-      errEl.innerText = "Verifying...";
-      try {
-        const snapshot = await db.ref(`users/${user}`).once('value');
+      btn.disabled = true;
+      btn.innerText = "Verifying...";
+      errEl.innerText = "";
+
+      db.ref(`users/${user}`).once('value')
+    .then((snapshot) => {
         const userData = snapshot.val();
-        if (userData && userData.password === pass) {
-          const thisDeviceId = getDeviceId();
-          if (userData.boundDeviceId && userData.boundDeviceId!== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
-          if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
-          currentUser = user;
-          localStorage.setItem('logged_user', user);
-          document.getElementById('display-user').innerText = user;
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('app-container').style.display = 'flex';
-          errEl.innerText = "";
-          loadUserHistory(user);
-        } else { errEl.innerText = "Invalid Username or Password!"; }
-      } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
+
+        if (!userData) { errEl.innerText = "❌ User نہیں ملا!"; btn.disabled = false; btn.innerText = "Sign In"; return; }
+        if (userData.password!== pass) { errEl.innerText = "❌ Password غلط ہے!"; btn.disabled = false; btn.innerText = "Sign In"; return; }
+
+        const thisDeviceId = getDeviceId();
+        if (userData.boundDeviceId && userData.boundDeviceId!== thisDeviceId) {
+            errEl.innerText = "⛔ یہ Account دوسرے Device پر بند ہے!";
+            btn.disabled = false; btn.innerText = "Sign In";
+            return;
+        }
+        if (!userData.boundDeviceId) {
+            db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId);
+        }
+
+        currentUser = user;
+        localStorage.setItem('logged_user', user);
+        document.getElementById('display-user').innerText = user;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        loadUserHistory(user);
+
+      }).catch((e) => {
+        console.error(e);
+        errEl.innerText = "Database Error: " + e.message;
+        btn.disabled = false; btn.innerText = "Sign In";
+      });
     }
 
-    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    function handleLogout() {
+      if(html5QrCode) html5QrCode.stop().catch(()=>{});
+      localStorage.removeItem('logged_user');
+      location.reload();
+    }
 
     window.onload = function() {
       const savedUser = localStorage.getItem('logged_user');
@@ -178,6 +209,14 @@
       }
     };
 
+    // ✅ Tab switch بھی Event سے
+    document.querySelectorAll('.nav-sub-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const tabId = this.getAttribute('data-tab');
+        switchTab(tabId, this);
+      });
+    });
+
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
@@ -186,6 +225,7 @@
       if (tabId!== 'qr-tab' && html5QrCode) { html5QrCode.stop().catch(err => console.log(err)); }
     }
 
+    document.getElementById('scan-btn').addEventListener('click', startScanner);
     function startScanner() {
       if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
       html5QrCode.start( { facingMode: "environment" }, { fps: 10, qrbox: { width: 280, height: 100 } },
@@ -206,6 +246,7 @@
       }
     }
 
+    document.getElementById('generate-btn').addEventListener('click', generateQR);
     function generateQR() {
       const userInput = document.getElementById('cnic-input').value.trim().replace(/-/g, "");
       const qrBox = document.getElementById('qrcode-box');
@@ -233,6 +274,7 @@
       });
     }
 
+    document.getElementById('excel-upload').addEventListener('change', handleExcelUpload);
     function handleExcelUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -259,11 +301,10 @@
         alert("✅ PDF Successfully Generated!");
     }
 
-    // ===== GEMINI OCR - CARD FREE =====
+    document.getElementById('cnic-image-upload').addEventListener('change', handleCNICImageUpload);
     async function handleCNICImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         if(!GEMINI_API_KEY){ alert("Key نہیں ملی۔ Page refresh کریں"); return; }
 
         const statusEl = document.getElementById('ocr-status');
@@ -280,24 +321,12 @@
         reader.onloadend = async function() {
             const base64Image = reader.result.split(',')[1];
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-            const body = {
-              "contents": [{
-                "parts": [
-                  { "text": "اس پاکستانی CNIC کارڈ کی تصویر سے صرف 13 ہندسوں کا CNIC نمبر نکال کر دو۔ صرف نمبر دو، اور کچھ نہیں۔ اگر نہ ملے تو Not Found لکھو۔" },
-                  { "inline_data": { "mime_type": "image/jpeg", "data": base64Image } }
-                ]
-              }]
-            };
-
+            const body = { "contents": [{ "parts": [ { "text": "اس پاکستانی CNIC کارڈ کی تصویر سے صرف 13 ہندسوں کا CNIC نمبر نکال کر دو۔ صرف نمبر دو۔" }, { "inline_data": { "mime_type": "image/jpeg", "data": base64Image } ] }] };
             try {
                 const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
                 const data = await response.json();
                 let text = data.candidates[0].content.parts[0].text.trim();
-
-                console.log("Gemini OCR Text:", text);
                 let foundCNIC = text.replace(/\D/g, "");
-
                 if(foundCNIC.length >= 13){
                     foundCNIC = foundCNIC.slice(-13);
                     cnicInput.value = foundCNIC;
