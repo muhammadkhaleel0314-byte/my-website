@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNIC Portal & Dashboard</title>
+  <title>CNIC Portal & Dashboard - Google OCR</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -14,7 +14,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <!-- Tesseract ہٹا دیا -->
 
   <style>
     :root {
@@ -93,21 +92,21 @@
         </div>
         <div id="qr-tab" class="tab-content">
           <div class="card">
-            <h3>🪪 CNIC Barcode Scanner</h3>
+            <h3>🪪 CNIC Google OCR + Scanner</h3>
             <div class="input-group"><input type="text" id="cnic-input" class="input-field" placeholder="13 Digit CNIC Number" maxlength="13"><i class="fa-solid fa-id-card"></i></div>
 
             <div style="margin: 10px 0;">
-              <button class="action-btn" style="background: var(--primary-hover); margin-bottom: 8px;" onclick="startScanner()">📷 Start Live Camera Scan - 2 Sec</button>
+              <button class="action-btn" style="background: var(--primary-hover); margin-bottom: 8px;" onclick="startScanner()">📷 Live Camera Scan - 2 Sec</button>
               <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
             </div>
 
             <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
 
             <div style="margin: 15px 0; border-top: 1px dashed #334155; padding-top:15px;">
-              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Tesseract ہٹا دیا گیا۔ صرف Preview کے لیے Upload کریں</p>
-              <label class="action-btn" style="background: #64748b; cursor: pointer;">📷 Upload ID Card Preview<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">اب Google OCR - 3 سیکنڈ میں</p>
+              <label class="action-btn" style="background: var(--primary); cursor: pointer;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
               <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
-              <p id="ocr-status" style="font-size:12px; color:var(--btn-red); margin-top:5px;"></p>
+              <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:5px;"></p>
             </div>
 
             <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
@@ -122,6 +121,8 @@
 
   <script>
     const FIXED_FIRST_12 = "421011234567";
+    const GOOGLE_API_KEY = "AIzaSyAkvzeQmOz6jWNW-eMBKJM8miurX7B7dgo"; // ✅ آپ کی Key لگ گئی
+
     const firebaseConfig = { databaseURL: "https://mywebsite-7016a-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -252,16 +253,62 @@
         alert("✅ PDF Successfully Generated!");
     }
 
-    // ===== FAST UPLOAD: صرف Preview =====
+    // ===== GOOGLE VISION OCR - 3 SECONDS =====
     async function handleCNICImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
+
         const statusEl = document.getElementById('ocr-status');
         const previewEl = document.getElementById('cnic-preview');
+        const cnicInput = document.getElementById('cnic-input');
 
         previewEl.src = URL.createObjectURL(file);
         previewEl.style.display = 'block';
-        statusEl.innerText = "Status: ⚠️ Tesseract ہٹا دیا گیا ہے۔ نمبر خود لکھیں یا Camera Scan استعمال کریں";
+        statusEl.innerText = "Status: Google سے پڑھوا رہا ہوں... 3 سیکنڈ";
+        statusEl.style.color = "var(--primary)";
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async function() {
+            const base64Image = reader.result.split(',')[1];
+            const url = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_API_KEY}`;
+
+            const body = {
+                "requests": [{
+                    "image": { "content": base64Image },
+                    "features": [{ "type": "TEXT_DETECTION" }]
+                }]
+            };
+
+            try {
+                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                const data = await response.json();
+                const text = data.responses[0].fullTextAnnotation?.text || "";
+
+                console.log("Google OCR Text:", text);
+                const cnicMatch = text.match(/\d{5}-?\d{7}-?\d{1}/);
+                let foundCNIC = "";
+                if(cnicMatch){
+                    foundCNIC = cnicMatch[0].replace(/-/g, "");
+                } else {
+                    let allDigits = text.replace(/\D/g, "");
+                    if(allDigits.length >= 13){ foundCNIC = allDigits.slice(-13); }
+                }
+
+                if(foundCNIC.length === 13){
+                    cnicInput.value = foundCNIC;
+                    statusEl.innerText = `Status: ✅ مل گیا: ${foundCNIC}`;
+                    statusEl.style.color = "var(--btn-green)";
+                    setTimeout(() => { generateQR(); statusEl.innerText += " | QR بن گیا"; }, 500);
+                } else {
+                    statusEl.innerText = "Status: ❌ CNIC نہیں ملا۔ صاف تصویر لگائیں";
+                    statusEl.style.color = "var(--btn-red)";
+                }
+            } catch(error){
+                statusEl.innerText = "Status: API Error. Key چیک کریں";
+                console.error(error);
+            }
+        }
     }
   </script>
 </body>
