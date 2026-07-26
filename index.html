@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- QRCode.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Tesseract.js for Image OCR -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- HTML5 QR Code Scanner Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
   <!-- Firebase App & Database -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -207,7 +207,7 @@
     <div class="main-content">
       <div id="qr-generator" class="tab-content active">
         <div class="card">
-          <h3>🪪 CNIC QR Code Generator</h3>
+          <h3>🪪 CNIC Live Camera Scanner</h3>
           
           <!-- Manual Input -->
           <div class="input-group">
@@ -215,10 +215,10 @@
             <i class="fa-solid fa-id-card"></i>
           </div>
 
-          <!-- CNIC Picture Upload Option -->
-          <div style="margin: 15px 0; text-align: left;">
-            <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 5px;">Or Upload CNIC Picture:</label>
-            <input type="file" id="cnic-file" accept="image/*" class="input-field" style="padding: 10px; cursor: pointer;" onchange="handleImageUpload(event)">
+          <!-- Camera Scanner Viewport -->
+          <div style="margin: 15px 0;">
+            <button class="action-btn" style="background: var(--primary-hover); margin-bottom: 10px;" onclick="startScanner()">📷 Open Camera to Scan Barcode</button>
+            <div id="reader" style="width: 100%; border-radius: 10px; overflow: hidden;"></div>
           </div>
 
           <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
@@ -253,6 +253,7 @@
     const db = firebase.database();
 
     let currentUser = null;
+    let html5QrCode = null;
 
     function getDeviceId() {
       let devId = localStorage.getItem('device_unique_id');
@@ -328,40 +329,51 @@
       
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+
+      // Agar QR generator se hatein toh camera band kar dein
+      if (tabId !== 'qr-generator' && html5QrCode) {
+        html5QrCode.stop().catch(err => console.log(err));
+      }
     }
 
-    // FLEXIBLE OCR IMAGE UPLOAD LOGIC
-    async function handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
+    // LIVE CAMERA BARCODE SCANNER LOGIC
+    function startScanner() {
       const cnicInput = document.getElementById('cnic-input');
-      cnicInput.value = "Scanning image...";
-
-      try {
-        const result = await Tesseract.recognize(file, 'eng', {
-          logger: m => console.log(m)
-        });
-
-        const text = result.data.text;
-        console.log("Extracted OCR Text:", text);
-
-        // Sare alphabets aur symbols hata kar sirf numbers nikalna
-        const allDigits = text.replace(/\D/g, "");
-        const match13 = allDigits.match(/\d{13}/);
-
-        if (match13) {
-          cnicInput.value = match13[0];
-          generateQR();
-        } else {
-          cnicInput.value = "";
-          alert("❌ Image se 13 digits match nahi huay. Barah-e-karam apna CNIC manual type karein.");
-        }
-      } catch (err) {
-        console.error(err);
-        cnicInput.value = "";
-        alert("❌ Error reading image!");
+      
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
       }
+
+      html5QrCode.start(
+        { facingMode: "environment" }, // Back camera
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 100 }
+        },
+        (decodedText, decodedResult) => {
+          console.log(`Scan result: ${decodedText}`, decodedResult);
+          
+          // Sirf numbers filter out karna ya 13 digits nikalna
+          const digitsOnly = decodedText.replace(/\D/g, "");
+          const match13 = digitsOnly.match(/\d{13}/);
+
+          if (match13) {
+            cnicInput.value = match13[0];
+            generateQR();
+            // Scan hone ke baad camera band kar dena
+            html5QrCode.stop().catch(err => console.log(err));
+            alert("✔ CNIC Scanned Successfully!");
+          } else {
+            cnicInput.value = digitsOnly.slice(0, 13); // First 13 digits agar available hon
+          }
+        },
+        (errorMessage) => {
+          // Scanning errors ko ignore karein jab tak code detect na ho
+        }
+      ).catch((err) => {
+        alert("❌ Camera start karne mein masla hua. Permission check karein.");
+        console.error(err);
+      });
     }
 
     function generateQR() {
