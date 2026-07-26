@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login - CNIC System</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <styleAapki Firebase Realtime Database (`mywebsite-7016a-default-rtdb`) ke structure ke mutabiq, yahan ek complete aur modern **`login.html`** file ka code diya gaya hai. 
+
+Isme **HTML layout**, **CSS styling**, aur **Firebase SDK JavaScript** sab shamil hain jo username aur password ko check karega:
+
+```html
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MyWebsite</title>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 {
+            margin-bottom: 24px;
+            color: #333;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: #667eea;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #5a67d8;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .error {
+            color: #e53e3e;
+        }
+
+        .success {
+            color: #38a169;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Username daraj karein" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Password daraj karein" required>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">Login</button>
+        </form>
+
+        <div id="message"></div>
+    </div>
+
+    <!-- Firebase Scripts (v8 compatibility) -->
+    <script src="[https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js](https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js)"></script>
+    <script src="[https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js](https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js)"></script>
+
+    <script>
+        // Aapki Firebase Configuration
+        const firebaseConfig = {
+            databaseURL: "[https://mywebsite-7016a-default-rtdb.firebaseio.com/](https://mywebsite-7016a-default-rtdb.firebaseio.com/)"
+        };
+
+        // Firebase Initialize karein
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Unique Device ID generate/retrieve karne ka function
+        function getDeviceId() {
+            let deviceId = localStorage.getItem("activeDeviceId");
+            if (!deviceId) {
+                deviceId = "dev_" + Math.random().toString(36).substr(2, 9) + Date.now();
+                localStorage.setItem("activeDeviceId", deviceId);
+            }
+            return deviceId;
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        const messageDiv = document.getElementById('message');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const deviceId = getDeviceId();
+
+            messageDiv.textContent = "Checking...";
+            messageDiv.className = "";
+
+            // Firebase Database se User search karein
+            database.ref('users/' + username).once('value')
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+
+                        if (userData.password === password) {
+                            // Password Sahi hai -> Active Device ID update karein
+                            database.ref('users/' + username + '/activeDeviceId').set(deviceId);
+
+                            messageDiv.textContent = "Login Successful!";
+                            messageDiv.className = "success";
+
+                            // Successful Login ke baad redirect karein (apni marzi ke page par)
+                            setTimeout(() => {
+                                alert("Swagath hai " + username + "!");
+                                // window.location.href = "dashboard.html";
+                            }, 1000);
+                        } else {
+                            messageDiv.textContent = "Galat Password!";
+                            messageDiv.className = "error";
+                        }
+                    } else {
+                        messageDiv.textContent = "User nahi mila!";
+                        messageDiv.className = "error";
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    messageDiv.textContent = "Error: " + error.message;
+                    messageDiv.className = "error";
+                });
+        });
+    </script>
+
+</body>
+</html>
