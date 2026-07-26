@@ -24,40 +24,40 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; }
     #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
-.login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
-.login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
-.login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
-.login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
-.input-group { position: relative; margin-bottom: 15px; text-align: left; }
-.input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
-.input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
-.input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
-.login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
-.app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
-.header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
-.user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-.logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
-.main-wrapper { display: flex; flex: 1; flex-direction: column; }
-    @media(min-width: 768px) {.main-wrapper { flex-direction: row; } }
-.sidebar { width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto; }
-    @media(min-width: 768px) {.sidebar { width: 240px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; } }
-.menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
-    @media(min-width: 768px) {.menu-title { display: block; } }
-.nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-.nav-sub-btn:hover,.nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
-.main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
-.tab-content { display: none; width: 100%; max-width: 500px; }
-.tab-content.active { display: block; }
-.card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-    @media(min-width: 480px) {.card { padding: 30px; } }
-.card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
-.action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
-.action-btn:hover { opacity: 0.9; }
+    .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
+    .login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
+    .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
+    .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+    .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+    .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+    .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
+    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
+    .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
+    .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+    .logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .main-wrapper { display: flex; flex: 1; flex-direction: column; }
+    @media(min-width: 768px) { .main-wrapper { flex-direction: row; } }
+    .sidebar { width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto; }
+    @media(min-width: 768px) { .sidebar { width: 240px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; } }
+    .menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
+    @media(min-width: 768px) { .menu-title { display: block; } }
+    .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+    .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+    .main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+    .tab-content { display: none; width: 100%; max-width: 500px; }
+    .tab-content.active { display: block; }
+    .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+    @media(min-width: 480px) { .card { padding: 30px; } }
+    .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
+    .action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
+    .action-btn:hover { opacity: 0.9; }
     #qrcode-box { margin-top: 20px; display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto; }
     #qrcode-box:empty { display: none; }
     #reader { border: 2px dashed var(--primary); }
-.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
-.history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
+    .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -88,7 +88,11 @@
       </div>
       <div class="main-content">
         <div id="dashboard-tab" class="tab-content active">
-          <div class="card"><h3>📊 Your Activity Dashboard</h3><p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p><div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div></div>
+          <div class="card">
+            <h3>📊 Your Activity Dashboard</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
+            <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
+          </div>
         </div>
         <div id="qr-tab" class="tab-content">
           <div class="card">
@@ -113,7 +117,11 @@
           </div>
         </div>
         <div id="pdf-tab" class="tab-content">
-          <div class="card"><h3>📄 Excel to PDF Generator</h3><p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Excel.xlsx فائل Upload کریں، PDF خود بن جائے گی</p><label class="action-btn" style="background: var(--primary); cursor: pointer;">📤 Choose Excel File<input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)" style="display: none;"></label></div>
+          <div class="card">
+            <h3>📄 Excel to PDF Generator</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Excel.xlsx فائل Upload کریں، PDF خود بن جائے گی</p>
+            <label class="action-btn" style="background: var(--primary); cursor: pointer;">📤 Choose Excel File<input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)" style="display: none;"></label>
+          </div>
         </div>
       </div>
     </div>
@@ -122,7 +130,6 @@
   <script>
     const FIXED_FIRST_12 = "421011234567";
 
-    // ✅ Gemini Key - Secret Scanner Safe
     let GOOGLE_API_KEY = localStorage.getItem('gemini_key');
     if(!GOOGLE_API_KEY){
         GOOGLE_API_KEY = prompt("🔑 پہلی بار: اپنی Gemini API Key یہاں paste کریں\nKey: aistudio.google.com");
@@ -145,14 +152,14 @@
       const user = document.getElementById('username').value.trim();
       const pass = document.getElementById('password').value.trim();
       const errEl = document.getElementById('login-err');
-      if (!user ||!pass) { errEl.innerText = "Please fill all fields!"; return; }
+      if (!user || !pass) { errEl.innerText = "Please fill all fields!"; return; }
       errEl.innerText = "Verifying...";
       try {
         const snapshot = await db.ref(`users/${user}`).once('value');
         const userData = snapshot.val();
         if (userData && userData.password === pass) {
           const thisDeviceId = getDeviceId();
-          if (userData.boundDeviceId && userData.boundDeviceId!== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
+          if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
           if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
           currentUser = user;
           localStorage.setItem('logged_user', user);
@@ -183,7 +190,7 @@
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
-      if (tabId!== 'qr-tab' && html5QrCode) { html5QrCode.stop().catch(err => console.log(err)); }
+      if (tabId !== 'qr-tab' && html5QrCode) { html5QrCode.stop().catch(err => console.log(err)); }
     }
 
     function startScanner() {
@@ -259,7 +266,7 @@
         alert("✅ PDF Successfully Generated!");
     }
 
-    // ===== GEMINI OCR - CARD FREE =====
+    // ===== GEMINI OCR - SECURE & FIXED =====
     async function handleCNICImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -293,9 +300,22 @@
             try {
                 const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
                 const data = await response.json();
-                let text = data.candidates[0].content.parts[0].text.trim();
+                
+                console.log("API Response:", data);
 
-                console.log("Gemini OCR Text:", text);
+                if (data.error) {
+                    statusEl.innerText = `Status: API Error - ${data.error.message || 'Key چیک کریں'}`;
+                    statusEl.style.color = "var(--btn-red)";
+                    return;
+                }
+
+                if (!data.candidates || !data.candidates[0].content) {
+                    statusEl.innerText = "Status: ❌ ماڈل نے ڈیٹا بلاک کر دیا یا نہیں پڑھ سکا۔";
+                    statusEl.style.color = "var(--btn-red)";
+                    return;
+                }
+
+                let text = data.candidates[0].content.parts[0].text.trim();
                 let foundCNIC = text.replace(/\D/g, "");
 
                 if(foundCNIC.length >= 13){
@@ -305,11 +325,11 @@
                     statusEl.style.color = "var(--btn-green)";
                     setTimeout(() => { generateQR(); statusEl.innerText += " | QR بن گیا"; }, 500);
                 } else {
-                    statusEl.innerText = "Status: ❌ CNIC نہیں ملا۔ صاف تصویر لگائیں";
+                    statusEl.innerText = "Status: ❌ CNIC نمبر نہیں ملا۔ صاف تصویر لگائیں";
                     statusEl.style.color = "var(--btn-red)";
                 }
             } catch(error){
-                statusEl.innerText = "Status: API Error. Key چیک کریں";
+                statusEl.innerText = "Status: Network Error یا غلط Key";
                 console.error(error);
             }
         }
