@@ -330,7 +330,7 @@
       btn.classList.add('active');
     }
 
-    // IMAGE UPLOAD & OCR SCANNING LOGIC
+    // FLEXIBLE OCR IMAGE UPLOAD LOGIC
     async function handleImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -344,15 +344,18 @@
         });
 
         const text = result.data.text;
-        const match = text.match(/\d{5}-\d{7}-\d{1}|\d{13}/);
+        console.log("Extracted OCR Text:", text);
 
-        if (match) {
-          const cleanCNIC = match[0].replace(/-/g, "");
-          cnicInput.value = cleanCNIC;
+        // Sare alphabets aur symbols hata kar sirf numbers nikalna
+        const allDigits = text.replace(/\D/g, "");
+        const match13 = allDigits.match(/\d{13}/);
+
+        if (match13) {
+          cnicInput.value = match13[0];
           generateQR();
         } else {
           cnicInput.value = "";
-          alert("❌ CNIC number image mein nahi mila. Barah-e-karam manual type karein.");
+          alert("❌ Image se 13 digits match nahi huay. Barah-e-karam apna CNIC manual type karein.");
         }
       } catch (err) {
         console.error(err);
