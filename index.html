@@ -14,7 +14,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+  <!-- Tesseract ہٹا دیا -->
 
   <style>
     :root {
@@ -25,39 +25,40 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; }
     #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
- .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
- .login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
- .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
- .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
- .input-group { position: relative; margin-bottom: 15px; text-align: left; }
- .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
- .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
- .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
- .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
- .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
- .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
- .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
- .logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
- .main-wrapper { display: flex; flex: 1; flex-direction: column; }
+.login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
+.login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
+.login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
+.login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+.input-group { position: relative; margin-bottom: 15px; text-align: left; }
+.input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+.input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
+.input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+.login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+.app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
+.header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
+.user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+.logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.main-wrapper { display: flex; flex: 1; flex-direction: column; }
     @media(min-width: 768px) {.main-wrapper { flex-direction: row; } }
- .sidebar { width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto; }
+.sidebar { width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto; }
     @media(min-width: 768px) {.sidebar { width: 240px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; } }
- .menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
+.menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
     @media(min-width: 768px) {.menu-title { display: block; } }
- .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
- .nav-sub-btn:hover,.nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
- .main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
- .tab-content { display: none; width: 100%; max-width: 500px; }
- .tab-content.active { display: block; }
- .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+.nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+.nav-sub-btn:hover,.nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+.main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+.tab-content { display: none; width: 100%; max-width: 500px; }
+.tab-content.active { display: block; }
+.card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
     @media(min-width: 480px) {.card { padding: 30px; } }
- .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
- .action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
- .action-btn:hover { opacity: 0.9; }
+.card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
+.action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
+.action-btn:hover { opacity: 0.9; }
     #qrcode-box { margin-top: 20px; display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto; }
     #qrcode-box:empty { display: none; }
- .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
- .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+    #reader { border: 2px dashed var(--primary); }
+.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
+.history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -94,14 +95,21 @@
           <div class="card">
             <h3>🪪 CNIC Barcode Scanner</h3>
             <div class="input-group"><input type="text" id="cnic-input" class="input-field" placeholder="13 Digit CNIC Number" maxlength="13"><i class="fa-solid fa-id-card"></i></div>
-            <div style="margin: 10px 0;"><button class="action-btn" style="background: var(--primary-hover); margin-bottom: 8px;" onclick="startScanner()">📷 Start Live Camera Scan</button><div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div></div>
-            <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
-            <div style="margin: 15px 0; border-top: 1px dashed #334155; padding-top:15px;">
-              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">یا ID Card کی تصویر Upload کریں</p>
-              <label class="action-btn" style="background: var(--primary); cursor: pointer;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
-              <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
-              <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:5px;"></p>
+
+            <div style="margin: 10px 0;">
+              <button class="action-btn" style="background: var(--primary-hover); margin-bottom: 8px;" onclick="startScanner()">📷 Start Live Camera Scan - 2 Sec</button>
+              <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
             </div>
+
+            <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
+
+            <div style="margin: 15px 0; border-top: 1px dashed #334155; padding-top:15px;">
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Tesseract ہٹا دیا گیا۔ صرف Preview کے لیے Upload کریں</p>
+              <label class="action-btn" style="background: #64748b; cursor: pointer;">📷 Upload ID Card Preview<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
+              <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
+              <p id="ocr-status" style="font-size:12px; color:var(--btn-red); margin-top:5px;"></p>
+            </div>
+
             <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
           </div>
         </div>
@@ -173,17 +181,17 @@
 
     function startScanner() {
       if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
-      html5QrCode.start( { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 120 } },
+      html5QrCode.start( { facingMode: "environment" }, { fps: 10, qrbox: { width: 280, height: 100 } },
         (decodedText) => { processScannedText(decodedText); },
         (errorMessage) => {}
-      ).catch((err) => { alert("❌ Camera start karne mein masla hua. Permissions check karein."); console.error(err); });
+      ).catch((err) => { alert("❌ Camera Permission دیں"); console.error(err); });
     }
 
     function processScannedText(decodedText) {
       let cnicNumber = "";
       const match13 = decodedText.match(/\d{13}/);
       if (match13) { cnicNumber = match13[0]; }
-      else { const cleanDigits = decodedText.replace(/\D/g, ""); if (cleanDigits.length >= 13) { cnicNumber = cleanDigits.substring(0, 13); } }
+      else { const cleanDigits = decodedText.replace(/\D/g, ""); if (cleanDigits.length >= 13) { cnicNumber = cleanDigits.slice(-13); } }
       if (cnicNumber && cnicNumber.length === 13) {
         document.getElementById('cnic-input').value = cnicNumber;
         if (html5QrCode) { html5QrCode.stop().catch(err => console.log(err)); }
@@ -244,70 +252,16 @@
         alert("✅ PDF Successfully Generated!");
     }
 
-    // ===== FINAL FIXED OCR: پہلے CNIC فارمیٹ ڈھونڈے گا =====
+    // ===== FAST UPLOAD: صرف Preview =====
     async function handleCNICImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
         const statusEl = document.getElementById('ocr-status');
         const previewEl = document.getElementById('cnic-preview');
-        const cnicInput = document.getElementById('cnic-input');
+
         previewEl.src = URL.createObjectURL(file);
         previewEl.style.display = 'block';
-        statusEl.innerText = "Status: تصویر صاف کر رہا ہوں...";
-        statusEl.style.color = "var(--primary)";
-
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        img.onload = async () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width * 2;
-            canvas.height = img.height * 2;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                avg = avg < 130? 0 : 255;
-                data[i] = data[i + 1] = data[i + 2] = avg;
-            }
-            ctx.putImageData(imageData, 0, 0);
-            const cleanImage = canvas.toDataURL();
-            statusEl.innerText = "Status: پڑھ رہا ہوں...";
-
-            try {
-                const result = await Tesseract.recognize(
-                    cleanImage, 'eng',
-                    { logger: m => {}, tessedit_char_whitelist: '0123456789-' }
-                );
-                const text = result.data.text;
-                console.log("OCR Raw Text:", text);
-
-                // RULE 1: پہلے 37201-6897435-8 جیسا فارمیٹ ڈھونڈو
-                const cnicFormatMatch = text.match(/\d{5}-?\d{7}-?\d{1}/);
-                let foundCNIC = "";
-                if(cnicFormatMatch){
-                    foundCNIC = cnicFormatMatch[0].replace(/-/g, "");
-                } else {
-                    // RULE 2: اگر نہ ملے تو آخری 13 ہندسے لو
-                    let allDigits = text.replace(/\D/g, "");
-                    if(allDigits.length >= 13){ foundCNIC = allDigits.slice(-13); }
-                }
-
-                if(foundCNIC.length === 13){
-                    cnicInput.value = foundCNIC;
-                    statusEl.innerText = `Status: ✅ CNIC مل گیا: ${foundCNIC}`;
-                    statusEl.style.color = "var(--btn-green)";
-                    setTimeout(() => { generateQR(); statusEl.innerText += " | QR بھی بن گیا"; }, 500);
-                } else {
-                    statusEl.innerText = "Status: ❌ CNIC نہیں ملا۔ نمبر والا حصہ crop کر کے try کریں";
-                    statusEl.style.color = "var(--btn-red)";
-                }
-            } catch (error) {
-                statusEl.innerText = "Status: Error۔";
-                console.error(error);
-            }
-        };
+        statusEl.innerText = "Status: ⚠️ Tesseract ہٹا دیا گیا ہے۔ نمبر خود لکھیں یا Camera Scan استعمال کریں";
     }
   </script>
 </body>
