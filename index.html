@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CNIC Portal & Dashboard</title>
-  
+
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- QRCode.js Library -->
@@ -14,6 +14,12 @@
   <!-- Firebase App & Database -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <!-- === NEW: Excel + PDF + OCR Library === -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 
   <style>
     :root {
@@ -36,90 +42,90 @@
       position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%);
       display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px;
     }
-    .login-card {
+   .login-card {
       background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px);
       padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px;
       border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       text-align: center;
     }
-    .login-icon {
+   .login-icon {
       width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1);
       color: var(--primary); border-radius: 50%; display: flex;
       align-items: center; justify-content: center; margin: 0 auto 15px auto;
       font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2);
     }
-    .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
-    .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+   .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
+   .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
 
-    .input-group { position: relative; margin-bottom: 15px; text-align: left; }
-    .input-group i {
+   .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+   .input-group i {
       position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
       color: var(--text-muted); font-size: 14px;
     }
-    .input-field {
+   .input-field {
       width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px;
       border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white;
       outline: none; font-size: 14px;
     }
-    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+   .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
 
-    .login-btn {
+   .login-btn {
       width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7);
       color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;
     }
 
     /* DASHBOARD LAYOUT & RESPONSIVE */
-    .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
-    
-    .header {
+   .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
+
+   .header {
       height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b;
       display: flex; justify-content: space-between; align-items: center;
       padding: 0 20px; position: sticky; top: 0; z-index: 10;
     }
-    .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-    .logout-btn {
+   .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+   .logout-btn {
       background: rgba(239, 68, 68, 0.1); color: var(--btn-red);
       border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px;
       border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
     }
 
-    .main-wrapper { display: flex; flex: 1; flex-direction: column; }
-    @media(min-width: 768px) { .main-wrapper { flex-direction: row; } }
+   .main-wrapper { display: flex; flex: 1; flex-direction: column; }
+    @media(min-width: 768px) {.main-wrapper { flex-direction: row; } }
 
-    .sidebar {
+   .sidebar {
       width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto;
     }
     @media(min-width: 768px) {
-      .sidebar { width: 240px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; }
+     .sidebar { width: 240px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; }
     }
-    .menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
-    @media(min-width: 768px) { .menu-title { display: block; } }
+   .menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
+    @media(min-width: 768px) {.menu-title { display: block; } }
 
-    .nav-sub-btn {
+   .nav-sub-btn {
       padding: 10px 15px; background: transparent; color: var(--text-muted);
       border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap;
     }
-    .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+   .nav-sub-btn:hover,.nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
 
-    .main-content {
+   .main-content {
       flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start;
     }
-    .tab-content { display: none; width: 100%; max-width: 500px; }
-    .tab-content.active { display: block; }
+   .tab-content { display: none; width: 100%; max-width: 500px; }
+   .tab-content.active { display: block; }
 
-    .card {
+   .card {
       background: var(--card-bg); padding: 20px; border-radius: 16px;
       border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center;
     }
-    @media(min-width: 480px) { .card { padding: 30px; } }
-    .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
-    
-    .action-btn {
+    @media(min-width: 480px) {.card { padding: 30px; } }
+   .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
+
+   .action-btn {
       width: 100%; padding: 12px; background: var(--btn-green); color: white;
       border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
       margin-top: 15px; font-size: 14px; transition: 0.2s;
     }
-    .action-btn:hover { opacity: 0.9; }
+   .action-btn:hover { opacity: 0.9; }
 
     #qrcode-box {
       margin-top: 20px; display: flex; justify-content: center;
@@ -128,8 +134,8 @@
     #qrcode-box:empty { display: none; }
 
     /* DASHBOARD TABLE / RECORD LIST */
-    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
-    .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+   .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
+   .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -176,17 +182,20 @@
         <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)">
           <i class="fa-solid fa-qrcode"></i> QR Generator & Scanner
         </button>
+        <button class="nav-sub-btn" onclick="switchTab('pdf-tab', this)">
+          <i class="fa-solid fa-file-pdf"></i> PDF Generator
+        </button>
       </div>
 
       <!-- MAIN CONTENT AREA -->
       <div class="main-content">
-        
+
         <!-- DASHBOARD TAB (RECORDS) -->
         <div id="dashboard-tab" class="tab-content active">
           <div class="card">
             <h3>📊 Your Activity Dashboard</h3>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
-            
+
             <div class="history-list" id="dashboard-history-list">
               <p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p>
             </div>
@@ -197,7 +206,7 @@
         <div id="qr-tab" class="tab-content">
           <div class="card">
             <h3>🪪 CNIC Barcode Scanner</h3>
-            
+
             <div class="input-group">
               <input type="text" id="cnic-input" class="input-field" placeholder="13 Digit CNIC Number" maxlength="13">
               <i class="fa-solid fa-id-card"></i>
@@ -210,11 +219,34 @@
             </div>
 
             <button class="action-btn" onclick="generateQR()">✨ Generate QR Code</button>
-            
+
+            <!-- === NEW: OCR UPLOAD === -->
+            <div style="margin: 15px 0; border-top: 1px dashed #334155; padding-top:15px;">
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">یا ID Card کی تصویر Upload کریں</p>
+              <label class="action-btn" style="background: var(--primary); cursor: pointer;">
+                📷 Upload ID Card Image
+                <input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;">
+              </label>
+              <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
+              <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:5px;"></p>
+            </div>
+
             <div style="display: flex; justify-content: center; width: 100%;">
               <div id="qrcode-box"></div>
-            
             </div>
+          </div>
+        </div>
+
+        <!-- PDF GENERATOR TAB -->
+        <div id="pdf-tab" class="tab-content">
+          <div class="card">
+            <h3>📄 Excel to PDF Generator</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Excel.xlsx فائل Upload کریں، PDF خود بن جائے گی</p>
+
+            <label class="action-btn" style="background: var(--primary); cursor: pointer;">
+              📤 Choose Excel File
+              <input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)" style="display: none;">
+            </label>
           </div>
         </div>
 
@@ -248,7 +280,7 @@
       const pass = document.getElementById('password').value.trim();
       const errEl = document.getElementById('login-err');
 
-      if (!user || !pass) {
+      if (!user ||!pass) {
         errEl.innerText = "Please fill all fields!";
         return;
       }
@@ -262,7 +294,7 @@
         if (userData && userData.password === pass) {
           const thisDeviceId = getDeviceId();
 
-          if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) {
+          if (userData.boundDeviceId && userData.boundDeviceId!== thisDeviceId) {
             errEl.innerText = "⛔ Account registered to another device!";
             return;
           }
@@ -308,11 +340,11 @@
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
-      
+
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
 
-      if (tabId !== 'qr-tab' && html5QrCode) {
+      if (tabId!== 'qr-tab' && html5QrCode) {
         html5QrCode.stop().catch(err => console.log(err));
       }
     }
@@ -370,7 +402,7 @@
 
       const fullCNIC = FIXED_FIRST_12 + userInput;
       qrBox.innerHTML = "";
-      
+
       new QRCode(qrBox, {
         text: fullCNIC,
         width: 160,
@@ -396,7 +428,7 @@
       db.ref(`history/${username}`).on('value', (snapshot) => {
         historyList.innerHTML = "";
         const data = snapshot.val();
-        
+
         if (!data) {
           historyList.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p>`;
           return;
@@ -417,7 +449,91 @@
         historyList.innerHTML = html;
       });
     }
+
+    // ===== NEW: PDF MODULE =====
+    function handleExcelUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+
+            generatePDFFromData(jsonData);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function generatePDFFromData(data) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text("CNIC Portal - Excel Report", 14, 20);
+
+        const headers = data[0];
+        const rows = data.slice(1);
+
+        doc.autoTable({
+            head: [headers],
+            body: rows,
+            startY: 30,
+            theme: 'grid'
+        });
+
+        doc.save('report-from-excel.pdf');
+        alert("✅ PDF Successfully Generated!");
+    }
+
+    // ===== NEW: CNIC OCR + AUTO QR MODULE =====
+    async function handleCNICImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusEl = document.getElementById('ocr-status');
+        const previewEl = document.getElementById('cnic-preview');
+        const cnicInput = document.getElementById('cnic-input');
+
+        previewEl.src = URL.createObjectURL(file);
+        previewEl.style.display = 'block';
+        statusEl.innerText = "Status: پڑھ رہا ہوں... 10 سیکنڈ لگیں گے";
+        statusEl.style.color = "var(--primary)";
+
+        try {
+            const { data: { text } } = await Tesseract.recognize(
+                file,
+                'eng+urd',
+                { logger: m => console.log(m) }
+            );
+
+            const cnicMatch = text.match(/\d{5}-?\d{7}-?\d{1}|\d{13}/);
+
+            if (cnicMatch) {
+                let foundCNIC = cnicMatch[0].replace(/-/g, "");
+                foundCNIC = foundCNIC.slice(-13);
+
+                cnicInput.value = foundCNIC;
+                statusEl.innerText = `Status: ✅ CNIC مل گیا: ${foundCNIC}`;
+                statusEl.style.color = "var(--btn-green)";
+
+                setTimeout(() => {
+                    generateQR();
+                    statusEl.innerText += " | QR بھی بن گیا";
+                }, 1000);
+
+            } else {
+                statusEl.innerText = "Status: ❌ CNIC نہیں ملا۔ تصویر صاف کر کے دوبارہ try کریں";
+                statusEl.style.color = "var(--btn-red)";
+            }
+
+        } catch (error) {
+            statusEl.innerText = "Status: Error۔ تصویر صاف نہیں ہے";
+            console.error(error);
+        }
+    }
   </script>
 </body>
 </html>
-
