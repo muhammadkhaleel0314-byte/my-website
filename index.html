@@ -8,10 +8,6 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- QRCode.js Library -->
-  <!-- Excel aur PDF Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- HTML5 QR Code Scanner Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -217,9 +213,7 @@
             
             <div style="display: flex; justify-content: center; width: 100%;">
               <div id="qrcode-box"></div>
-              <button class="nav-sub-btn" onclick="switchTab('pdf-tab', this)">
-  <i class="fa-solid fa-file-pdf"></i> PDF Generator
-</button>
+            
             </div>
           </div>
         </div>
@@ -426,15 +420,4 @@
   </script>
 </body>
 </html>
-<!-- PDF GENERATOR TAB -->
-<div id="pdf-tab" class="tab-content">
-  <div class="card">
-    <h3>📄 Excel to PDF Generator</h3>
-    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Excel.xlsx فائل Upload کریں، PDF خود بن جائے گی</p>
 
-    <label class="action-btn" style="background: var(--primary); cursor: pointer;">
-      📤 Choose Excel File
-      <input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)" style="display: none;">
-    </label>
-  </div>
-</div>
