@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNIC Portal & Dashboard -  OCR</title>
+  <title>CNIC Portal & Dashboard - Gemini OCR</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -41,7 +41,7 @@
     .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; width: 100%; }
     .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
     .main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
-    .tab-content { display: none; width: 100%; max-width: 500px; }
+    .tab-content { display: none; width: 100%; max-width: 600px; }
     .tab-content.active { display: block; }
     .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
     @media(min-width: 480px) { .card { padding: 30px; } }
@@ -53,6 +53,11 @@
     .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
     .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
     
+    /* Links Grid for My Links Tab */
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; text-align: left; }
+    .link-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
+    .link-card-item:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); transform: translateY(-3px); }
+    
     /* Timer Modal Overlay */
     #timer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
     .timer-card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; }
@@ -62,6 +67,11 @@
   </style>
 </head>
 <body>
+
+  <!-- Audio element for clicking sound -->
+  <audio id="click-sound" preload="auto">
+      <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" type="audio/wav">
+  </audio>
 
   <!-- 20 Seconds Timer Modal -->
   <div id="timer-modal">
@@ -95,16 +105,18 @@
         <div>
           <div class="menu-title">NAVIGATION</div>
           <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
-          <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
+          <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> Gemini OCR & QR</button>
+          <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
         </div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
-        <div style="margin-top: auto; padding-top: 15px;">
+        <div style="margin-top: auto; padding-top: 15px; width: 100%;">
           <button onclick="startResetTimer()" style="background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">
             🔄 Reset Key
           </button>
         </div>
       </div>
       <div class="main-content">
+        <!-- Dashboard Tab -->
         <div id="dashboard-tab" class="tab-content active">
           <div class="card">
             <h3>📊 Your Activity Dashboard</h3>
@@ -112,9 +124,11 @@
             <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
           </div>
         </div>
+
+        <!-- QR Generator & OCR Tab -->
         <div id="qr-tab" class="tab-content">
           <div class="card">
-            <h3>🪪 CNIC OCR</h3>
+            <h3>🪪 CNIC Gemini OCR</h3>
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">شناختی کارڈ کی تصویر اپ لوڈ کریں، QR خود بن جائے گا</p>
 
             <div style="margin: 15px 0;">
@@ -126,6 +140,90 @@
             <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
           </div>
         </div>
+
+        <!-- My Links Tab -->
+        <div id="links-tab" class="tab-content">
+          <div class="card" style="text-align: left;">
+            <h3 style="text-align: center;">🔗 My Link's</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
+            
+            <div class="links-grid">
+              <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://muhammadkhaleel0314-byte.github.io/my-website//" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+
+              <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -144,6 +242,14 @@
     const db = firebase.database();
     let currentUser = null;
     let resetTimerInterval = null;
+
+    function playSound() {
+        var sound = document.getElementById("click-sound");
+        if(sound) {
+            sound.currentTime = 0;
+            sound.play();
+        }
+    }
 
     function getDeviceId() {
       let devId = localStorage.getItem('device_unique_id');
@@ -193,6 +299,7 @@
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+      playSound();
     }
 
     // ===== 20 SECONDS RESET TIMER FUNCTIONS =====
@@ -255,7 +362,7 @@
 
         previewEl.src = URL.createObjectURL(file);
         previewEl.style.display = 'block';
-        statusEl.innerText = "Status: Please Wait";
+        statusEl.innerText = "Status: Gemini سے پڑھوا رہا ہوں... 3 سیکنڈ";
         statusEl.style.color = "var(--primary)";
 
         const reader = new FileReader();
@@ -272,7 +379,7 @@
                 ]
               }]
             };
-          
+
             try {
                 const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
                 const data = await response.json();
