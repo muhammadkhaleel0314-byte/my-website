@@ -12,13 +12,12 @@
 
   <style>
     :root {
-      --bg-dark: #0f172a; --card-bg: #1e293b; --sidebar-bg: #1e293b;
+      --bg-dark: #0f172a; --card-bg: #1e293b; --sidebar-bg: #0f172a;
       --primary: #38bdf8; --primary-hover: #0284c7; --btn-green: #10b981;
-      --btn-red: #ef4444; --text-light: #f8fafc; --text-muted: #94a3b8; --border-color: #334155;
+      --btn-red: #ef4444; --text-light: #f8fafc; --text-muted: #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
-    
+    body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; }
     #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
     .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
     .login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
@@ -29,82 +28,28 @@
     .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
     .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
     .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
-    
-    .app-container { display: flex; flex-direction: row; min-height: 100vh; display: none; width: 100%; }
-    @media(max-width: 767px) { .app-container { flex-direction: column; } }
-
-    /* Left Sidebar Navigation */
-    .sidebar {
-        width: 260px;
-        background-color: var(--sidebar-bg);
-        border-right: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 20px;
-    }
-    @media(max-width: 767px) { .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); } }
-
-    .sidebar-top {
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-
-    .user-welcome {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--text-light);
-    }
-
-    .nav-links {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .nav-sub-btn { 
-        padding: 12px 16px; 
-        background: transparent; 
-        color: var(--text-muted); 
-        border: none; 
-        text-align: left; 
-        font-size: 14px; 
-        border-radius: 8px; 
-        font-weight: 600; 
-        display: flex; 
-        align-items: center; 
-        gap: 12px; 
-        cursor: pointer; 
-        transition: 0.2s; 
-        width: 100%; 
-    }
-    .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
-
-    .sidebar-bottom {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding-top: 20px;
-    }
-
-    .logout-btn { background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
-    .logout-btn:hover { background: var(--btn-red); color: white; }
-
-    /* Main Content */
-    .main-content { flex: 1; padding: 30px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
-    .tab-content { display: none; width: 100%; max-width: 700px; }
+    .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
+    .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
+    .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+    .logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .main-wrapper { display: flex; flex: 1; flex-direction: column; }
+    @media(min-width: 768px) { .main-wrapper { flex-direction: row; } }
+    .sidebar { width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto; flex-direction: row; justify-content: space-between; align-items: center; }
+    @media(min-width: 768px) { .sidebar { width: 260px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; justify-content: flex-start; } }
+    .menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; display: none; }
+    @media(min-width: 768px) { .menu-title { display: block; } }
+    .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; width: 100%; }
+    .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+    .main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+    .tab-content { display: none; width: 100%; max-width: 600px; }
     .tab-content.active { display: block; }
-    
-    .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+    .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
     @media(min-width: 480px) { .card { padding: 30px; } }
     .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
     .action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
     .action-btn:hover { opacity: 0.9; }
-    
     #qrcode-box { margin-top: 20px; display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto; }
     #qrcode-box:empty { display: none; }
-    
     .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
     .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
     
@@ -119,12 +64,6 @@
     .timer-card h4 { color: var(--btn-red); margin-bottom: 10px; font-size: 16px; }
     .timer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
     .countdown-number { font-size: 32px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
-
-    /* Auto-deleted Images Grid */
-    .uploaded-images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 15px; text-align: left; }
-    .uploaded-img-card { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
-    .uploaded-img-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; }
-    .img-timer-text { font-size: 11px; color: var(--btn-red); text-align: center; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -157,141 +96,135 @@
   </div>
 
   <div class="app-container" id="app-container">
-    <!-- Left Side Navigation Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-top">
-        <div class="user-welcome">Welcome back, <span id="display-user">khaleel</span></div>
-        <nav class="nav-links">
+    <div class="header">
+      <div class="user-info"><i class="fa-solid fa-circle-user fa-lg" style="color: var(--primary);"></i><span id="display-user">Guest</span></div>
+      <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+    <div class="main-wrapper">
+      <div class="sidebar">
+        <div>
+          <div class="menu Welcome To-title">NAVIGATION</div>
           <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
           <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
-        </nav>
-      </div>
-
-      <div class="sidebar-bottom">
-        <button onclick="startResetTimer()" style="background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          🔄 Reset Key
-        </button>
-        <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-      </div>
-    </aside>
-
-    <div class="main-content">
-      <!-- Dashboard Tab -->
-      <div id="dashboard-tab" class="tab-content active">
-        <div class="card">
-          <h3>📊 Your Activity Dashboard</h3>
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
-          <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
+        </div>
+        <!-- سائیڈ بار میں ری سیٹ بٹن -->
+        <div style="margin-top: auto; padding-top: 15px; width: 100%;">
+          <button onclick="startResetTimer()" style="background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">
+            🔄 Reset Key
+          </button>
         </div>
       </div>
-
-      <!-- QR Generator & OCR Tab -->
-      <div id="qr-tab" class="tab-content">
-        <div class="card">
-          <h3>🪪 CNIC OCR</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Please Upload CNIC Picture (Auto-deletes after 5 hours to prevent memory issues)</p>
-
-          <div style="margin: 15px 0;">
-            <label class="action-btn" style="background: var(--primary); cursor: pointer; display: block; padding: 14px;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
-            <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></p>
+      <div class="main-content">
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+          <div class="card">
+            <h3>📊 Your Activity Dashboard</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
+            <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
           </div>
+        </div>
 
-          <!-- Uploaded CNIC Images Container with Auto-Delete Info -->
-          <div style="margin-top: 20px; text-align: left;">
-            <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Recently Uploaded CNIC Pictures:</h4>
-            <div class="uploaded-images-grid" id="uploaded-cnic-container">
-              <p style="font-size: 12px; color: var(--text-muted);">No active images found.</p>
+        <!-- QR Generator & OCR Tab -->
+        <div id="qr-tab" class="tab-content">
+          <div class="card">
+            <h3>🪪 CNIC OCR</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Please Upload CNIC Picture</p>
+
+            <div style="margin: 15px 0;">
+              <label class="action-btn" style="background: var(--primary); cursor: pointer; display: block; padding: 14px;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
+              <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
+              <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></p>
             </div>
+
+            <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
           </div>
-
-          <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
         </div>
-      </div>
 
-      <!-- My Links Tab -->
-      <div id="links-tab" class="tab-content">
-        <div class="card" style="text-align: left;">
-          <h3 style="text-align: center;">🔗 My Link's</h3>
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
-          
-          <div class="links-grid">
-            <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+        <!-- My Links Tab -->
+        <div id="links-tab" class="tab-content">
+          <div class="card" style="text-align: left;">
+            <h3 style="text-align: center;">🔗 My Link's</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
+            
+            <div class="links-grid">
+              <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
 
-            <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
-              <div>
-                <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
-                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
-              </div>
-              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-            </a>
+              <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                <div>
+                  <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
+                </div>
+                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+              </a>
+            </div>
+
           </div>
-
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
 
@@ -359,8 +292,6 @@
         document.getElementById('app-container').style.display = 'flex';
         loadUserHistory(savedUser);
       }
-      checkAndCleanCnicImages();
-      setInterval(checkAndCleanCnicImages, 60000); // Check every minute
     };
 
     function switchTab(tabId, btn) {
@@ -419,50 +350,7 @@
       });
     }
 
-    // ===== CNIC OCR & 5 HOURS AUTO-DELETE LOGIC =====
-    const EXPIRATION_HOURS = 5;
-    const EXPIRATION_TIME_MS = EXPIRATION_HOURS * 60 * 60 * 1000;
-
-    function checkAndCleanCnicImages() {
-      let records = JSON.parse(localStorage.getItem('uploaded_cnic_images')) || [];
-      const currentTime = new Date().getTime();
-
-      let validRecords = records.filter(item => (currentTime - item.timestamp) < EXPIRATION_TIME_MS);
-
-      if (validRecords.length !== records.length) {
-        localStorage.setItem('uploaded_cnic_images', JSON.stringify(validRecords));
-      }
-
-      renderCnicImages(validRecords);
-    }
-
-    function renderCnicImages(records) {
-      const container = document.getElementById('uploaded-cnic-container');
-      if (!container) return;
-
-      if (records.length === 0) {
-        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No active images found.</p>`;
-        return;
-      }
-
-      const currentTime = new Date().getTime();
-      let html = "";
-      records.forEach(item => {
-        const timeLeftMs = EXPIRATION_TIME_MS - (currentTime - item.timestamp);
-        const timeLeftMins = Math.max(0, Math.floor(timeLeftMs / (60 * 1000)));
-        const hrs = Math.floor(timeLeftMins / 60);
-        const mins = timeLeftMins % 60;
-
-        html += `
-          <div class="uploaded-img-card">
-            <img src="${item.dataUrl}" alt="CNIC">
-            <div class="img-timer-text">Auto-deletes in: ${hrs}h ${mins}m</div>
-          </div>
-        `;
-      });
-      container.innerHTML = html;
-    }
-
+    // ===== CNIC OCR =====
     async function handleCNICImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -470,6 +358,10 @@
         if(!GOOGLE_API_KEY){ alert("Key نہیں ملی۔ Page refresh کریں"); return; }
 
         const statusEl = document.getElementById('ocr-status');
+        const previewEl = document.getElementById('cnic-preview');
+
+        previewEl.src = URL.createObjectURL(file);
+        previewEl.style.display = 'block';
         statusEl.innerText = "Status: Please Wait Just A Second ";
         statusEl.style.color = "var(--primary)";
 
@@ -477,19 +369,7 @@
         reader.readAsDataURL(file);
         reader.onloadend = async function() {
             const base64Image = reader.result.split(',')[1];
-            
-            // Save to local storage with timestamp for 5 hours auto-deletion
-            const newRecord = {
-              dataUrl: reader.result,
-              timestamp: new Date().getTime()
-            };
-            let records = JSON.parse(localStorage.getItem('uploaded_cnic_images')) || [];
-            records.push(newRecord);
-            localStorage.setItem('uploaded_cnic_images', JSON.stringify(records));
-            checkAndCleanCnicImages();
-
-            // Updated to gemini-1.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GOOGLE_API_KEY}`;
 
             const body = {
               "contents": [{
