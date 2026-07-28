@@ -1,415 +1,538 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --sidebar-bg: #1e293b;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-color: #3b82f6;
-            --danger-color: #ef4444;
-            --success-color: #22c55e;
-            --border-color: #334155;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Website</title>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            min-height: 100vh;
-        }
+  <style>
+    :root {
+      --bg-dark: #0f172a; --card-bg: #1e293b; --sidebar-bg: #1e293b;
+      --primary: #38bdf8; --primary-hover: #0284c7; --btn-green: #10b981;
+      --btn-red: #ef4444; --text-light: #f8fafc; --text-muted: #94a3b8; --border-color: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
+    
+    #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
+    .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
+    .login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
+    .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
+    .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+    .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+    .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+    .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
+    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    
+    .app-container { display: flex; flex-direction: row; min-height: 100vh; display: none; width: 100%; }
+    @media(max-width: 767px) { .app-container { flex-direction: column; } }
 
-        /* Left Navigation Sidebar */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
+    /* Left Sidebar Navigation */
+    .sidebar {
+        width: 260px;
+        background-color: var(--sidebar-bg);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+    }
+    @media(max-width: 767px) { .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); } }
 
-        .sidebar-top {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
+    .sidebar-top {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
 
-        .user-welcome {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-color);
-        }
+    .user-welcome {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
 
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-            font-size: 1rem;
-        }
+    .nav-sub-btn { 
+        padding: 12px 16px; 
+        background: transparent; 
+        color: var(--text-muted); 
+        border: none; 
+        text-align: left; 
+        font-size: 14px; 
+        border-radius: 8px; 
+        font-weight: 600; 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        cursor: pointer; 
+        transition: 0.2s; 
+        width: 100%; 
+    }
+    .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
 
-        .nav-item:hover, .nav-item.active {
-            background-color: var(--accent-color);
-            color: #ffffff;
-        }
+    .sidebar-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-top: 20px;
+    }
 
-        /* Logout / Reset Buttons */
-        .sidebar-bottom {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    .logout-btn { background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+    .logout-btn:hover { background: var(--btn-red); color: white; }
 
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
+    /* Main Content */
+    .main-content { flex: 1; padding: 30px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
+    .tab-content { display: none; width: 100%; max-width: 700px; }
+    .tab-content.active { display: block; }
+    
+    .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+    @media(min-width: 480px) { .card { padding: 30px; } }
+    .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
+    .action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
+    .action-btn:hover { opacity: 0.9; }
+    
+    #qrcode-box { margin-top: 20px; display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto; }
+    #qrcode-box:empty { display: none; }
+    
+    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
+    .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* Links Grid for My Links Tab */
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; text-align: left; }
+    .link-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
+    .link-card-item:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); transform: translateY(-3px); }
+    
+    /* Timer Modal Overlay */
+    #timer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
+    .timer-card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; }
+    .timer-card h4 { color: var(--btn-red); margin-bottom: 10px; font-size: 16px; }
+    .timer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
+    .countdown-number { font-size: 32px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
 
-        .btn-danger {
-            background-color: rgba(239, 68, 68, 0.15);
-            color: var(--danger-color);
-        }
-
-        .btn-danger:hover {
-            background-color: var(--danger-color);
-            color: #ffffff;
-        }
-
-        .btn-reset {
-            background-color: rgba(59, 130, 246, 0.15);
-            color: var(--accent-color);
-        }
-
-        .btn-reset:hover {
-            background-color: var(--accent-color);
-            color: #ffffff;
-        }
-
-        /* Main Content Area */
-        .main-content {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
-
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-        }
-
-        .dashboard-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 800px;
-            margin: 0 auto;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .dashboard-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .dashboard-header h2 {
-            font-size: 1.5rem;
-            color: var(--accent-color);
-            margin-bottom: 8px;
-        }
-
-        .dashboard-header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .activity-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .activity-item {
-            background-color: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-color);
-            padding: 16px 20px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .activity-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .activity-title {
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .activity-time {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .status-icon {
-            color: var(--success-color);
-            font-size: 1.2rem;
-        }
-
-        /* CNIC OCR Upload Styles */
-        .upload-box {
-            border: 2px dashed var(--border-color);
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            cursor: pointer;
-        }
-
-        .uploaded-images-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .image-card {
-            background-color: rgba(15, 23, 42, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .image-card img {
-            width: 100%;
-            height: 130px;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
-        .image-timer {
-            font-size: 0.75rem;
-            color: var(--danger-color);
-            text-align: center;
-        }
-    </style>
+    /* Auto-deleted Images Grid */
+    .uploaded-images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 15px; text-align: left; }
+    .uploaded-img-card { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .uploaded-img-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; }
+    .img-timer-text { font-size: 11px; color: var(--btn-red); text-align: center; font-weight: 600; }
+  </style>
 </head>
 <body>
 
+  <!-- Audio element for clicking sound -->
+  <audio id="click-sound" preload="auto">
+      <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" type="audio/wav">
+  </audio>
+
+  <!-- 20 Seconds Timer Modal -->
+  <div id="timer-modal">
+    <div class="timer-card">
+      <h4>⚠️ Are you sure to reset your key?</h4>
+      <p>یہ آپ کی API Key ریسیٹ کرنے جا رہا ہے۔ آپ اسے منسوخ کر سکتے ہیں:</p>
+      <div class="countdown-number" id="countdown-val">20</div>
+      <button class="action-btn" style="background: var(--btn-red); margin-top: 0;" onclick="cancelResetKey()">❌ Cancel (منسوخ کریں)</button>
+    </div>
+  </div>
+
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in with your assigned ID</p>
+      <div class="input-group"><input type="text" id="username" class="input-field" placeholder="Username"><i class="fa-solid fa-user"></i></div>
+      <div class="input-group"><input type="password" id="password" class="input-field" placeholder="Password"><i class="fa-solid fa-lock"></i></div>
+      <button class="login-btn" onclick="handleLogin()">Sign In</button>
+      <p id="login-err" style="color: #ef4444; margin-top: 12px; font-size: 12px; font-weight: 600;"></p>
+    </div>
+  </div>
+
+  <div class="app-container" id="app-container">
     <!-- Left Side Navigation Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-top">
-            <div class="user-welcome" id="userWelcome">Welcome back, khaleel</div>
-            <nav class="nav-links">
-                <button class="nav-item active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
-                <button class="nav-item" onclick="switchTab('cnic-ocr', this)">📇 CNIC OCR & QR</button>
-                <button class="nav-item" onclick="switchTab('my-links', this)">🔗 My Link's</button>
-            </nav>
-        </div>
+      <div class="sidebar-top">
+        <div class="user-welcome">Welcome back, <span id="display-user">khaleel</span></div>
+        <nav class="nav-links">
+          <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
+          <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
+          <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
+        </nav>
+      </div>
 
-        <div class="sidebar-bottom">
-            <button class="btn btn-reset" onclick="resetKey()">🔄 Reset Key</button>
-            <a href="#" class="btn btn-danger">🚪 Logout</a>
-        </div>
+      <div class="sidebar-bottom">
+        <button onclick="startResetTimer()" style="background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          🔄 Reset Key
+        </button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-        
-        <!-- 1. Dashboard Section -->
-        <section id="dashboard" class="content-section active">
-            <div class="dashboard-card">
-                <div class="dashboard-header">
-                    <h2>📊 Your Activity Dashboard</h2>
-                    <p>List of all QR codes generated through your ID</p>
-                </div>
+    <div class="main-content">
+      <!-- Dashboard Tab -->
+      <div id="dashboard-tab" class="tab-content active">
+        <div class="card">
+          <h3>📊 Your Activity Dashboard</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
+          <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
+        </div>
+      </div>
 
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-info">
-                            <span class="activity-title">CNIC: 3720168974358</span>
-                            <span class="activity-time">7/27/2026, 4:06:40 PM</span>
-                        </div>
-                        <span class="status-icon">✔</span>
-                    </div>
-                </div>
+      <!-- QR Generator & OCR Tab -->
+      <div id="qr-tab" class="tab-content">
+        <div class="card">
+          <h3>🪪 CNIC OCR</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Please Upload CNIC Picture (Auto-deletes after 5 hours to prevent memory issues)</p>
+
+          <div style="margin: 15px 0;">
+            <label class="action-btn" style="background: var(--primary); cursor: pointer; display: block; padding: 14px;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
+            <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></p>
+          </div>
+
+          <!-- Uploaded CNIC Images Container with Auto-Delete Info -->
+          <div style="margin-top: 20px; text-align: left;">
+            <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Recently Uploaded CNIC Pictures:</h4>
+            <div class="uploaded-images-grid" id="uploaded-cnic-container">
+              <p style="font-size: 12px; color: var(--text-muted);">No active images found.</p>
             </div>
-        </section>
+          </div>
 
-        <!-- 2. CNIC OCR & QR Section -->
-        <section id="cnic-ocr" class="content-section">
-            <div class="dashboard-card">
-                <div class="dashboard-header">
-                    <h2>📇 CNIC OCR & QR Scanner</h2>
-                    <p>Upload CNIC picture here. Images auto-delete after 5 hours to save memory.</p>
-                </div>
+          <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
+        </div>
+      </div>
 
-                <div class="upload-box" onclick="document.getElementById('cnicInput').click()">
-                    <p>📁 Click here to upload CNIC Picture</p>
-                    <input type="file" id="cnicInput" accept="image/*" style="display: none;" onchange="handleCnicUpload(event)">
-                </div>
+      <!-- My Links Tab -->
+      <div id="links-tab" class="tab-content">
+        <div class="card" style="text-align: left;">
+          <h3 style="text-align: center;">🔗 My Link's</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
+          
+          <div class="links-grid">
+            <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
 
-                <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Active Uploaded CNIC Pictures:</h3>
-                <div class="uploaded-images-container" id="imageContainer">
-                    <!-- Dynamic Uploaded Images will show here -->
-                </div>
-            </div>
-        </section>
+            <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
 
-        <!-- 3. My Links Section -->
-        <section id="my-links" class="content-section">
-            <div class="dashboard-card">
-                <div class="dashboard-header">
-                    <h2>🔗 My Link's</h2>
-                    <p>Manage your saved links and shortcuts</p>
-                </div>
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <span class="activity-title">No custom links added yet.</span>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
 
-    </main>
+            <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
 
-    <script>
-        // Tab Switching Logic
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.content-section').forEach(sec => {
-                sec.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
+            <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
+
+            <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
+
+            <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
+
+            <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
+              <div>
+                <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
+                <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
+              </div>
+              <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const FIXED_FIRST_12 = "421011234567";
+
+    let GOOGLE_API_KEY = localStorage.getItem('gemini_key');
+    if(!GOOGLE_API_KEY){
+        GOOGLE_API_KEY = prompt("🔑 پہلی بار: اپنی Gemini API Key یہاں paste کریں\nKey: aistudio.google.com");
+        if(GOOGLE_API_KEY) localStorage.setItem('gemini_key', GOOGLE_API_KEY);
+    }
+
+    const firebaseConfig = { databaseURL: "https://mywebsite-7016a-default-rtdb.firebaseio.com" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let currentUser = null;
+    let resetTimerInterval = null;
+
+    function playSound() {
+        var sound = document.getElementById("click-sound");
+        if(sound) {
+            sound.currentTime = 0;
+            sound.play();
         }
+    }
 
-        // 5 Hours Auto-Delete & CNIC Image Storage Logic
-        const EXPIRATION_HOURS = 5;
-        const EXPIRATION_TIME_MS = EXPIRATION_HOURS * 60 * 60 * 1000;
+    function getDeviceId() {
+      let devId = localStorage.getItem('device_unique_id');
+      if (!devId) { devId = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now(); localStorage.setItem('device_unique_id', devId); }
+      return devId;
+    }
 
-        function loadStoredCnicImages() {
-            let records = JSON.parse(localStorage.getItem('cnic_images')) || [];
-            const currentTime = new Date().getTime();
+    async function handleLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const errEl = document.getElementById('login-err');
+      if (!user || !pass) { errEl.innerText = "Please fill all fields!"; return; }
+      errEl.innerText = "Verifying...";
+      try {
+        const snapshot = await db.ref(`users/${user}`).once('value');
+        const userData = snapshot.val();
+        if (userData && userData.password === pass) {
+          const thisDeviceId = getDeviceId();
+          if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
+          if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
+          currentUser = user;
+          localStorage.setItem('logged_user', user);
+          document.getElementById('display-user').innerText = user;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app-container').style.display = 'flex';
+          errEl.innerText = "";
+          loadUserHistory(user);
+        } else { errEl.innerText = "Invalid Username or Password!"; }
+      } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
+    }
 
-            // Filter out records older than 5 hours
-            let validRecords = records.filter(record => (currentTime - record.timestamp) < EXPIRATION_TIME_MS);
+    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
 
-            if (validRecords.length !== records.length) {
-                localStorage.setItem('cnic_images', JSON.stringify(validRecords));
-            }
+    window.onload = function() {
+      const savedUser = localStorage.getItem('logged_user');
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById('display-user').innerText = savedUser;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        loadUserHistory(savedUser);
+      }
+      checkAndCleanCnicImages();
+      setInterval(checkAndCleanCnicImages, 60000); // Check every minute
+    };
 
-            renderImages(validRecords);
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+      playSound();
+    }
+
+    // ===== 20 SECONDS RESET TIMER FUNCTIONS =====
+    function startResetTimer() {
+      let timeLeft = 20;
+      document.getElementById('countdown-val').innerText = timeLeft;
+      document.getElementById('timer-modal').style.display = 'flex';
+
+      resetTimerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('countdown-val').innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(resetTimerInterval);
+          localStorage.removeItem('gemini_key');
+          alert('✅ API Key successfully deleted!');
+          location.reload();
         }
+      }, 1000);
+    }
 
-        function handleCnicUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    function cancelResetKey() {
+      clearInterval(resetTimerInterval);
+      document.getElementById('timer-modal').style.display = 'none';
+    }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const newRecord = {
-                    id: Date.now(),
-                    dataUrl: e.target.result,
-                    timestamp: new Date().getTime()
-                };
+    function generateQRFromCNIC(cnicNumber) {
+      const qrBox = document.getElementById('qrcode-box');
+      const fullCNIC = FIXED_FIRST_12 + cnicNumber;
+      qrBox.innerHTML = "";
+      new QRCode(qrBox, { text: fullCNIC, width: 160, height: 160, colorDark : "#000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+      if (currentUser) {
+        const timeNow = new Date().toLocaleString();
+        db.ref(`history/${currentUser}`).push({ cnic: cnicNumber, time: timeNow });
+      }
+    }
 
-                let records = JSON.parse(localStorage.getItem('cnic_images')) || [];
-                records.push(newRecord);
-                localStorage.setItem('cnic_images', JSON.stringify(records));
+    function loadUserHistory(username) {
+      const historyList = document.getElementById('dashboard-history-list');
+      db.ref(`history/${username}`).on('value', (snapshot) => {
+        historyList.innerHTML = "";
+        const data = snapshot.val();
+        if (!data) { historyList.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p>`; return; }
+        let html = "";
+        Object.values(data).reverse().forEach(item => {
+          html += `<div class="history-card-item"><div><div style="color: #38bdf8; font-weight: 600; font-size: 14px;">CNIC: ${item.cnic}</div><div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">${item.time}</div></div><i class="fa-solid fa-circle-check" style="color: var(--btn-green);"></i></div>`;
+        });
+        historyList.innerHTML = html;
+      });
+    }
 
-                loadStoredCnicImages();
+    // ===== CNIC OCR & 5 HOURS AUTO-DELETE LOGIC =====
+    const EXPIRATION_HOURS = 5;
+    const EXPIRATION_TIME_MS = EXPIRATION_HOURS * 60 * 60 * 1000;
+
+    function checkAndCleanCnicImages() {
+      let records = JSON.parse(localStorage.getItem('uploaded_cnic_images')) || [];
+      const currentTime = new Date().getTime();
+
+      let validRecords = records.filter(item => (currentTime - item.timestamp) < EXPIRATION_TIME_MS);
+
+      if (validRecords.length !== records.length) {
+        localStorage.setItem('uploaded_cnic_images', JSON.stringify(validRecords));
+      }
+
+      renderCnicImages(validRecords);
+    }
+
+    function renderCnicImages(records) {
+      const container = document.getElementById('uploaded-cnic-container');
+      if (!container) return;
+
+      if (records.length === 0) {
+        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No active images found.</p>`;
+        return;
+      }
+
+      const currentTime = new Date().getTime();
+      let html = "";
+      records.forEach(item => {
+        const timeLeftMs = EXPIRATION_TIME_MS - (currentTime - item.timestamp);
+        const timeLeftMins = Math.max(0, Math.floor(timeLeftMs / (60 * 1000)));
+        const hrs = Math.floor(timeLeftMins / 60);
+        const mins = timeLeftMins % 60;
+
+        html += `
+          <div class="uploaded-img-card">
+            <img src="${item.dataUrl}" alt="CNIC">
+            <div class="img-timer-text">Auto-deletes in: ${hrs}h ${mins}m</div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    async function handleCNICImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if(!GOOGLE_API_KEY){ alert("Key نہیں ملی۔ Page refresh کریں"); return; }
+
+        const statusEl = document.getElementById('ocr-status');
+        statusEl.innerText = "Status: Please Wait Just A Second ";
+        statusEl.style.color = "var(--primary)";
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async function() {
+            const base64Image = reader.result.split(',')[1];
+            
+            // Save to local storage with timestamp for 5 hours auto-deletion
+            const newRecord = {
+              dataUrl: reader.result,
+              timestamp: new Date().getTime()
             };
-            reader.readAsDataURL(file);
-        }
+            let records = JSON.parse(localStorage.getItem('uploaded_cnic_images')) || [];
+            records.push(newRecord);
+            localStorage.setItem('uploaded_cnic_images', JSON.stringify(records));
+            checkAndCleanCnicImages();
 
-        function renderImages(records) {
-            const container = document.getElementById('imageContainer');
-            container.innerHTML = '';
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
 
-            if (records.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No active CNIC pictures found.</p>';
-                return;
-            }
+            const body = {
+              "contents": [{
+                "parts": [
+                  { "text": "اس پاکستانی CNIC کارڈ کی تصویر سے صرف 13 ہندسوں کا CNIC نمبر نکال کر دو۔ صرف نمبر دو، اور کچھ نہیں۔ اگر نہ ملے تو Not Found لکھو۔" },
+                  { "inline_data": { "mime_type": "image/jpeg", "data": base64Image } }
+                ]
+              }]
+            };
 
-            records.forEach(record => {
-                const card = document.createElement('div');
-                card.className = 'image-card';
+            try {
+                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                const data = await response.json();
                 
-                // Calculate remaining time roughly
-                const timeLeftMinutes = Math.max(0, Math.floor((EXPIRATION_TIME_MS - (new Date().getTime() - record.timestamp)) / (60 * 1000)));
-                const hoursLeft = Math.floor(timeLeftMinutes / 60);
-                const minsLeft = timeLeftMinutes % 60;
+                if (data.error) {
+                    statusEl.innerText = `Status: API Error - ${data.error.message || 'Key چیک کریں'}`;
+                    statusEl.style.color = "var(--btn-red)";
+                    return;
+                }
 
-                card.innerHTML = `
-                    <img src="${record.dataUrl}" alt="CNIC Image">
-                    <div class="image-timer">Auto-deletes in: ${hoursLeft}h ${minsLeft}m</div>
-                `;
-                container.appendChild(card);
-            });
+                if (!data.candidates || !data.candidates[0].content) {
+                    statusEl.innerText = "Status: ❌ ماڈل نے ڈیٹا بلاک کر دیا یا نہیں پڑھ سکا۔";
+                    statusEl.style.color = "var(--btn-red)";
+                    return;
+                }
+
+                let text = data.candidates[0].content.parts[0].text.trim();
+                let foundCNIC = text.replace(/\D/g, "");
+
+                if(foundCNIC.length >= 13){
+                    foundCNIC = foundCNIC.slice(-13);
+                    statusEl.innerText = `Status: ✅ Found: ${foundCNIC}`;
+                    statusEl.style.color = "var(--btn-green)";
+                    generateQRFromCNIC(foundCNIC);
+                } else {
+                    statusEl.innerText = "Status: ❌ CNIC نمبر نہیں ملا۔ صاف تصویر لگائیں";
+                    statusEl.style.color = "var(--btn-red)";
+                }
+            } catch(error){
+                statusEl.innerText = "Status: Network Error یا غلط Key";
+                console.error(error);
+            }
         }
-
-        // Run cleanup & load on page load
-        window.onload = function() {
-            loadStoredCnicImages();
-            // Optional: Refresh periodically to auto-clean
-            setInterval(loadStoredCnicImages, 60000); 
-        };
-
-        function resetKey() {
-            alert("Key reset successfully!");
-        }
-    </script>
+    }
+  </script>
 </body>
 </html>
