@@ -70,6 +70,12 @@
             border-radius: 8px;
             transition: all 0.3s ease;
             font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 1rem;
         }
 
         .nav-item:hover, .nav-item.active {
@@ -123,6 +129,14 @@
             flex: 1;
             padding: 40px;
             overflow-y: auto;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
         }
 
         .dashboard-card {
@@ -187,6 +201,46 @@
             color: var(--success-color);
             font-size: 1.2rem;
         }
+
+        /* CNIC OCR Upload Styles */
+        .upload-box {
+            border: 2px dashed var(--border-color);
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .uploaded-images-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .image-card {
+            background-color: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .image-timer {
+            font-size: 0.75rem;
+            color: var(--danger-color);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -196,9 +250,9 @@
         <div class="sidebar-top">
             <div class="user-welcome" id="userWelcome">Welcome back, khaleel</div>
             <nav class="nav-links">
-                <a href="#" class="nav-item active">📊 Dashboard</a>
-                <a href="#" class="nav-item">📇 CNIC OCR & QR</a>
-                <a href="#" class="nav-item">🔗 My Link's</a>
+                <button class="nav-item active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+                <button class="nav-item" onclick="switchTab('cnic-ocr', this)">📇 CNIC OCR & QR</button>
+                <button class="nav-item" onclick="switchTab('my-links', this)">🔗 My Link's</button>
             </nav>
         </div>
 
@@ -208,66 +262,149 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <main class="main-content">
-        <div class="dashboard-card">
-            <div class="dashboard-header">
-                <h2>📊 Your Activity Dashboard</h2>
-                <p>List of all QR codes generated through your ID</p>
-            </div>
+        
+        <!-- 1. Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="dashboard-card">
+                <div class="dashboard-header">
+                    <h2>📊 Your Activity Dashboard</h2>
+                    <p>List of all QR codes generated through your ID</p>
+                </div>
 
-            <div class="activity-list" id="activityList">
-                <div class="activity-item">
-                    <div class="activity-info">
-                        <span class="activity-title">CNIC: 3720168974358</span>
-                        <span class="activity-time">7/27/2026, 4:06:40 PM</span>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-info">
+                            <span class="activity-title">CNIC: 3720168974358</span>
+                            <span class="activity-time">7/27/2026, 4:06:40 PM</span>
+                        </div>
+                        <span class="status-icon">✔</span>
                     </div>
-                    <span class="status-icon">✔</span>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-info">
-                        <span class="activity-title">CNIC: 3720168974358</span>
-                        <span class="activity-time">7/27/2026, 12:58:24 PM</span>
-                    </div>
-                    <span class="status-icon">✔</span>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-info">
-                        <span class="activity-title">CNIC: 3720168974358</span>
-                        <span class="activity-time">7/27/2026, 12:56:07 PM</span>
-                    </div>
-                    <span class="status-icon">✔</span>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- 2. CNIC OCR & QR Section -->
+        <section id="cnic-ocr" class="content-section">
+            <div class="dashboard-card">
+                <div class="dashboard-header">
+                    <h2>📇 CNIC OCR & QR Scanner</h2>
+                    <p>Upload CNIC picture here. Images auto-delete after 5 hours to save memory.</p>
+                </div>
+
+                <div class="upload-box" onclick="document.getElementById('cnicInput').click()">
+                    <p>📁 Click here to upload CNIC Picture</p>
+                    <input type="file" id="cnicInput" accept="image/*" style="display: none;" onchange="handleCnicUpload(event)">
+                </div>
+
+                <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Active Uploaded CNIC Pictures:</h3>
+                <div class="uploaded-images-container" id="imageContainer">
+                    <!-- Dynamic Uploaded Images will show here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. My Links Section -->
+        <section id="my-links" class="content-section">
+            <div class="dashboard-card">
+                <div class="dashboard-header">
+                    <h2>🔗 My Link's</h2>
+                    <p>Manage your saved links and shortcuts</p>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <span class="activity-title">No custom links added yet.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
-        // 5 Hours Auto-Delete Logic for Uploaded CNIC Data / Images
-        function setupAutoDeletion() {
-            const EXPIRATION_HOURS = 5;
-            const EXPIRATION_TIME_MS = EXPIRATION_HOURS * 60 * 60 * 1000;
-
-            // Example using LocalStorage to track uploaded CNIC records with timestamps
-            let uploadedRecords = JSON.parse(localStorage.getItem('cnic_records')) || [];
-            
-            const currentTime = new Date().getTime();
-            
-            // Filter out records older than 5 hours
-            let validRecords = uploadedRecords.filter(record => {
-                return (currentTime - record.timestamp) < EXPIRATION_TIME_MS;
+        // Tab Switching Logic
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.remove('active');
             });
-
-            // Update storage if items were removed
-            if (validRecords.length !== uploadedRecords.length) {
-                localStorage.setItem('cnic_records', JSON.stringify(validRecords));
-                console.log("Expired CNIC images/records automatically deleted after 5 hours.");
-            }
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
         }
 
-        // Run cleanup check on page load
+        // 5 Hours Auto-Delete & CNIC Image Storage Logic
+        const EXPIRATION_HOURS = 5;
+        const EXPIRATION_TIME_MS = EXPIRATION_HOURS * 60 * 60 * 1000;
+
+        function loadStoredCnicImages() {
+            let records = JSON.parse(localStorage.getItem('cnic_images')) || [];
+            const currentTime = new Date().getTime();
+
+            // Filter out records older than 5 hours
+            let validRecords = records.filter(record => (currentTime - record.timestamp) < EXPIRATION_TIME_MS);
+
+            if (validRecords.length !== records.length) {
+                localStorage.setItem('cnic_images', JSON.stringify(validRecords));
+            }
+
+            renderImages(validRecords);
+        }
+
+        function handleCnicUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newRecord = {
+                    id: Date.now(),
+                    dataUrl: e.target.result,
+                    timestamp: new Date().getTime()
+                };
+
+                let records = JSON.parse(localStorage.getItem('cnic_images')) || [];
+                records.push(newRecord);
+                localStorage.setItem('cnic_images', JSON.stringify(records));
+
+                loadStoredCnicImages();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderImages(records) {
+            const container = document.getElementById('imageContainer');
+            container.innerHTML = '';
+
+            if (records.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No active CNIC pictures found.</p>';
+                return;
+            }
+
+            records.forEach(record => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                
+                // Calculate remaining time roughly
+                const timeLeftMinutes = Math.max(0, Math.floor((EXPIRATION_TIME_MS - (new Date().getTime() - record.timestamp)) / (60 * 1000)));
+                const hoursLeft = Math.floor(timeLeftMinutes / 60);
+                const minsLeft = timeLeftMinutes % 60;
+
+                card.innerHTML = `
+                    <img src="${record.dataUrl}" alt="CNIC Image">
+                    <div class="image-timer">Auto-deletes in: ${hoursLeft}h ${minsLeft}m</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Run cleanup & load on page load
         window.onload = function() {
-            setupAutoDeletion();
+            loadStoredCnicImages();
+            // Optional: Refresh periodically to auto-clean
+            setInterval(loadStoredCnicImages, 60000); 
         };
 
         function resetKey() {
