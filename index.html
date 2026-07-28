@@ -14,75 +14,66 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; }
     #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
-  .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
-  .input-group { position: relative; margin-bottom: 15px; text-align: left; }
-  .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-  .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; }
-  .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-  .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
-  .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-  .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-  .logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
-  .main-wrapper { display: flex; flex: 1; }
-  .sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid #1e293b; padding: 20px 10px; display: flex; flex-direction: column; justify-content: space-between; } /* Left me chipka diya */
-  .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; width: 100%; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-  .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
-  .main-content { flex: 1; padding: 20px; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .card { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid #334155; text-align: center; }
-  .action-btn { padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+   .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
+   .login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; }
+   .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
+   .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+   .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+   .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+   .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; }
+   .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+   .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+   .app-container { display: none; }
+   .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+   .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+   .logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+   .main-wrapper { display: flex; }
+   .sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid #1e293b; padding: 20px 10px; }
+   .menu-title { padding: 0 10px 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; } /* Yahan fix kiya */
+   .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; width: 100%; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+   .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+   .main-content { flex: 1; padding: 20px; }
+   .tab-content { display: none; }
+   .tab-content.active { display: block; }
+   .card { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid #334155; text-align: center; }
+   .action-btn { padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     #qrcode-box { margin: 20px auto 0 auto; background: white; padding: 15px; border-radius: 12px; width: fit-content; }
-  .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
-  .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-  .delete-btn { background: var(--btn-red); color: white; border: none; padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-    #timer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200; }
   </style>
 </head>
 <body>
 
   <div id="login-screen">
     <div class="login-card">
+      <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
       <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in with your assigned ID</p>
       <div class="input-group"><input type="text" id="username" class="input-field" placeholder="Username"><i class="fa-solid fa-user"></i></div>
       <div class="input-group"><input type="password" id="password" class="input-field" placeholder="Password"><i class="fa-solid fa-lock"></i></div>
-      <button class="login-btn" onclick="handleLogin()">Sign In</button>
-      <p id="login-err" style="color: #ef4444; margin-top: 12px;"></p>
+      <button class="login-btn" id="loginBtn" onclick="handleLogin()">Sign In</button>
+      <p id="login-err" style="color: #ef4444; margin-top: 12px; font-size: 12px;"></p>
     </div>
   </div>
 
   <div class="app-container" id="app-container">
     <div class="header">
-      <div class="user-info"><i class="fa-solid fa-circle-user fa-lg" style="color: var(--primary);"></i><span id="welcome-text">Welcome Back</span></div> <!-- Yahan name ayega -->
+      <div class="user-info"><i class="fa-solid fa-circle-user fa-lg" style="color: var(--primary);"></i><span id="display-user">Guest</span></div>
       <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
     <div class="main-wrapper">
       <div class="sidebar">
-        <div>
-          <!-- NAVIGATION ka lafz khatam kar diya -->
+          <div class="menu-title">NAVIGATION</div> <!-- Yahan theek kiya -->
           <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
           <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
-          <button class="nav-sub-btn" id="admin-btn" style="display:none;" onclick="switchTab('admin-tab', this)"><i class="fa-solid fa-user-shield"></i> Admin Panel</button> <!-- Admin ka button -->
-        </div>
-        <button onclick="startResetTimer()" style="background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 8px; cursor: pointer;">🔄 Reset Key</button>
       </div>
       <div class="main-content">
-        <div id="dashboard-tab" class="tab-content active"><div class="card"><h3>📊 Your History</h3><div class="history-list" id="dashboard-history-list">No records found.</div></div></div>
-
-        <div id="qr-tab" class="tab-content"><div class="card"><h3>🪪 CNIC OCR</h3><label class="action-btn" style="background: var(--primary); display: block; cursor: pointer;">📷 Upload<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label><img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;"><p id="ocr-status"></p><div id="qrcode-box"></div></div></div>
-
-        <!-- NEW ADMIN PANEL -->
-        <div id="admin-tab" class="tab-content"><div class="card" style="text-align: left;"><h3 style="text-align:center;">👑 Admin Panel - All Users Data</h3><div class="history-list" id="admin-history-list">Loading...</div></div></div>
-
+        <div id="dashboard-tab" class="tab-content active"><div class="card"><h3>📊 Dashboard</h3><div id="dashboard-history-list">No records found.</div></div></div>
+        <div id="qr-tab" class="tab-content"><div class="card"><h3>🪪 CNIC OCR</h3><label class="action-btn" style="background: var(--primary); cursor: pointer; display: block;">📷 Upload<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label><img id="cnic-preview" style="max-width:100%; margin-top:10px; display:none;"><p id="ocr-status"></p><div id="qrcode-box"></div></div></div>
       </div>
     </div>
   </div>
 
-  <div id="timer-modal"><div class="card" style="max-width: 320px;"><h4 style="color:var(--btn-red)">Reset API Key?</h4><div class="countdown-number" id="countdown-val" style="font-size:32px; color:var(--primary)">20</div><button class="action-btn" style="background: var(--btn-red);" onclick="cancelResetKey()">Cancel</button></div></div>
-
   <script>
     const FIXED_FIRST_12 = "421011234567";
-    const ADMIN_USER = "admin"; // Admin ka username
     let GOOGLE_API_KEY = localStorage.getItem('gemini_key') || prompt("Gemini Key ڈالیں");
     if(GOOGLE_API_KEY) localStorage.setItem('gemini_key', GOOGLE_API_KEY);
 
@@ -90,111 +81,73 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let currentUser = null;
-    let resetTimerInterval = null;
-
-    function getDeviceId() { let devId = localStorage.getItem('device_unique_id'); if (!devId) { devId = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now(); localStorage.setItem('device_unique_id', devId); } return devId; }
 
     async function handleLogin() {
-      const user = document.getElementById('username').value.trim(); const pass = document.getElementById('password').value.trim(); const errEl = document.getElementById('login-err');
+      const btn = document.getElementById('loginBtn');
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const errEl = document.getElementById('login-err');
+
+      if (!user ||!pass) { errEl.innerText = "Please fill all fields!"; return; }
+
+      btn.disabled = true; // Button ko band karo
       errEl.innerText = "Verifying...";
-      const snapshot = await db.ref(`users/${user}`).once('value'); const userData = snapshot.val();
-      if (userData && userData.password === pass) {
-        const thisDeviceId = getDeviceId(); if (userData.boundDeviceId && userData.boundDeviceId!== thisDeviceId) { errEl.innerText = "⛔ Another device!"; return; }
-        if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
-        currentUser = user; localStorage.setItem('logged_user', user);
-        document.getElementById('welcome-text').innerText = `Welcome Back, ${user}`; // Name show
-        if(user === ADMIN_USER) document.getElementById('admin-btn').style.display = 'flex'; // Admin button show
-        document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex';
-        loadUserHistory(user); if(user === ADMIN_USER) loadAdminPanel();
-      } else { errEl.innerText = "Invalid Username or Password!"; }
-    }
-    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
-    window.onload = function() { const savedUser = localStorage.getItem('logged_user'); if (savedUser) { currentUser = savedUser; document.getElementById('welcome-text').innerText = `Welcome Back, ${savedUser}`; if(savedUser === ADMIN_USER) document.getElementById('admin-btn').style.display = 'flex'; document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex'; loadUserHistory(savedUser); if(savedUser === ADMIN_USER) loadAdminPanel(); } };
-    function switchTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
 
-    function startResetTimer() { let timeLeft = 20; document.getElementById('countdown-val').innerText = timeLeft; document.getElementById('timer-modal').style.display = 'flex'; resetTimerInterval = setInterval(() => { timeLeft--; document.getElementById('countdown-val').innerText = timeLeft; if (timeLeft <= 0) { clearInterval(resetTimerInterval); localStorage.removeItem('gemini_key'); alert('✅ Key Deleted!'); location.reload(); } }, 1000); }
-    function cancelResetKey() { clearInterval(resetTimerInterval); document.getElementById('timer-modal').style.display = 'none'; }
+      try {
+        const snapshot = await db.ref(`users/${user}`).once('value');
+        const userData = snapshot.val();
 
-    function generateQRFromCNIC(cnicNumber, imgBase64) {
-      const qrBox = document.getElementById('qrcode-box'); const fullCNIC = FIXED_FIRST_12 + cnicNumber; qrBox.innerHTML = "";
-      new QRCode(qrBox, { text: fullCNIC, width: 160, height: 160 });
-      if (currentUser) {
-        const timeNow = Date.now(); // timestamp for auto delete
-        const data = { cnic: cnicNumber, time: new Date().toLocaleString(), img: imgBase64, timestamp: timeNow };
-        db.ref(`history/${currentUser}`).push(data);
+        if (userData && userData.password === pass) {
+          currentUser = user;
+          localStorage.setItem('logged_user', user);
+          document.getElementById('display-user').innerText = user;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app-container').style.display = 'block';
+        } else {
+          errEl.innerText = "Invalid Username or Password!";
+          btn.disabled = false; // Ghalat ho to button wapas chalu
+        }
+      } catch (e) {
+        console.error(e);
+        errEl.innerText = "Firebase Error. Internet/Rules check کریں";
+        btn.disabled = false;
       }
     }
 
-    function loadUserHistory(username) {
-      const historyList = document.getElementById('dashboard-history-list');
-      db.ref(`history/${username}`).on('value', (snapshot) => {
-        historyList.innerHTML = ""; const data = snapshot.val(); if (!data) { historyList.innerHTML = `No records found.`; return; }
-        let html = ""; Object.entries(data).reverse().forEach(([key, item]) => {
-            // 3 ghante = 3 * 60 * 60 * 1000 ms
-            if(Date.now() - item.timestamp < 3 * 60 * 60 * 1000){
-                html += `<div class="history-card-item"><div><div style="color: #38bdf8;">CNIC: ${item.cnic}</div><div style="font-size: 11px;">${item.time}</div></div></div>`;
-            } else {
-                db.ref(`history/${username}/${key}`).remove(); // Auto delete after 3 hours
-            }
-        });
-        historyList.innerHTML = html || `No records found.`;
-      });
-    }
+    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
 
-    // ADMIN PANEL FUNCTION
-    function loadAdminPanel(){
-        const adminList = document.getElementById('admin-history-list');
-        db.ref('history').on('value', snapshot=>{
-            const allData = snapshot.val(); let html = "";
-            for(let user in allData){
-                html += `<h4 style="color:var(--primary); margin-top:15px;">User: ${user}</h4>`;
-                Object.entries(allData[user]).forEach(([key, item])=>{
-                    if(Date.now() - item.timestamp < 3 * 60 * 60 * 1000){
-                        html += `<div class="history-card-item">
-                            <div>
-                                <div>CNIC: ${item.cnic}</div>
-                                <div style="font-size:11px;">${item.time}</div>
-                            </div>
-                            <button class="delete-btn" onclick="deleteRecord('${user}','${key}')">Delete</button>
-                        </div>`;
-                    } else {
-                        db.ref(`history/${user}/${key}`).remove(); // Auto delete
-                    }
-                });
-            }
-            adminList.innerHTML = html || "No data";
-        });
+    window.onload = function() {
+      const savedUser = localStorage.getItem('logged_user');
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById('display-user').innerText = savedUser;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+      }
+    };
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
     }
-    function deleteRecord(user, key){ if(confirm("Delete this record?")) db.ref(`history/${user}/${key}`).remove(); }
 
     async function handleCNICImageUpload(event) {
         const file = event.target.files[0]; if (!file) return;
-        const statusEl = document.getElementById('ocr-status'); const previewEl = document.getElementById('cnic-preview');
+        document.getElementById('cnic-preview').src = URL.createObjectURL(file);
+        document.getElementById('cnic-preview').style.display = 'block';
         const reader = new FileReader(); reader.readAsDataURL(file); reader.onloadend = async function() {
-            const base64Image = reader.result;
-            localStorage.setItem('last_cnic_img', base64Image); // 3 ghante ke liye save
-            localStorage.setItem('last_cnic_img_time', Date.now());
-            previewEl.src = base64Image; previewEl.style.display = 'block';
-            statusEl.innerText = "Processing..."; statusEl.style.color = "var(--primary)";
-
+            const base64Image = reader.result.split(',')[1];
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
-            const body = { "contents": [{ "parts": [ { "text": "CNIC number only 13 digits" }, { "inline_data": { "mime_type": "image/jpeg", "data": base64Image.split(',')[1] } ] }] };
+            const body = { "contents": [{ "parts": [ { "text": "CNIC number only 13 digits" }, { "inline_data": { "mime_type": "image/jpeg", "data": base64Image } ] }] };
             const res = await fetch(url, { method: 'POST', body: JSON.stringify(body) }); const data = await res.json();
             let foundCNIC = data.candidates[0].content.parts[0].text.replace(/\D/g, "").slice(-13);
-            statusEl.innerText = "✅ Found: " + foundCNIC; statusEl.style.color = "var(--btn-green)";
-            generateQRFromCNIC(foundCNIC, base64Image);
+            document.getElementById('ocr-status').innerText = "Found: " + foundCNIC;
+            document.getElementById('qrcode-box').innerHTML = "";
+            new QRCode(document.getElementById('qrcode-box'), { text: FIXED_FIRST_12 + foundCNIC, width: 160, height: 160 });
         }
     }
-
-    // Page load pe check karo 3 ghante wali image
-    if(localStorage.getItem('last_cnic_img_time') && Date.now() - localStorage.getItem('last_cnic_img_time') < 3 * 60 * 60 * 1000){
-        document.getElementById('cnic-preview').src = localStorage.getItem('last_cnic_img');
-        document.getElementById('cnic-preview').style.display = 'block';
-    } else {
-        localStorage.removeItem('last_cnic_img');
-        localStorage.removeItem('last_cnic_img_time');
-    }
-
   </script>
 </body>
 </html>
