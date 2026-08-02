@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Website</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Tesseract.js for OCR -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <!-- SheetJS for Excel Reading -->
@@ -115,7 +119,6 @@
         }
         .link-card-item:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); transform: translateY(-3px); }
 
-        /* Table styles for Recovery Report */
         .table-container { overflow-x: auto; max-height: 300px; border: 1px solid #334155; border-radius: 8px; margin-top: 15px; text-align: left; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th, td { padding: 10px; border-bottom: 1px solid #334155; }
@@ -184,7 +187,7 @@
                 <!-- QR Generator & OCR Tab -->
                 <div id="qr-tab" class="tab-content">
                     <div class="card">
-                        <h3>🪪 CNIC OCR</h3>
+                        <h3>🪪 CNIC OCR & QR Generator</h3>
                         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Please Upload CNIC Picture</p>
                         <div style="margin: 15px 0;">
                             <label class="action-btn" style="background: var(--primary); cursor: pointer; display: block; padding: 14px;">
@@ -226,7 +229,7 @@
                     </div>
                 </div>
 
-                <!-- Recovery PDF Report Tab (New Added Feature) -->
+                <!-- Recovery PDF Report Tab -->
                 <div id="recovery-tab" class="tab-content">
                     <div class="card" style="text-align: left;">
                         <h3 style="text-align: center;">📁 Recovery File Report & PDF</h3>
@@ -326,6 +329,48 @@
             }
         }
 
+        // --- CNIC OCR & QR Generator Logic ---
+        function handleCNICImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('cnic-preview');
+            const statusEl = document.getElementById('ocr-status');
+            const qrBox = document.getElementById('qrcode-box');
+
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            qrBox.innerHTML = '';
+            statusEl.innerText = "Processing image and scanning CNIC number...";
+
+            Tesseract.recognize(
+                file,
+                'eng',
+                { logger: m => console.log(m) }
+            ).then(({ data: { text } }) => {
+                // Regular Expression to find 13-digit CNIC format (e.g., 35202-1234567-1 or 3520212345671)
+                const cnicRegex = /\b\d{5}-\d{7}-\d\b|\b\d{13}\b/;
+                const match = text.match(cnicRegex);
+
+                if (match) {
+                    const cnicNumber = match[0];
+                    statusEl.innerText = `CNIC Found: ${cnicNumber}`;
+                    
+                    // Generate QR Code
+                    new QRCode(qrBox, {
+                        text: cnicNumber,
+                        width: 150,
+                        height: 150
+                    });
+                } else {
+                    statusEl.innerText = "Could not detect CNIC automatically. Try uploading a clearer image.";
+                }
+            }).catch(err => {
+                statusEl.innerText = "Error reading image text!";
+                console.error(err);
+            });
+        }
+
         // --- Recovery Excel Processing & PDF Logic ---
         function processRecoveryFile(event) {
             const file = event.target.files[0];
@@ -339,7 +384,6 @@
                 const worksheet = workbook.Sheets[firstSheetName];
                 const jsonRows = XLSX.utils.sheet_to_json(worksheet);
 
-                // Process rows similar to python pandas logic
                 let processedRows = [];
                 jsonRows.forEach(row => {
                     let rDate = row['recovery_date'] || row['Recovery_Date'] || row['Date'];
@@ -357,7 +401,6 @@
                     });
                 });
 
-                // Group into Pivot Data Structure
                 let pivotMap = {};
                 processedRows.forEach(r => {
                     let dateStr = r.recovery_date.toISOString().split('T')[0];
@@ -377,7 +420,6 @@
 
                 globalPivotData = Object.values(pivotMap);
 
-                // Populate Branch Dropdown
                 let branches = [...new Set(globalPivotData.map(item => item.branch_id))].sort();
                 let selectEl = document.getElementById('recovery-branch-select');
                 selectEl.innerHTML = '<option value="ALL">All Branches</option>';
@@ -390,7 +432,6 @@
 
                 document.getElementById('recovery-options-container').style.display = 'block';
 
-                // Render Preview Table
                 let previewHtml = `
                     <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">📄 Previewing Data (Total Records: ${processedRows.length})</p>
                     <div class="table-container">
@@ -477,7 +518,6 @@
                     currentY = doc.lastAutoTable.finalY + 8;
                 });
 
-                // Summary Total
                 doc.setFontSize(11);
                 doc.text(`Branch Total Receipts: ${branchTotalReceipts} | Total Amount: Rs ${branchTotalAmount.toLocaleString()}`, 14, currentY + 5);
             });
