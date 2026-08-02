@@ -1,678 +1,704 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Website</title>
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    :root {
-      --bg-dark: #0f172a; --card-bg: #1e293b; --sidebar-bg: #0f172a;
-      --primary: #38bdf8; --primary-hover: #0284c7; --btn-green: #10b981;
-      --btn-red: #ef4444; --text-light: #f8fafc; --text-muted: #94a3b8;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; }
-    #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
-    .login-card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
-    .login-icon { width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2); }
-    .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
-    .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
-    .input-group { position: relative; margin-bottom: 15px; text-align: left; }
-    .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
-    .input-field { width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px; }
-    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
-    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
-    .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
-    .header { height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
-    .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-    .logout-btn { background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
-    .main-wrapper { display: flex; flex: 1; flex-direction: column; }
-    @media(min-width: 768px) { .main-wrapper { flex-direction: row; } }
-    .sidebar { width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px; display: flex; gap: 10px; overflow-x: auto; flex-direction: row; justify-content: space-between; align-items: center; }
-    @media(min-width: 768px) { .sidebar { width: 260px; border-bottom: none; border-right: 1px solid #1e293b; padding: 20px 10px; flex-direction: column; gap: 5px; justify-content: flex-start; align-items: flex-start; } }
-    .nav-sub-btn { padding: 10px 15px; background: transparent; color: var(--text-muted); border: none; text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; width: 100%; }
-    .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
-    .main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
-    .tab-content { display: none; width: 100%; max-width: 600px; }
-    .tab-content.active { display: block; }
-    .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-    @media(min-width: 480px) { .card { padding: 30px; } }
-    .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
-    .action-btn { width: 100%; padding: 12px; background: var(--btn-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s; }
-    .action-btn:hover { opacity: 0.9; }
-    #qrcode-box { margin-top: 20px; display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto; }
-    #qrcode-box:empty { display: none; }
-    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
-    .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-    
-    /* Links Grid for My Links Tab */
-    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; text-align: left; }
-    .link-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
-    .link-card-item:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); transform: translateY(-3px); }
-    
-    /* Timer Modal Overlay */
-    #timer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
-    .timer-card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; }
-    .timer-card h4 { color: var(--btn-red); margin-bottom: 10px; font-size: 16px; }
-    .timer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
-    .countdown-number { font-size: 32px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --sidebar-bg: #0f172a;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --btn-green: #10b981;
+            --btn-red: #ef4444;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); min-height: 100vh; overflow-x: hidden; }
+        
+        #login-screen {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%);
+            display: flex; justify-content: center; align-items: center; z-index: 100; padding: 20px;
+        }
+        .login-card {
+            background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px);
+            padding: 30px 25px; border-radius: 20px; width: 100%; max-width: 380px;
+            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center;
+        }
+        .login-icon {
+            width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); color: var(--primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px auto; font-size: 24px; border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .login-card h2 { margin-bottom: 5px; color: #ffffff; font-size: 20px; }
+        .login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+        
+        .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+        .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+        .input-field {
+            width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px;
+            border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: white; outline: none; font-size: 14px;
+        }
+        .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+        
+        .login-btn {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;
+        }
+        
+        .app-container { display: flex; flex-direction: column; min-height: 100vh; display: none; }
+        .header {
+            height: 60px; background: #0f172a; border-bottom: 1px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 10;
+        }
+        .user-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
+        }
+        
+        .main-wrapper { display: flex; flex: 1; flex-direction: column; }
+        @media(min-width: 768px) { .main-wrapper { flex-direction: row; } }
+        
+        .sidebar {
+            width: 100%; background: var(--sidebar-bg); border-bottom: 1px solid #1e293b; padding: 15px;
+            display: flex; gap: 10px; overflow-x: auto; flex-direction: row; justify-content: space-between; align-items: center;
+        }
+        @media(min-width: 768px) {
+            .sidebar {
+                width: 260px; border-bottom: none; border-right: 1px solid #1e293b;
+                padding: 20px 10px; flex-direction: column; gap: 5px; justify-content: flex-start; align-items: flex-start;
+            }
+        }
+        
+        .nav-sub-btn {
+            padding: 10px 15px; background: transparent; color: var(--text-muted); border: none;
+            text-align: left; font-size: 14px; border-radius: 8px; font-weight: 600;
+            display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; width: 100%;
+        }
+        .nav-sub-btn:hover, .nav-sub-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+        
+        .main-content { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+        .tab-content { display: none; width: 100%; max-width: 600px; }
+        .tab-content.active { display: block; }
+        
+        .card {
+            background: var(--card-bg); padding: 20px; border-radius: 16px;
+            border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center;
+        }
+        @media(min-width: 480px) { .card { padding: 30px; } }
+        .card h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
+        
+        .action-btn {
+            width: 100%; padding: 12px; background: var(--btn-green); color: white;
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s;
+        }
+        .action-btn:hover { opacity: 0.9; }
+        
+        #qrcode-box {
+            margin-top: 20px; display: flex; justify-content: center; background: white;
+            padding: 15px; border-radius: 12px; width: fit-content; margin: 20px auto 0 auto;
+        }
+        #qrcode-box:empty { display: none; }
+        
+        .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
+        .history-card-item {
+            background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; text-align: left; }
+        .link-card-item {
+            background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;
+            text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s;
+        }
+        .link-card-item:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); transform: translateY(-3px); }
+        
+        #timer-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none;
+            justify-content: center; align-items: center; z-index: 200; padding: 20px;
+        }
+        .timer-card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; }
+        .timer-card h4 { color: var(--btn-red); margin-bottom: 10px; font-size: 16px; }
+        .timer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
+        .countdown-number { font-size: 32px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
+    </style>
 </head>
 <body>
 
-  <!-- Audio element for clicking sound -->
-  <audio id="click-sound" preload="auto">
-      <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" type="audio/wav">
-  </audio>
+    <audio id="click-sound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" type="audio/wav">
+    </audio>
 
-  <!-- 20 Seconds Timer Modal -->
-  <div id="timer-modal">
-    <div class="timer-card">
-      <h4>⚠️ Are you sure to reset your key?</h4>
-      <p>یہ آپ کی API Key ریسیٹ کرنے جا رہا ہے۔ آپ اسے منسوخ کر سکتے ہیں:</p>
-      <div class="countdown-number" id="countdown-val">20</div>
-      <button class="action-btn" style="background: var(--btn-red); margin-top: 0;" onclick="cancelResetKey()">❌ Cancel (منسوخ کریں)</button>
-    </div>
-  </div>
-
-  <div id="login-screen">
-    <div class="login-card">
-      <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
-      <h2>Welcome Back</h2>
-      <p class="subtitle">Sign in with your assigned ID</p>
-      <div class="input-group"><input type="text" id="username" class="input-field" placeholder="Username"><i class="fa-solid fa-user"></i></div>
-      <div class="input-group"><input type="password" id="password" class="input-field" placeholder="Password"><i class="fa-solid fa-lock"></i></div>
-      <button class="login-btn" onclick="handleLogin()">Sign In</button>
-      <p id="login-err" style="color: #ef4444; margin-top: 12px; font-size: 12px; font-weight: 600;"></p>
-    </div>
-  </div>
-
-  <div class="app-container" id="app-container">
-    <div class="header">
-      <div class="user-info">
-        <i class="fa-solid fa-circle-user fa-lg" style="color: var(--primary);"></i>
-        <span>Welcome Back, <span id="display-user">Guest</span></span>
-      </div>
-      <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-    </div>
-    <div class="main-wrapper">
-      <div class="sidebar">
-        <div style="width: 100%;">
-          <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
-          <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
-          <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
-          <button class="nav-sub-btn" onclick="switchTab('merge-tool-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
+    <div id="timer-modal">
+        <div class="timer-card">
+            <h4>⚠️ Are you sure to reset your key?</h4>
+            <p>یہ آپ کی API Key ریسیٹ کرنے جا رہا ہے۔ آپ اسے منسوخ کر سکتے ہیں:</p>
+            <div class="countdown-number" id="countdown-val">20</div>
+            <button class="action-btn" style="background: var(--btn-red); margin-top: 0;" onclick="cancelResetKey()">❌ Cancel (منسوخ کریں)</button>
         </div>
-        <!-- سائیڈ بار میں ری سیٹ بٹن -->
-        <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
-<div style="margin-top: auto; padding-top: 15px; width: 100%; text-align: center;">
-    <!-- خفیہ آئیکن जिस پر کلک کرنے سے ری سیٹ کا بٹن شو/ہائیڈ ہوگا -->
-    <i class="fa-solid fa-gear" onclick="toggleResetKey()" style="color: var(--text-muted); cursor: pointer; font-size: 14px; margin-bottom: 5px;" title="Settings"></i>
-    
-    <!-- اصل ری سیٹ بٹن (شروع میں display: none کی وجہ سے غائب ہوگا) -->
-    <button id="reset-btn-container" onclick="startResetTimer()" style="display: none; background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;"> 
-        🔄 Reset Key 
-    </button>
-</div>
-       
-      </div>
-      <div class="main-content">
-        <!-- Dashboard Tab -->
-        <div id="dashboard-tab" class="tab-content active">
-          <div class="card">
-            <h3>📊 Your Activity Dashboard</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
-            <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
-          </div>
+    </div>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Sign in with your assigned ID</p>
+            <div class="input-group">
+                <input type="text" id="username" class="input-field" placeholder="Username">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" class="input-field" placeholder="Password">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <button class="login-btn" onclick="handleLogin()">Sign In</button>
+            <p id="login-err" style="color: #ef4444; margin-top: 12px; font-size: 12px; font-weight: 600;"></p>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container">
+        <div class="header">
+            <div class="user-info">
+                <i class="fa-solid fa-circle-user fa-lg" style="color: var(--primary);"></i>
+                <span>Welcome Back, <span id="display-user">Guest</span></span>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
         </div>
 
-        <!-- QR Generator & OCR Tab -->
-        <div id="qr-tab" class="tab-content">
-          <div class="card">
-            <h3>🪪 CNIC OCR</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Please Upload CNIC Picture</p>
-
-            <div style="margin: 15px 0;">
-              <label class="action-btn" style="background: var(--primary); cursor: pointer; display: block; padding: 14px;">📷 Upload ID Card Image<input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;"></label>
-              <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
-              <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></p>
+        <div class="main-wrapper">
+            <div class="sidebar">
+                <div style="width: 100%;">
+                    <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
+                    <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
+                    <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
+                    <button class="nav-sub-btn" onclick="switchTab('merge-tool-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
+                </div>
+                
+                <div style="margin-top: auto; padding-top: 15px; width: 100%; text-align: center;">
+                    <i class="fa-solid fa-gear" onclick="toggleResetKey()" style="color: var(--text-muted); cursor: pointer; font-size: 14px; margin-bottom: 5px;" title="Settings"></i>
+                    <button id="reset-btn-container" onclick="startResetTimer()" style="display: none; background: rgba(239, 68, 68, 0.15); color: var(--btn-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">
+                        🔄 Reset Key
+                    </button>
+                </div>
             </div>
 
-            <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
-          </div>
-        </div>
+            <div class="main-content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-content active">
+                    <div class="card">
+                        <h3>📊 Your Activity Dashboard</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
+                        <div class="history-list" id="dashboard-history-list">
+                            <p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- My Links Tab -->
-        <div id="links-tab" class="tab-content">
-          <div class="card" style="text-align: left;">
-            <h3 style="text-align: center;">🔗 My Link's</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
-            
-            <div class="links-grid">
-              <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
+                <!-- QR Generator & OCR Tab -->
+                <div id="qr-tab" class="tab-content">
+                    <div class="card">
+                        <h3>🪪 CNIC OCR</h3>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Please Upload CNIC Picture</p>
+                        <div style="margin: 15px 0;">
+                            <label class="action-btn" style="background: var(--primary); cursor: pointer; display: block; padding: 14px;">
+                                📷 Upload ID Card Image
+                                <input type="file" id="cnic-image-upload" accept="image/*" onchange="handleCNICImageUpload(event)" style="display: none;">
+                            </label>
+                            <img id="cnic-preview" style="max-width:100%; margin-top:10px; border-radius:8px; display:none;">
+                            <p id="ocr-status" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></p>
+                        </div>
+                        <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
+                    </div>
                 </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-<!-- Merge & CSV Tools Tab -->
-<div id="merge-tool-tab" class="tab-content">
-    <div class="card" style="text-align: left;">
-        <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Merge your sanction files, branch files, and multiple CSVs easily in browser.</p>
-        
-        <!-- Tool 1: Merge Sanction & Branch File -->
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-code-merge"></i> 1. Merge Sanction & Branch File</h4>
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
-                <div>
-                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Merge File (Sanction No)</label>
-                    <input type="file" id="merge-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
-                </div>
-                <div>
-                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Branch File (Branch Code)</label>
-                    <input type="file" id="branch-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
-                </div>
-            </div>
-            <button class="action-btn" style="padding: 8px; font-size: 13px;" onclick="processSanctionBranchMerge()">🚀 Process & Download Excel</button>
-            <div id="sanction-result-box" style="margin-top: 10px; font-size: 12px;"></div>
-        </div>
 
-        <!-- Tool 2: Merge Multiple CSV Files (Skip 2 rows) -->
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;">
-            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-files"></i> 2. Merge Multiple CSV Files (Skip 2 rows)</h4>
-            <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Multiple CSV Files</label>
-                <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
+                <!-- My Links Tab -->
+                <div id="links-tab" class="tab-content">
+                    <div class="card" style="text-align: left;">
+                        <h3 style="text-align: center;">🔗 My Link's</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
+                        <div class="links-grid">
+                            <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                            <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
+                                </div>
+                                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Merge & CSV Tools Tab -->
+                <div id="merge-tool-tab" class="tab-content">
+                    <div class="card" style="text-align: left;">
+                        <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Merge your sanction files, branch files, and multiple CSVs easily in browser.</p>
+                        
+                        <!-- Tool 1: Merge Sanction & Branch File -->
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-code-merge"></i> 1. Merge Sanction & Branch File</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Merge File (Sanction No)</label>
+                                    <input type="file" id="merge-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Branch File (Branch Code)</label>
+                                    <input type="file" id="branch-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
+                                </div>
+                            </div>
+                            <button class="action-btn" style="padding: 8px; font-size: 13px;" onclick="processSanctionBranchMerge()">🚀 Process & Download Excel</button>
+                            <div id="sanction-result-box" style="margin-top: 10px; font-size: 12px;"></div>
+                        </div>
+
+                        <!-- Tool 2: Merge Multiple CSV Files (Skip 2 rows) -->
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;">
+                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-files"></i> 2. Merge Multiple CSV Files (Skip 2 rows)</h4>
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Multiple CSV Files</label>
+                                <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
+                            </div>
+                            <button class="action-btn" style="padding: 8px; font-size: 13px; background: var(--primary);" onclick="processMultiCsvMerge()">🚀 Merge & Download CSV</button>
+                            <div id="csv-result-box" style="margin-top: 10px; font-size: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <button class="action-btn" style="padding: 8px; font-size: 13px; background: var(--primary);" onclick="processMultiCsvMerge()">🚀 Merge & Download CSV</button>
-            <div id="csv-result-box" style="margin-top: 10px; font-size: 12px;"></div>
         </div>
     </div>
-</div>
-              <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
 
-              <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-
-              <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-
-              <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-
-              <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-
-              <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-
-              <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
-                <div>
-                  <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
-                </div>
-                <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
-              </a>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const FIXED_FIRST_12 = "421011234567";
-
-    let GOOGLE_API_KEY = localStorage.getItem('gemini_key');
-    if(!GOOGLE_API_KEY){
-        GOOGLE_API_KEY = prompt("🔑 پہلی بار: اپنی Gemini API Key یہاں paste کریں\nKey: aistudio.google.com");
-        if(GOOGLE_API_KEY) localStorage.setItem('gemini_key', GOOGLE_API_KEY);
-    }
-
-    const firebaseConfig = { databaseURL: "https://mywebsite-7016a-default-rtdb.firebaseio.com" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let currentUser = null;
-    let resetTimerInterval = null;
-
-    function playSound() {
-        var sound = document.getElementById("click-sound");
-        if(sound) {
-            sound.currentTime = 0;
-            sound.play();
+    <script>
+        const FIXED_FIRST_12 = "421011234567";
+        let GOOGLE_API_KEY = localStorage.getItem('gemini_key');
+        if(!GOOGLE_API_KEY){
+            GOOGLE_API_KEY = prompt("🔑 پہلی بار: اپنی Gemini API Key یہاں paste کریں\nKey: aistudio.google.com");
+            if(GOOGLE_API_KEY) localStorage.setItem('gemini_key', GOOGLE_API_KEY);
         }
-    }
 
-    function getDeviceId() {
-      let devId = localStorage.getItem('device_unique_id');
-      if (!devId) { devId = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now(); localStorage.setItem('device_unique_id', devId); }
-      return devId;
-    }
+        const firebaseConfig = { databaseURL: "https://mywebsite-7016a-default-rtdb.firebaseio.com" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let currentUser = null;
+        let resetTimerInterval = null;
 
-    async function handleLogin() {
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      const errEl = document.getElementById('login-err');
-      if (!user || !pass) { errEl.innerText = "Please fill all fields!"; return; }
-      errEl.innerText = "Verifying...";
-      try {
-        const snapshot = await db.ref(`users/${user}`).once('value');
-        const userData = snapshot.val();
-        if (userData && userData.password === pass) {
-          const thisDeviceId = getDeviceId();
-          if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
-          if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
-          currentUser = user;
-          localStorage.setItem('logged_user', user);
-          document.getElementById('display-user').innerText = user;
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('app-container').style.display = 'flex';
-          errEl.innerText = "";
-          loadUserHistory(user);
-        } else { errEl.innerText = "Invalid Username or Password!"; }
-      } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
-    }
-
-    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
-
-    window.onload = function() {
-      const savedUser = localStorage.getItem('logged_user');
-      if (savedUser) {
-        currentUser = savedUser;
-        document.getElementById('display-user').innerText = savedUser;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        loadUserHistory(savedUser);
-      }
-    };
-
-    function switchTab(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
-      playSound();
-    }
-
-    // ===== 20 SECONDS RESET TIMER FUNCTIONS =====
-    function startResetTimer() {
-      let timeLeft = 20;
-      document.getElementById('countdown-val').innerText = timeLeft;
-      document.getElementById('timer-modal').style.display = 'flex';
-
-      resetTimerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('countdown-val').innerText = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(resetTimerInterval);
-          localStorage.removeItem('gemini_key');
-          alert('✅ API Key successfully deleted!');
-          location.reload();
+        function playSound() {
+            var sound = document.getElementById("click-sound");
+            if(sound) { sound.currentTime = 0; sound.play(); }
         }
-      }, 1000);
-    }
 
-    function cancelResetKey() {
-      clearInterval(resetTimerInterval);
-      document.getElementById('timer-modal').style.display = 'none';
-    }
+        function getDeviceId() {
+            let devId = localStorage.getItem('device_unique_id');
+            if (!devId) {
+                devId = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now();
+                localStorage.setItem('device_unique_id', devId);
+            }
+            return devId;
+        }
 
-    function generateQRFromCNIC(cnicNumber) {
-      const qrBox = document.getElementById('qrcode-box');
-      const fullCNIC = FIXED_FIRST_12 + cnicNumber;
-      qrBox.innerHTML = "";
-      new QRCode(qrBox, { text: fullCNIC, width: 160, height: 160, colorDark : "#000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-      if (currentUser) {
-        const timeNow = new Date().toLocaleString();
-        db.ref(`history/${currentUser}`).push({ cnic: cnicNumber, time: timeNow });
-      }
-    }
+        async function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const errEl = document.getElementById('login-err');
+            if (!user || !pass) { errEl.innerText = "Please fill all fields!"; return; }
+            errEl.innerText = "Verifying...";
+            try {
+                const snapshot = await db.ref(`users/${user}`).once('value');
+                const userData = snapshot.val();
+                if (userData && userData.password === pass) {
+                    const thisDeviceId = getDeviceId();
+                    if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) {
+                        errEl.innerText = "⛔ Account registered to another device!";
+                        return;
+                    }
+                    if (!userData.boundDeviceId) {
+                        await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId);
+                    }
+                    currentUser = user;
+                    localStorage.setItem('logged_user', user);
+                    document.getElementById('display-user').innerText = user;
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-container').style.display = 'flex';
+                    errEl.innerText = "";
+                    loadUserHistory(user);
+                } else {
+                    errEl.innerText = "Invalid Username or Password!";
+                }
+            } catch (e) {
+                console.error(e);
+                errEl.innerText = "Database connection error!";
+            }
+        }
 
-    function loadUserHistory(username) {
-      const historyList = document.getElementById('dashboard-history-list');
-      db.ref(`history/${username}`).on('value', (snapshot) => {
-        historyList.innerHTML = "";
-        const data = snapshot.val();
-        if (!data) { historyList.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p>`; return; }
-        let html = "";
-        Object.values(data).reverse().forEach(item => {
-          html += `<div class="history-card-item"><div><div style="color: #38bdf8; font-weight: 600; font-size: 14px;">CNIC: ${item.cnic}</div><div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">${item.time}</div></div><i class="fa-solid fa-circle-check" style="color: var(--btn-green);"></i></div>`;
-        });
-        historyList.innerHTML = html;
-      });
-    }
+        function handleLogout() {
+            localStorage.removeItem('logged_user');
+            location.reload();
+        }
 
-    // ===== CNIC OCR =====
-    async function handleCNICImageUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        window.onload = function() {
+            const savedUser = localStorage.getItem('logged_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                document.getElementById('display-user').innerText = savedUser;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                loadUserHistory(savedUser);
+            }
+        };
 
-        if(!GOOGLE_API_KEY){ alert("Key نہیں ملی۔ Page refresh کریں"); return; }
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+            playSound();
+        }
 
-        const statusEl = document.getElementById('ocr-status');
-        const previewEl = document.getElementById('cnic-preview');
+        function toggleResetKey() {
+            const resetBtn = document.getElementById('reset-btn-container');
+            if (resetBtn.style.display === 'none') {
+                resetBtn.style.display = 'block';
+            } else {
+                resetBtn.style.display = 'none';
+            }
+        }
 
-        previewEl.src = URL.createObjectURL(file);
-        previewEl.style.display = 'block';
-        statusEl.innerText = "Status: Please Wait Just A Second ";
-        statusEl.style.color = "var(--primary)";
+        function startResetTimer() {
+            let timeLeft = 20;
+            document.getElementById('countdown-val').innerText = timeLeft;
+            document.getElementById('timer-modal').style.display = 'flex';
+            resetTimerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('countdown-val').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(resetTimerInterval);
+                    localStorage.removeItem('gemini_key');
+                    alert('✅ API Key successfully deleted!');
+                    location.reload();
+                }
+            }, 1000);
+        }
 
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = async function() {
-            const base64Image = reader.result.split(',')[1];
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GOOGLE_API_KEY}`;
+        function cancelResetKey() {
+            clearInterval(resetTimerInterval);
+            document.getElementById('timer-modal').style.display = 'none';
+        }
 
-            const body = {
-              "contents": [{
-                "parts": [
-                  { "text": "اس پاکستانی CNIC کارڈ کی تصویر سے صرف 13 ہندسوں کا CNIC نمبر نکال کر دو۔ صرف نمبر دو، اور کچھ نہیں۔ اگر نہ ملے تو Not Found لکھو۔" },
-                  { "inline_data": { "mime_type": "image/jpeg", "data": base64Image } }
-                ]
-              }]
+        function generateQRFromCNIC(cnicNumber) {
+            const qrBox = document.getElementById('qrcode-box');
+            const fullCNIC = FIXED_FIRST_12 + cnicNumber;
+            qrBox.innerHTML = "";
+            new QRCode(qrBox, {
+                text: fullCNIC,
+                width: 160,
+                height: 160,
+                colorDark : "#000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+            if (currentUser) {
+                const timeNow = new Date().toLocaleString();
+                db.ref(`history/${currentUser}`).push({ cnic: cnicNumber, time: timeNow });
+            }
+        }
+
+        function loadUserHistory(username) {
+            const historyList = document.getElementById('dashboard-history-list');
+            db.ref(`history/${username}`).on('value', (snapshot) => {
+                historyList.innerHTML = "";
+                const data = snapshot.val();
+                if (!data) {
+                    historyList.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p>`;
+                    return;
+                }
+                let html = "";
+                Object.values(data).reverse().forEach(item => {
+                    html += `<div class="history-card-item"><div><div style="color: #38bdf8; font-weight: 600; font-size: 14px;">CNIC: ${item.cnic}</div><div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">${item.time}</div></div><i class="fa-solid fa-circle-check" style="color: var(--btn-green);"></i></div>`;
+                });
+                historyList.innerHTML = html;
+            });
+        }
+
+        async function handleCNICImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if(!GOOGLE_API_KEY){ alert("Key نہیں ملی۔ Page refresh کریں"); return; }
+            const statusEl = document.getElementById('ocr-status');
+            const previewEl = document.getElementById('cnic-preview');
+            previewEl.src = URL.createObjectURL(file);
+            previewEl.style.display = 'block';
+            statusEl.innerText = "Status: Please Wait Just A Second ";
+            statusEl.style.color = "var(--primary)";
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async function() {
+                const base64Image = reader.result.split(',')[1];
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
+                const promptText = "Extract the 13 digit CNIC number from this ID card image. Return ONLY the 13 digits without any dashes or spaces. If not found, return NONE.";
+                
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: promptText },
+                                    { inline_data: { mime_type: file.type, data: base64Image } }
+                                ]
+                            }]
+                        })
+                    });
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "NONE";
+                    const match = text.match(/\d{13}/);
+                    if (match) {
+                        const cnicVal = match[0].substring(5, 13);
+                        statusEl.innerText = "Status: Success! CNIC Extracted.";
+                        statusEl.style.color = "var(--btn-green)";
+                        generateQRFromCNIC(cnicVal);
+                    } else {
+                        statusEl.innerText = "Status: CNIC not found, try clearer image.";
+                        statusEl.style.color = "var(--btn-red)";
+                    }
+                } catch (err) {
+                    console.error(err);
+                    statusEl.innerText = "Status: OCR API Error!";
+                    statusEl.style.color = "var(--btn-red)";
+                }
             };
+        }
+
+        // --- Helper to read file ---
+        function readFileAsync(file, isText = false) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = err => reject(err);
+                if (isText) reader.readAsText(file);
+                else reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // --- Tool 1 Logic: Merge Sanction & Branch File ---
+        async function processSanctionBranchMerge() {
+            const mergeFile = document.getElementById('merge-file-input').files[0];
+            const branchFile = document.getElementById('branch-file-input').files[0];
+            const resultBox = document.getElementById('sanction-result-box');
+
+            if (!mergeFile || !branchFile) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Please upload both files!</span>`;
+                return;
+            }
+
+            resultBox.innerHTML = `<span style="color: var(--primary);">Processing files...</span>`;
 
             try {
-                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
-                const data = await response.json();
+                const mergeData = await readFileAsync(mergeFile);
+                const branchData = await readFileAsync(branchFile);
+
+                const wbMerge = XLSX.read(mergeData, { type: 'array' });
+                const wbBranch = XLSX.read(branchData, { type: 'array' });
+
+                const dfMerge = XLSX.utils.sheet_to_json(wbMerge.Sheets[wbMerge.SheetNames[0]], { defval: "" });
+                const dfBranch = XLSX.utils.sheet_to_json(wbBranch.Sheets[wbBranch.SheetNames[0]], { defval: "" });
+
+                if (dfMerge.length === 0 || dfBranch.length === 0) {
+                    throw new Error("One of the files is empty.");
+                }
+
+                const cleanKey = (k) => String(k).trim().toLowerCase();
                 
-                if (data.error) {
-                    statusEl.innerText = `Status: API Error - ${data.error.message || 'Key چیک کریں'}`;
-                    statusEl.style.color = "var(--btn-red)";
-                    return;
+                let sampleMergeRow = dfMerge[0];
+                let sanctionColKey = Object.keys(sampleMergeRow).find(k => cleanKey(k) === 'sanctionno');
+                if (!sanctionColKey) throw new Error("Merge File must have column 'sanctionno'");
+
+                let sampleBranchRow = dfBranch[0];
+                let bCodeKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'branch code');
+                let bNameKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'branch_name');
+                let aNameKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'area_name');
+
+                if (!bCodeKey || !bNameKey || !aNameKey) {
+                    throw new Error("Branch File must have columns 'branch code', 'branch_name', 'area_name'");
                 }
 
-                if (!data.candidates || !data.candidates[0].content) {
-                    statusEl.innerText = "Status: ❌ ماڈل نے ڈیٹا بلاک کر دیا یا نہیں پڑھ سکا۔";
-                    statusEl.style.color = "var(--btn-red)";
-                    return;
+                let branchMap = {};
+                dfBranch.forEach(row => {
+                    let code = String(row[bCodeKey]).trim();
+                    let prefix = code.substring(0, 4);
+                    branchMap[prefix] = {
+                        branch_name: row[bNameKey],
+                        area_name: row[aNameKey]
+                    };
+                });
+
+                let mergedResult = dfMerge.map(row => {
+                    let sNo = String(row[sanctionColKey] || "").trim();
+                    let prefix = sNo.substring(0, 4);
+                    let match = branchMap[prefix] || { branch_name: "", area_name: "" };
+
+                    let newRow = {};
+                    let keys = Object.keys(row);
+                    keys.forEach((k, idx) => {
+                        newRow[k] = row[k];
+                        if (idx === 1) {
+                            newRow['Branch Name'] = match.branch_name;
+                            newRow['Area Name'] = match.area_name;
+                        }
+                    });
+                    return newRow;
+                });
+
+                const newWs = XLSX.utils.json_to_sheet(mergedResult);
+                const newWb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(newWb, newWs, "Merged_Report");
+                
+                XLSX.writeFile(newWb, "Merged_Report.xlsx");
+                resultBox.innerHTML = `<span style="color: #22c55e;">Success! File downloaded automatically.</span>`;
+
+            } catch (e) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
+            }
+        }
+
+        // --- Tool 2 Logic: Merge Multiple CSV Files (Skip 2 rows) ---
+        async function processMultiCsvMerge() {
+            const filesInput = document.getElementById('multi-csv-input').files;
+            const resultBox = document.getElementById('csv-result-box');
+
+            if (!filesInput || filesInput.length === 0) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Please select at least one CSV file!</span>`;
+                return;
+            }
+
+            resultBox.innerHTML = `<span style="color: var(--primary);">Merging CSVs...</span>`;
+
+            let allRows = [];
+            let missingFiles = [];
+            let headers = null;
+
+            const cleanCol = (name) => String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            try {
+                for (let file of filesInput) {
+                    let text = await readFileAsync(file, true);
+                    let lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+
+                    if (lines.length <= 2) {
+                        missingFiles.push(file.name);
+                        continue;
+                    }
+
+                    let csvDataRows = lines.slice(2).join("\n");
+                    let wb = XLSX.read(csvDataRows, { type: 'string' });
+                    let sheetName = wb.SheetNames[0];
+                    let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+
+                    if (jsonRows.length > 0) {
+                        let sampleKeys = Object.keys(jsonRows[0]);
+                        let cleanedKeysMap = {};
+                        sampleKeys.forEach(k => cleanedKeysMap[cleanCol(k)] = k);
+
+                        let hasSanction = ['sanctionno', 'sanctionnumber', 'sactionno'].some(k => cleanedKeysMap[k]);
+
+                        if (hasSanction) {
+                            if (!headers) headers = sampleKeys;
+                            allRows = allRows.concat(jsonRows);
+                        } else {
+                            missingFiles.push(file.name);
+                        }
+                    } else {
+                        missingFiles.push(file.name);
+                    }
                 }
 
-                let text = data.candidates[0].content.parts[0].text.trim();
-                let foundCNIC = text.replace(/\D/g, "");
+                if (missingFiles.length > 0) {
+                    resultBox.innerHTML += `<br><span style="color: #f59e0b;">Warning: 'Sanction No' missing or file empty in: ${missingFiles.join(', ')}</span>`;
+                }
 
-                if(foundCNIC.length >= 13){
-                    foundCNIC = foundCNIC.slice(-13);
-                    statusEl.innerText = `Status: ✅ Found: ${foundCNIC}`;
-                    statusEl.style.color = "var(--btn-green)";
-                    generateQRFromCNIC(foundCNIC);
+                if (allRows.length > 0) {
+                    const finalWs = XLSX.utils.json_to_sheet(allRows);
+                    const finalWb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(finalWb, finalWs, "Merged_Due_List");
+
+                    XLSX.writeFile(finalWb, "merged_due_list.csv");
+                    resultBox.innerHTML += `<br><span style="color: #22c55e;">Merged ${allRows.length} total rows successfully! File downloaded.</span>`;
                 } else {
-                    statusEl.innerText = "Status: ❌ CNIC نمبر نہیں ملا۔ صاف تصویر لگائیں";
-                    statusEl.style.color = "var(--btn-red)";
+                    resultBox.innerHTML = `<span style="color: #ef4444;">No valid rows found to merge.</span>`;
                 }
-            } catch(error){
-                statusEl.innerText = "Status: Network Error یا غلط Key";
-                console.error(error);
+
+            } catch (e) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Error processing CSVs: ${e.message}</span>`;
             }
         }
-    }
-   function toggleResetKey() {
-    const resetBtn = document.getElementById('reset-btn-container');
-    if (resetBtn.style.display === 'none') {
-        resetBtn.style.display = 'block';
-    } else {
-        resetBtn.style.display = 'none';
-    }
-}
-      
-      
-<!-- Merge & CSV Tools Tab -->
-<div id="merge-tool-tab" class="tab-content">
-    <div class="card" style="text-align: left;">
-        <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Merge your sanction files, branch files, and multiple CSVs easily in browser.</p>
-        
-        <!-- Tool 1: Merge Sanction & Branch File -->
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-code-merge"></i> 1. Merge Sanction & Branch File</h4>
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
-                <div>
-                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Merge File (Sanction No)</label>
-                    <input type="file" id="merge-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
-                </div>
-                <div>
-                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Branch File (Branch Code)</label>
-                    <input type="file" id="branch-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
-                </div>
-            </div>
-            <button class="action-btn" style="padding: 8px; font-size: 13px;" onclick="processSanctionBranchMerge()">🚀 Process & Download Excel</button>
-            <div id="sanction-result-box" style="margin-top: 10px; font-size: 12px;"></div>
-        </div>
-
-        <!-- Tool 2: Merge Multiple CSV Files (Skip 2 rows) -->
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;">
-            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-files"></i> 2. Merge Multiple CSV Files (Skip 2 rows)</h4>
-            <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Multiple CSV Files</label>
-                <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
-            </div>
-            <button class="action-btn" style="padding: 8px; font-size: 13px; background: var(--primary);" onclick="processMultiCsvMerge()">🚀 Merge & Download CSV</button>
-            <div id="csv-result-box" style="margin-top: 10px; font-size: 12px;"></div>
-        </div>
-    </div>
-</div>
-
-<script>
-// --- Helper to read file as ArrayBuffer or Text ---
-function readFileAsync(file, isText = false) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = err => reject(err);
-        if (isText) reader.readAsText(file);
-        else reader.readAsArrayBuffer(file);
-    });
-}
-
-// --- Tool 1 Logic: Merge Sanction & Branch File ---
-async function processSanctionBranchMerge() {
-    const mergeFile = document.getElementById('merge-file-input').files[0];
-    const branchFile = document.getElementById('branch-file-input').files[0];
-    const resultBox = document.getElementById('sanction-result-box');
-
-    if (!mergeFile || !branchFile) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Please upload both files!</span>`;
-        return;
-    }
-
-    resultBox.innerHTML = `<span style="color: var(--primary);">Processing files...</span>`;
-
-    try {
-        const mergeData = await readFileAsync(mergeFile);
-        const branchData = await readFileAsync(branchFile);
-
-        const wbMerge = XLSX.read(mergeData, { type: 'array' });
-        const wbBranch = XLSX.read(branchData, { type: 'array' });
-
-        const dfMerge = XLSX.utils.sheet_to_json(wbMerge.Sheets[wbMerge.SheetNames[0]], { defval: "" });
-        const dfBranch = XLSX.utils.sheet_to_json(wbBranch.Sheets[wbBranch.SheetNames[0]], { defval: "" });
-
-        if (dfMerge.length === 0 || dfBranch.length === 0) {
-            throw new Error("One of the files is empty.");
-        }
-
-        // Clean columns and check required fields
-        const cleanKey = (k) => String(k).trim().toLowerCase();
-        
-        let sampleMergeRow = dfMerge[0];
-        let sanctionColKey = Object.keys(sampleMergeRow).find(k => cleanKey(k) === 'sanctionno');
-        if (!sanctionColKey) throw new Error("Merge File must have column 'sanctionno'");
-
-        let sampleBranchRow = dfBranch[0];
-        let bCodeKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'branch code');
-        let bNameKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'branch_name');
-        let aNameKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'area_name');
-
-        if (!bCodeKey || !bNameKey || !aNameKey) {
-            throw new Error("Branch File must have columns 'branch code', 'branch_name', 'area_name'");
-        }
-
-        // Map branch data by prefix (first 4 chars of branch code)
-        let branchMap = {};
-        dfBranch.forEach(row => {
-            let code = String(row[bCodeKey]).trim();
-            let prefix = code.substring(0, 4);
-            branchMap[prefix] = {
-                branch_name: row[bNameKey],
-                area_name: row[aNameKey]
-            };
-        });
-
-        // Perform Left Join & Insert columns at position 2 & 3
-        let mergedResult = dfMerge.map(row => {
-            let sNo = String(row[sanctionColKey] || "").trim();
-            let prefix = sNo.substring(0, 4);
-            let match = branchMap[prefix] || { branch_name: "", area_name: "" };
-
-            let newRow = {};
-            let keys = Object.keys(row);
-            keys.forEach((k, idx) => {
-                newRow[k] = row[k];
-                if (idx === 1) { // Insert after 2nd column
-                    newRow['Branch Name'] = match.branch_name;
-                    newRow['Area Name'] = match.area_name;
-                }
-            });
-            return newRow;
-        });
-
-        // Create Excel Workbook
-        const newWs = XLSX.utils.json_to_sheet(mergedResult);
-        const newWb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(newWb, newWs, "Merged_Report");
-        
-        XLSX.writeFile(newWb, "Merged_Report.xlsx");
-        resultBox.innerHTML = `<span style="color: #22c55e;">Success! File downloaded automatically.</span>`;
-
-    } catch (e) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
-    }
-}
-
-// --- Tool 2 Logic: Merge Multiple CSV Files (Skip 2 rows) ---
-async function processMultiCsvMerge() {
-    const filesInput = document.getElementById('multi-csv-input').files;
-    const resultBox = document.getElementById('csv-result-box');
-
-    if (!filesInput || filesInput.length === 0) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Please select at least one CSV file!</span>`;
-        return;
-    }
-
-    resultBox.innerHTML = `<span style="color: var(--primary);">Merging CSVs...</span>`;
-
-    let allRows = [];
-    let missingFiles = [];
-    let headers = null;
-
-    const cleanCol = (name) => String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    try {
-        for (let file of filesInput) {
-            let text = await readFileAsync(file, true);
-            let lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
-
-            if (lines.length <= 2) {
-                missingFiles.push(file.name);
-                continue;
-            }
-
-            // Skip first 2 rows
-            let csvDataRows = lines.slice(2).join("\n");
-            let wb = XLSX.read(csvDataRows, { type: 'string' });
-            let sheetName = wb.SheetNames[0];
-            let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
-
-            if (jsonRows.length > 0) {
-                let sampleKeys = Object.keys(jsonRows[0]);
-                let cleanedKeysMap = {};
-                sampleKeys.forEach(k => cleanedKeysMap[cleanCol(k)] = k);
-
-                let hasSanction = ['sanctionno', 'sanctionnumber', 'sactionno'].some(k => cleanedKeysMap[k]);
-
-                if (hasSanction) {
-                    if (!headers) headers = sampleKeys;
-                    allRows = allRows.concat(jsonRows);
-                } else {
-                    missingFiles.push(file.name);
-                }
-            } else {
-                missingFiles.push(file.name);
-            }
-        }
-
-        if (missingFiles.length > 0) {
-            resultBox.innerHTML += `<br><span style="color: #f59e0b;">Warning: 'Sanction No' missing or file empty in: ${missingFiles.join(', ')}</span>`;
-        }
-
-        if (allRows.length > 0) {
-            const finalWs = XLSX.utils.json_to_sheet(allRows);
-            const finalWb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(finalWb, finalWs, "Merged_Due_List");
-
-            XLSX.writeFile(finalWb, "merged_due_list.csv");
-            resultBox.innerHTML += `<br><span style="color: #22c55e;">Merged ${allRows.length} total rows successfully! File downloaded.</span>`;
-        } else {
-            resultBox.innerHTML = `<span style="color: #ef4444;">No valid rows found to merge.</span>`;
-        }
-
-    } catch (e) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Error processing CSVs: ${e.message}</span>`;
-</script>
-
-
-    }
-}
-  
-  </script>
+    </script>
 </body>
 </html>
