@@ -181,6 +181,7 @@
                     <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
                     <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
                     <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
+                    <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF & CSV</button>
                     <button class="nav-sub-btn" onclick="switchTab('merge-tool-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
                 </div>
                 
@@ -321,7 +322,38 @@
             </div>
         </div>
     </div>
+<!-- Recovery PDF & CSV Report Tab -->
+<div id="recovery-tab" class="tab-content">
+    <div class="card" style="text-align: left;">
+        <h3 style="text-align: center;">📁 Recovery File Report & Export</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Upload Excel recovery file to generate branch-wise PDF or CSV reports.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Upload Recovery File (Excel)</label>
+                <input type="file" id="recovery-file-input" accept=".xlsx, .xls" style="font-size: 13px; color: #fff;" onchange="processRecoveryFile(event)">
+            </div>
 
+            <div id="recovery-options-container" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155;">
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch</label>
+                <select id="recovery-branch-select" class="input-field" style="margin-bottom: 12px;">
+                    <option value="ALL">All Branches</option>
+                </select>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn" style="margin-top: 0; background: var(--btn-green); flex: 1;" onclick="downloadRecoveryPDF()">
+                        📥 Download PDF
+                    </button>
+                    <button class="action-btn" style="margin-top: 0; background: var(--primary); flex: 1; color: #0f172a;" onclick="downloadRecoveryCSV()">
+                        📥 Download CSV
+                    </button>
+                </div>
+            </div>
+
+            <div id="recovery-preview-area"></div>
+        </div>
+    </div>
+</div>
     <script>
         const FIXED_FIRST_12 = "421011234567";
         let GOOGLE_API_KEY = localStorage.getItem('gemini_key');
