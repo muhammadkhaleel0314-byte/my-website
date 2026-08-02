@@ -578,7 +578,7 @@
                 const cleanKey = (k) => String(k).trim().toLowerCase();
                 
                 let sampleMergeRow = dfMerge[0];
-                let sanctionColKey = Object.keys(sampleMergeRow).find(k => cleanKey(k) === 'sanctionno');
+                let sanctionColKey = Object.keys(sampleMergeRow).find(k => cleanKey(k) === 'Sanction No');
                 if (!sanctionColKey) throw new Error("Merge File must have column 'sanctionno'");
 
                 let sampleBranchRow = dfBranch[0];
