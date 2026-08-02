@@ -598,6 +598,7 @@
 
                 globalRecoveryData = rows;
 
+                // Find branch column dynamically
                 const sampleRow = rows[0];
                 const cleanCol = (name) => String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
                 let branchKey = Object.keys(sampleRow).find(k => {
@@ -611,6 +612,7 @@
                     return;
                 }
 
+                // Extract unique branches
                 let branches = [...new Set(rows.map(r => String(r[branchKey]).trim()))].filter(b => b !== "");
                 
                 branchSelect.innerHTML = `<option value="ALL">All Branches</option>`;
