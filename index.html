@@ -427,7 +427,10 @@
         resetBtn.style.display = 'block';
     } else {
         resetBtn.style.display = 'none';
-      <!-- Merge & CSV Tools Tab -->
+
+    }
+}
+          <!-- Merge & CSV Tools Tab -->
 <div id="merge-tool-tab" class="tab-content">
     <div class="card" style="text-align: left;">
         <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
@@ -629,8 +632,6 @@ async function processMultiCsvMerge() {
 
     } catch (e) {
         resultBox.innerHTML = `<span style="color: #ef4444;">Error processing CSVs: ${e.message}</span>`;
-    }
-}
 </script>
 
     }
