@@ -295,38 +295,25 @@
                     </div>
                 </div>
 
-                <!-- Merge & CSV Tools Tab -->
+                <!-- Merge & CSV Tools Tab (Combined Tool) -->
                 <div id="merge-tool-tab" class="tab-content">
                     <div class="card" style="text-align: left;">
-                        <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Merge your sanction files, branch files, and multiple CSVs easily in browser.</p>
+                        <h3 style="text-align: center;">📁 Merge CSVs with Branch Data</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Upload multiple CSV files (auto-skips first 2 rows) and your Branch file to generate the final merged report.</p>
                         
-                        <!-- Tool 1: Merge Sanction & Branch File -->
                         <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-code-merge"></i> 1. Merge Sanction & Branch File</h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
                                 <div>
-                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Merge File (Sanction No)</label>
-                                    <input type="file" id="merge-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">1. Upload Multiple CSV Files</label>
+                                    <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Branch File (Branch Code)</label>
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">2. Upload Branch File (Branch Code)</label>
                                     <input type="file" id="branch-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
                                 </div>
                             </div>
-                            <button class="action-btn" style="padding: 8px; font-size: 13px;" onclick="processSanctionBranchMerge()">🚀 Process & Download Excel</button>
+                            <button class="action-btn" style="padding: 10px; font-size: 14px;" onclick="processSanctionBranchMerge()">🚀 Merge All & Download Excel</button>
                             <div id="sanction-result-box" style="margin-top: 10px; font-size: 12px;"></div>
-                        </div>
-
-                        <!-- Tool 2: Merge Multiple CSV Files (Skip 2 rows) -->
-                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;">
-                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-files"></i> 2. Merge Multiple CSV Files (Skip 2 rows)</h4>
-                            <div style="margin-bottom: 12px;">
-                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Multiple CSV Files</label>
-                                <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
-                            </div>
-                            <button class="action-btn" style="padding: 8px; font-size: 13px; background: var(--primary);" onclick="processMultiCsvMerge()">🚀 Merge & Download CSV</button>
-                            <div id="csv-result-box" style="margin-top: 10px; font-size: 12px;"></div>
                         </div>
                     </div>
                 </div>
@@ -547,133 +534,128 @@
                 else reader.readAsArrayBuffer(file);
             });
         }
-// --- Combined Tool: Merge Multiple CSVs + Branch File (Left Join) ---
-async function processSanctionBranchMerge() {
-    const filesInput = document.getElementById('multi-csv-input').files;
-    const branchFile = document.getElementById('branch-file-input').files;
-    const resultBox = document.getElementById('sanction-result-box');
 
-    // Check files
-    if (!filesInput || filesInput.length === 0) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Please upload at least one CSV file!</span>`;
-        return;
-    }
-    if (!branchFile || branchFile.length === 0) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Please upload the Branch File!</span>`;
-        return;
-    }
+        // --- Combined Tool Logic: Merge Multiple CSVs (skip 2 rows) + Branch File (Left Join) ---
+        async function processSanctionBranchMerge() {
+            const filesInput = document.getElementById('multi-csv-input').files;
+            const branchFile = document.getElementById('branch-file-input').files;
+            const resultBox = document.getElementById('sanction-result-box');
 
-    resultBox.innerHTML = `<span style="color: var(--primary);">Processing and merging all files...</span>`;
-
-    let allRows = [];
-    let missingFiles = [];
-    const cleanCol = (name) => String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    try {
-        // 1. Read Branch File first
-        const branchData = await readFileAsync(branchFile[0]);
-        const wbBranch = XLSX.read(branchData, { type: 'array' });
-        const dfBranch = XLSX.utils.sheet_to_json(wbBranch.Sheets[wbBranch.SheetNames[0]], { defval: "" });
-
-        if (dfBranch.length === 0) throw new Error("Branch File is empty.");
-
-        let sampleBranchRow = dfBranch[0];
-        let bCodeKey = Object.keys(sampleBranchRow).find(k => {
-            const ck = cleanCol(k);
-            return ck === 'branchcode' || ck === 'branch_code';
-        });
-        let bNameKey = Object.keys(sampleBranchRow).find(k => cleanCol(k) === 'branchname' || cleanCol(k) === 'branch_name');
-        let aNameKey = Object.keys(sampleBranchRow).find(k => cleanCol(k) === 'areaname' || cleanCol(k) === 'area_name');
-
-        if (!bCodeKey || !bNameKey || !aNameKey) {
-            throw new Error("Branch File must have columns 'branch code', 'branch_name', 'area_name'");
-        }
-
-        // Create Branch Prefix Map
-        let branchMap = {};
-        dfBranch.forEach(row => {
-            let code = String(row[bCodeKey]).trim();
-            let prefix = code.substring(0, 4);
-            branchMap[prefix] = {
-                branch_name: row[bNameKey],
-                area_name: row[aNameKey]
-            };
-        });
-
-        // 2. Read and Merge Multiple CSV Files (Skipping first 2 rows)
-        for (let file of filesInput) {
-            let text = await readFileAsync(file, true);
-            let lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
-
-            if (lines.length <= 2) {
-                missingFiles.push(file.name);
-                continue;
+            if (!filesInput || filesInput.length === 0) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Please upload at least one CSV file!</span>`;
+                return;
+            }
+            if (!branchFile || branchFile.length === 0) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Please upload the Branch File!</span>`;
+                return;
             }
 
-            let csvDataRows = lines.slice(2).join("\n");
-            let wb = XLSX.read(csvDataRows, { type: 'string' });
-            let sheetName = wb.SheetNames[0];
-            let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+            resultBox.innerHTML = `<span style="color: var(--primary);">Processing and merging all files...</span>`;
 
-            if (jsonRows.length > 0) {
-                let sampleKeys = Object.keys(jsonRows[0]);
-                let cleanedKeysMap = {};
-                sampleKeys.forEach(k => cleanedKeysMap[cleanCol(k)] = k);
+            let allRows = [];
+            let missingFiles = [];
+            const cleanCol = (name) => String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
 
-                let sanctionColKey = Object.keys(sampleKeys).find(k => {
-                    const ck = cleanCol(sampleKeys[k]);
-                    return ck === 'sanctionno' || ck === 'sanctionnumber' || ck === 'sactionno';
+            try {
+                const branchData = await readFileAsync(branchFile[0]);
+                const wbBranch = XLSX.read(branchData, { type: 'array' });
+                const dfBranch = XLSX.utils.sheet_to_json(wbBranch.Sheets[wbBranch.SheetNames[0]], { defval: "" });
+
+                if (dfBranch.length === 0) throw new Error("Branch File is empty.");
+
+                let sampleBranchRow = dfBranch[0];
+                let bCodeKey = Object.keys(sampleBranchRow).find(k => {
+                    const ck = cleanCol(k);
+                    return ck === 'branchcode' || ck === 'branch_code';
+                });
+                let bNameKey = Object.keys(sampleBranchRow).find(k => {
+                    const ck = cleanCol(k);
+                    return ck === 'branchname' || ck === 'branch_name';
+                });
+                let aNameKey = Object.keys(sampleBranchRow).find(k => {
+                    const ck = cleanCol(k);
+                    return ck === 'areaname' || ck === 'area_name';
                 });
 
-                if (sanctionColKey !== undefined) {
-                    let actualKey = sampleKeys[sanctionColKey];
-                    // Clean and map branch data for each row
-                    jsonRows.forEach(row => {
-                        let sNo = String(row[actualKey] || "").trim();
-                        let prefix = sNo.substring(0, 4);
-                        let match = branchMap[prefix] || { branch_name: "", area_name: "" };
-
-                        // Reconstruct row with Branch Name & Area Name inserted right after 2nd column
-                        let newRow = {};
-                        let keys = Object.keys(row);
-                        keys.forEach((k, idx) => {
-                            newRow[k] = row[k];
-                            if (idx === 1) {
-                                newRow['Branch Name'] = match.branch_name;
-                                newRow['Area Name'] = match.area_name;
-                            }
-                        });
-                        allRows.push(newRow);
-                    });
-                } else {
-                    missingFiles.push(file.name);
+                if (!bCodeKey || !bNameKey || !aNameKey) {
+                    throw new Error("Branch File must have columns 'branch code', 'branch_name', 'area_name'");
                 }
-            } else {
-                missingFiles.push(file.name);
+
+                let branchMap = {};
+                dfBranch.forEach(row => {
+                    let code = String(row[bCodeKey]).trim();
+                    let prefix = code.substring(0, 4);
+                    branchMap[prefix] = {
+                        branch_name: row[bNameKey],
+                        area_name: row[aNameKey]
+                    };
+                });
+
+                for (let file of filesInput) {
+                    let text = await readFileAsync(file, true);
+                    let lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+
+                    if (lines.length <= 2) {
+                        missingFiles.push(file.name);
+                        continue;
+                    }
+
+                    let csvDataRows = lines.slice(2).join("\n");
+                    let wb = XLSX.read(csvDataRows, { type: 'string' });
+                    let sheetName = wb.SheetNames[0];
+                    let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+
+                    if (jsonRows.length > 0) {
+                        let sampleKeys = Object.keys(jsonRows[0]);
+                        let sanctionColKey = sampleKeys.find(k => {
+                            let ck = cleanCol(k);
+                            return ck === 'sanctionno' || ck === 'sanctionnumber' || ck === 'sactionno';
+                        });
+
+                        if (sanctionColKey) {
+                            jsonRows.forEach(row => {
+                                let sNo = String(row[sanctionColKey] || "").trim();
+                                let prefix = sNo.substring(0, 4);
+                                let match = branchMap[prefix] || { branch_name: "", area_name: "" };
+
+                                let newRow = {};
+                                let keys = Object.keys(row);
+                                keys.forEach((k, idx) => {
+                                    newRow[k] = row[k];
+                                    if (idx === 1) {
+                                        newRow['Branch Name'] = match.branch_name;
+                                        newRow['Area Name'] = match.area_name;
+                                    }
+                                });
+                                allRows.push(newRow);
+                            });
+                        } else {
+                            missingFiles.push(file.name);
+                        }
+                    } else {
+                        missingFiles.push(file.name);
+                    }
+                }
+
+                if (missingFiles.length > 0) {
+                    resultBox.innerHTML += `<br><span style="color: #f59e0b;">Warning: 'Sanction No' missing or file empty in: ${missingFiles.join(', ')}</span>`;
+                }
+
+                if (allRows.length > 0) {
+                    const finalWs = XLSX.utils.json_to_sheet(allRows);
+                    const finalWb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(finalWb, finalWs, "Merged_Report");
+
+                    XLSX.writeFile(finalWb, "Merged_Report.xlsx");
+                    resultBox.innerHTML = `<span style="color: #22c55e;">Success! Merged ${allRows.length} rows and downloaded.</span>`;
+                } else {
+                    resultBox.innerHTML = `<span style="color: #ef4444;">No valid rows found to merge.</span>`;
+                }
+
+            } catch (e) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
             }
         }
-
-        if (missingFiles.length > 0) {
-            resultBox.innerHTML += `<br><span style="color: #f59e0b;">Warning: 'Sanction No' missing or file empty in: ${missingFiles.join(', ')}</span>`;
-        }
-
-        if (allRows.length > 0) {
-            // 3. Export as Excel File (just like your first code)
-            const finalWs = XLSX.utils.json_to_sheet(allRows);
-            const finalWb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(finalWb, finalWs, "Merged_Report");
-
-            XLSX.writeFile(finalWb, "Merged_Report.xlsx");
-            resultBox.innerHTML += `<br><span style="color: #22c55e;">Success! Merged ${allRows.length} rows and downloaded automatically.</span>`;
-        } else {
-            resultBox.innerHTML = `<span style="color: #ef4444;">No valid rows found to merge.</span>`;
-        }
-
-    } catch (e) {
-        resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
-    }
-}
-      
     </script>
 </body>
 </html>
