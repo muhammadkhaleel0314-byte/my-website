@@ -10,7 +10,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --bg-dark: #0f172a; --card-bg: #1e293b; --sidebar-bg: #0f172a;
@@ -695,7 +695,7 @@
                     </tr>`;
                 });
                 previewHtml += `</tbody></table></div>`;
-                document.getElementById('recovery-preview-area').innerHTML = previewHtml;
+                document.getElementById('recovery-preview-area center').innerHTML = previewHtml;
             };
             reader.readAsArrayBuffer(file);
         }
