@@ -54,56 +54,19 @@
     .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; text-align: left; }
     .history-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
     
-   /* Links Grid for My Links Tab */
-    .links-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-        gap: 15px; 
-        text-align: left; 
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .link-card-item { 
-        background: rgba(15, 23, 42, 0.6); 
-        border: 1px solid #334155; 
-        padding: 15px; 
-        border-radius: 12px; 
-        text-decoration: none; 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: space-between; 
-        transition: 0.2s; 
-    }
-    .link-card-item:hover { 
-        border-color: var(--primary); 
-        background: rgba(56, 189, 248, 0.05); 
-        transform: translateY(-3px); 
-    }
+  /* Links Grid for My Links Tab */
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; text-align: left; }
+    .link-card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
+    .link-card-item:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); transform: translateY(-3px); }
     
     /* Timer Modal Overlay */
-    #timer-modal { 
-        position: fixed; 
-        inset: 0; 
-        background: rgba(0,0,0,0.8); 
-        display: none; 
-        justify-content: center; 
-        align-items: center; 
-        z-index: 200; 
-        padding: 20px; 
-    }
-    .timer-card { 
-        background: #1e293b; 
-        border: 1px solid #334155; 
-        padding: 25px; 
-        border-radius: 16px; 
-        width: 100%; 
-        max-width: 320px; 
-        text-align: center; 
-    }
+    #timer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
+    .timer-card { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; }
     .timer-card h4 { color: var(--btn-red); margin-bottom: 10px; font-size: 16px; }
     .timer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
     .countdown-number { font-size: 32px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
-</head>
+  </style>
+</head> 
 <body>
 
   <!-- Audio element for clicking sound -->
