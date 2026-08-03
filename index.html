@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Website</title>
-  
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -107,10 +107,11 @@
           <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
           <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
+	 <button class="nav-sub-btn" onclick="switchTab('merge-tool-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
         </div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
-<div style="margin-top: auto; padding-top: 15px; width: 100%; text-align: center;">
+<div style="margin-top: auto; padding-top: 15px; width: 100%; text-align: left;">
     <!-- خفیہ آئیکن जिस پر کلک کرنے سے ری سیٹ کا بٹن شو/ہائیڈ ہوگا -->
     <i class="fa-solid fa-gear" onclick="toggleResetKey()" style="color: var(--text-muted); cursor: pointer; font-size: 14px; margin-bottom: 5px;" title="Settings"></i>
     
@@ -233,6 +234,46 @@
       </div>
     </div>
   </div>
+<!-- Merge & CSV Tools Tab -->
+                <div id="merge-tool-tab" class="tab-content">
+                    <div class="card" style="text-align: left;">
+                        <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Merge your sanction files, branch files, and multiple CSVs easily in browser.</p>
+                        
+                        <!-- Tool 1: Merge Sanction & Branch File -->
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-code-merge"></i> 1. Merge Sanction & Branch File</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Merge File (Sanction No)</label>
+                                    <input type="file" id="merge-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Branch File (Branch Code)</label>
+                                    <input type="file" id="branch-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
+                                </div>
+                            </div>
+                            <button class="action-btn" style="padding: 8px; font-size: 13px;" onclick="processSanctionBranchMerge()">🚀 Process & Download Excel</button>
+                            <div id="sanction-result-box" style="margin-top: 10px; font-size: 12px;"></div>
+                        </div>
+
+                        <!-- Tool 2: Merge Multiple CSV Files (Skip 2 rows) -->
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;">
+                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-files"></i> 2. Merge Multiple CSV Files (Skip 2 rows)</h4>
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Multiple CSV Files</label>
+                                <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
+                            </div>
+                            <button class="action-btn" style="padding: 8px; font-size: 13px; background: var(--primary);" onclick="processMultiCsvMerge()">🚀 Merge & Download CSV</button>
+                            <div id="csv-result-box" style="margin-top: 10px; font-size: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
   <script>
     const FIXED_FIRST_12 = "421011234567";
@@ -428,6 +469,176 @@
         resetBtn.style.display = 'none';
     }
 }
+// --- Helper to read file ---
+        function readFileAsync(file, isText = false) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = err => reject(err);
+                if (isText) reader.readAsText(file);
+                else reader.readAsArrayBuffer(file);
+            });
+        }
+
+       // --- Tool 1 Logic: Merge Sanction & Branch File ---
+async function processSanctionBranchMerge() {
+    const mergeFile = document.getElementById('merge-file-input').files[0];
+    const branchFile = document.getElementById('branch-file-input').files[0];
+    const resultBox = document.getElementById('sanction-result-box');
+
+    if (!mergeFile || !branchFile) {
+        resultBox.innerHTML = `<span style="color: #ef4444;">Please upload both files!</span>`;
+        return;
+    }
+
+    resultBox.innerHTML = `<span style="color: var(--primary);">Processing files...</span>`;
+
+    try {
+        const mergeData = await readFileAsync(mergeFile);
+        const branchData = await readFileAsync(branchFile);
+
+        const wbMerge = XLSX.read(mergeData, { type: 'array' });
+        const wbBranch = XLSX.read(branchData, { type: 'array' });
+
+        const dfMerge = XLSX.utils.sheet_to_json(wbMerge.Sheets[wbMerge.SheetNames[0]], { defval: "" });
+        const dfBranch = XLSX.utils.sheet_to_json(wbBranch.Sheets[wbBranch.SheetNames[0]], { defval: "" });
+
+        if (dfMerge.length === 0 || dfBranch.length === 0) {
+            throw new Error("One of the files is empty.");
+        }
+
+        const cleanKey = (k) => String(k).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        let sampleMergeRow = dfMerge[0];
+        let sanctionColKey = Object.keys(sampleMergeRow).find(k => {
+            const ck = cleanKey(k);
+            return ck === 'sanctionno' || ck === 'sanctionnumber' || ck === 'sactionno';
+        });
+
+        if (!sanctionColKey) throw new Error("Merge File must have a column for Sanction No (e.g. sanctionno, sanction_no)");
+
+        let sampleBranchRow = dfBranch[0];
+        let bCodeKey = Object.keys(sampleBranchRow).find(k => {
+            const ck = cleanKey(k);
+            return ck === 'branchcode' || ck === 'branch_code';
+        });
+        let bNameKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'branchname' || cleanKey(k) === 'branch_name');
+        let aNameKey = Object.keys(sampleBranchRow).find(k => cleanKey(k) === 'areaname' || cleanKey(k) === 'area_name');
+
+        if (!bCodeKey || !bNameKey || !aNameKey) {
+            throw new Error("Branch File must have columns 'branch code', 'branch_name', 'area_name'");
+        }
+
+        let branchMap = {};
+        dfBranch.forEach(row => {
+            let code = String(row[bCodeKey]).trim();
+            let prefix = code.substring(0, 4);
+            branchMap[prefix] = {
+                branch_name: row[bNameKey],
+                area_name: row[aNameKey]
+            };
+        });
+
+        let mergedResult = dfMerge.map(row => {
+            let sNo = String(row[sanctionColKey] || "").trim();
+            let prefix = sNo.substring(0, 4);
+            let match = branchMap[prefix] || { branch_name: "", area_name: "" };
+
+            let newRow = {};
+            let keys = Object.keys(row);
+            keys.forEach((k, idx) => {
+                newRow[k] = row[k];
+                if (idx === 1) {
+                    newRow['Branch Name'] = match.branch_name;
+                    newRow['Area Name'] = match.area_name;
+                }
+            });
+            return newRow;
+        });
+
+        const newWs = XLSX.utils.json_to_sheet(mergedResult);
+        const newWb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(newWb, newWs, "Merged_Report");
+        
+        XLSX.writeFile(newWb, "Merged_Report.xlsx");
+        resultBox.innerHTML = `<span style="color: #22c55e;">Success! File downloaded automatically.</span>`;
+
+    } catch (e) {
+        resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
+    }
+}
+
+        // --- Tool 2 Logic: Merge Multiple CSV Files (Skip 2 rows) ---
+        async function processMultiCsvMerge() {
+            const filesInput = document.getElementById('multi-csv-input').files;
+            const resultBox = document.getElementById('csv-result-box');
+
+            if (!filesInput || filesInput.length === 0) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Please select at least one CSV file!</span>`;
+                return;
+            }
+
+            resultBox.innerHTML = `<span style="color: var(--primary);">Merging CSVs...</span>`;
+
+            let allRows = [];
+            let missingFiles = [];
+            let headers = null;
+
+            const cleanCol = (name) => String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            try {
+                for (let file of filesInput) {
+                    let text = await readFileAsync(file, true);
+                    let lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+
+                    if (lines.length <= 2) {
+                        missingFiles.push(file.name);
+                        continue;
+                    }
+
+                    let csvDataRows = lines.slice(2).join("\n");
+                    let wb = XLSX.read(csvDataRows, { type: 'string' });
+                    let sheetName = wb.SheetNames[0];
+                    let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+
+                    if (jsonRows.length > 0) {
+                        let sampleKeys = Object.keys(jsonRows[0]);
+                        let cleanedKeysMap = {};
+                        sampleKeys.forEach(k => cleanedKeysMap[cleanCol(k)] = k);
+
+                        let hasSanction = ['sanctionno', 'sanctionnumber', 'sactionno'].some(k => cleanedKeysMap[k]);
+
+                        if (hasSanction) {
+                            if (!headers) headers = sampleKeys;
+                            allRows = allRows.concat(jsonRows);
+                        } else {
+                            missingFiles.push(file.name);
+                        }
+                    } else {
+                        missingFiles.push(file.name);
+                    }
+                }
+
+                if (missingFiles.length > 0) {
+                    resultBox.innerHTML += `<br><span style="color: #f59e0b;">Warning: 'Sanction No' missing or file empty in: ${missingFiles.join(', ')}</span>`;
+                }
+
+                if (allRows.length > 0) {
+                    const finalWs = XLSX.utils.json_to_sheet(allRows);
+                    const finalWb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(finalWb, finalWs, "Merged_Due_List");
+
+                    XLSX.writeFile(finalWb, "merged_due_list.csv");
+                    resultBox.innerHTML += `<br><span style="color: #22c55e;">Merged ${allRows.length} total rows successfully! File downloaded.</span>`;
+                } else {
+                    resultBox.innerHTML = `<span style="color: #ef4444;">No valid rows found to merge.</span>`;
+                }
+
+            } catch (e) {
+                resultBox.innerHTML = `<span style="color: #ef4444;">Error processing CSVs: ${e.message}</span>`;
+            }
+        }
+
   </script>
 </body>
 </html>
