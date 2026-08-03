@@ -112,7 +112,7 @@
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
 	      <button class="nav-sub-btn" onclick="switchTab('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
-
+<button class="nav-sub-btn" onclick="switchTab('loan-disbursement', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement PDF Generator Tab</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -280,8 +280,30 @@
             <div id="recovery-preview-area" style="width: 100%; text-align: center;"></div>
         </div>
     </div>
+</div><!
+<!-- Loan Disbursement PDF Generator Tab -->
+<div id="loan-disbursement-tab" class="tab-content">
+    <div class="card" style="margin: 0 auto; width: 100%; text-align: left;">
+        <h3 style="text-align: center;">📁 Loan Disbursement PDF Generator</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
+            Upload Excel file to generate branch-wise loan disbursement PDF reports.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px; text-align: center;">
+                    Upload Excel File (.xlsx)
+                </label>
+                <input type="file" id="loan-excel-file-input" accept=".xlsx, .xls" style="font-size: 13px; color: #fff; width: 100%;" onchange="processLoanExcelFile(event)">
+            </div>
+            
+            <div id="loan-results-container" style="display: none; flex-direction: column; gap: 15px;">
+                <!-- برانچ وائز ڈیٹا اور ڈاؤن لوڈ بٹنز یہاں خود بخود ظاہر ہوں گے -->
+            </div>
+        </div>
+    </div>
 </div>
-  <script>
+		<script>
     const FIXED_FIRST_12 = "421011234567";
 
     let GOOGLE_API_KEY = localStorage.getItem('gemini_key');
@@ -765,6 +787,164 @@ function downloadRecoveryPDF() {
     });
 
     doc.save(`Recovery_Report_${selectedBranch}.pdf`);
+}
+			let globalBranchData = {};
+
+function processLoanExcelFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        let jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Column Renaming / Spellings Fix
+        jsonData = jsonData.map(row => {
+            let newRow = {};
+            for (let key in row) {
+                let cleanKey = key.trim().toLowerCase();
+                if (cleanKey === "date_disbursed" || cleanKey === "date_of_disbursement") cleanKey = "date_disburse";
+                if (cleanKey === "tranch_no") cleanKey = "tranch";
+                if (cleanKey === "grouo_no") cleanKey = "group_no";
+                newRow[cleanKey] = row[key];
+            }
+            return newRow;
+        });
+
+        // Required Columns Check
+        const requiredCols = [
+            "branch_id", "member_name", "member_cnic", "loan_amount",
+            "tranch", "cheque_no", "sanction_no", "group_no", "date_disburse"
+        ];
+
+        if (jsonData.length > 0) {
+            const sampleRow = jsonData[0];
+            const missing = requiredCols.filter(c => !(c in sampleRow));
+            
+            if (missing.length > 0) {
+                alert("Missing columns in Excel: " + missing.join(", "));
+                return;
+            }
+        }
+
+        // Group by Branch ID
+        globalBranchData = {};
+        jsonData.forEach(row => {
+            let br = row["branch_id"] || "Unknown";
+            if (!globalBranchData[br]) globalBranchData[br] = [];
+            globalBranchData[br].push(row);
+        });
+
+        renderLoanBranchesUI();
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function safeVal(val) {
+    return (val !== undefined && val !== null && !Number.isNaN(val)) ? String(val) : "";
+}
+
+function renderLoanBranchesUI() {
+    const container = document.getElementById('loan-results-container');
+    container.style.display = "flex";
+    container.innerHTML = "";
+
+    for (let br in globalBranchData) {
+        let brData = globalBranchData[br];
+
+        let brDiv = document.createElement('div');
+        brDiv.style.cssText = "background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155;";
+        
+        let html = `<h5 style="color: var(--primary); margin-bottom: 12px; font-size: 15px;">📌 Branch: ${br}</h5>`;
+        
+        // Table Preview
+        html += `<div style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">
+                    <table style="width: 100%; font-size: 11px; color: #fff; text-align: center; border-collapse: collapse;" border="1">
+                        <thead style="background: #1e293b;">
+                            <tr>
+                                <th style="padding: 5px;">Date</th>
+                                <th style="padding: 5px;">Sanction</th>
+                                <th style="padding: 5px;">Tranch</th>
+                                <th style="padding: 5px;">Cheque</th>
+                                <th style="padding: 5px;">Amount</th>
+                                <th style="padding: 5px;">Group</th>
+                                <th style="padding: 5px;">Name</th>
+                                <th style="padding: 5px;">CNIC</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+        brData.forEach(row => {
+            html += `<tr>
+                <td style="padding: 4px;">${safeVal(row["date_disburse"])}</td>
+                <td style="padding: 4px;">${safeVal(row["sanction_no"])}</td>
+                <td style="padding: 4px;">${safeVal(row["tranch"])}</td>
+                <td style="padding: 4px;">${safeVal(row["cheque_no"])}</td>
+                <td style="padding: 4px;">${safeVal(row["loan_amount"])}</td>
+                <td style="padding: 4px;">${safeVal(row["group_no"])}</td>
+                <td style="padding: 4px;">${safeVal(row["member_name"])}</td>
+                <td style="padding: 4px;">${safeVal(row["member_cnic"])}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        
+        let btnId = `loan_btn_${br.toString().replace(/\s+/g, '_')}`;
+        html += `<button id="${btnId}" class="action-btn" style="background: var(--btn-green, #10b981); width: 100%; margin-top: 0;" onclick="downloadSingleBranchPDF('${br}')">📥 Download PDF for Branch ${br}</button>`;
+
+        brDiv.innerHTML = html;
+        container.appendChild(brDiv);
+    }
+
+    let successMsg = document.createElement('div');
+    successMsg.style.cssText = "text-align: center; color: var(--btn-green, #10b981); font-size: 13px; font-weight: 600;";
+    successMsg.innerText = "All Branch PDF Buttons Ready!";
+    container.appendChild(successMsg);
+}
+
+function downloadSingleBranchPDF(brName) {
+    const brData = globalBranchData[brName];
+    if (!brData) return;
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    pdf.text("Loan Disbursement Report", pdf.internal.pageSize.getWidth() / 2, 12, { align: "center" });
+    pdf.text(`Branch: ${brName}`, pdf.internal.pageSize.getWidth() / 2, 18, { align: "center" });
+
+    const headers = [
+        "Date Disburse", "Sanction No", "Tranch", "Cheque No",
+        "Loan Amount", "Group No", "Member Name", "CNIC"
+    ];
+
+    const dataRows = brData.map(row => [
+        safeVal(row["date_disburse"]),
+        safeVal(row["sanction_no"]),
+        safeVal(row["tranch"]),
+        safeVal(row["cheque_no"]),
+        safeVal(row["loan_amount"]),
+        safeVal(row["group_no"]),
+        safeVal(row["member_name"]),
+        safeVal(row["member_cnic"])
+    ]);
+
+    pdf.autoTable({
+        startY: 24,
+        head: [headers],
+        body: dataRows,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [235, 245, 255] }
+    });
+
+    pdf.save(`${brName}_Loan_Disbursement.pdf`);
 }
 
   </script>
