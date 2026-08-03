@@ -112,7 +112,7 @@
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
 	      <button class="nav-sub-btn" onclick="switchTab('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
-		  <button class="nav-sub-btn" onclick="switchTab('loan-disbursement', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
+		  <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -283,7 +283,7 @@
 </div><!
 <!--Loan Disbursement Tab -->
 <div id="loan-disbursement-tab" class="tab-content">
-    <div class="card" style="margin: 0 auto; width: 100%; text-align: left;">
+    <div class="card" style="text-align: left;">
         <h3 style="text-align: center;">📁 Loan Disbursement PDF Generator</h3>
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
             Upload Excel file to generate branch-wise loan disbursement PDF reports.
@@ -294,7 +294,7 @@
                 <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px; text-align: center;">
                     Upload Excel File (.xlsx)
                 </label>
-                <input type="file" id="loan-excel-file-input" accept=".xlsx, .xls" style="font-size: 13px; color: #fff; width: 100%;" onchange="processLoanExcelFile(event)">
+                <input type="file" id="loan-excel-file-input" accept=".xlsx, .xls" style="font-size: 13px; color: #fff; width: 100%; padding: 8px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 8px;" onchange="processLoanExcelFile(event)">
             </div>
             
             <div id="loan-results-container" style="display: none; flex-direction: column; gap: 15px;">
