@@ -10,8 +10,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
       --bg-dark: #0f172a; --card-bg: #1e293b; --sidebar-bg: #0f172a;
@@ -612,159 +611,165 @@
                 resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
             }
         }
-	  // --- Recovery Excel Processing & PDF Logic ---
-        function processRecoveryFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+	// --- Recovery Excel Processing & PDF Logic ---
+let globalPivotData = []; // Global data store
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+function processRecoveryFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-                let processedRows = [];
-                jsonRows.forEach(row => {
-                    let rDate = row['recovery_date'] || row['Recovery_Date'] || row['Date'];
-                    if (!rDate) return;
-                    
-                    let parsedDate = new Date(rDate);
-                    if (isNaN(parsedDate)) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonRows = XLSX.utils.sheet_to_json(worksheet);
 
-                    processedRows.push({
-                        branch_id: row['branch_id'] || row['Branch'] || 'Unknown',
-                        project: row['project'] || row['Project'] || 'General',
-                        receipt_no: row['receipt_no'] || row['Receipt'] || 1,
-                        amount: Number(row['amount'] || row['Amount'] || 0),
-                        recovery_date: parsedDate
-                    });
-                });
+        let processedRows = [];
+        jsonRows.forEach(row => {
+            let rDate = row['recovery_date'] || row['Recovery_Date'] || row['Date'];
+            if (!rDate) return;
 
-                let pivotMap = {};
-                processedRows.forEach(r => {
-                    let dateStr = r.recovery_date.toISOString().split('T')[0];
-                    let key = r.branch_id + "_" + r.project + "_" + dateStr;
-                    if (!pivotMap[key]) {
-                        pivotMap[key] = {
-                            branch_id: r.branch_id,
-                            project: r.project,
-                            recovery_date: dateStr,
-                            Receipts: 0,
-                            Amount: 0
-                        };
-                    }
-                    pivotMap[key].Receipts += 1;
-                    pivotMap[key].Amount += r.amount;
-                });
+            let parsedDate = new Date(rDate);
+            if (isNaN(parsedDate)) return;
 
-                globalPivotData = Object.values(pivotMap);
+            processedRows.push({
+                branch_id: row['branch_id'] || row['Branch'] || 'Unknown',
+                project: row['project'] || row['Project'] || 'General',
+                receipt_no: row['receipt_no'] || row['Receipt'] || 1,
+                amount: Number(row['amount'] || row['Amount'] || 0),
+                recovery_date: parsedDate
+            });
+        });
 
-                let branches = [...new Set(globalPivotData.map(item => item.branch_id))].sort();
-                let selectEl = document.getElementById('recovery-branch-select');
-                selectEl.innerHTML = '<option value="ALL">All Branches</option>';
-                branches.forEach(b => {
-                    let opt = document.createElement('option');
-                    opt.value = b;
-                    opt.text = `Branch ${b}`;
-                    selectEl.appendChild(opt);
-                });
-
-                document.getElementById('recovery-options-container').style.display = 'block';
-
-                let previewHtml = `
-                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">📄 Previewing Data (Total Records: ${processedRows.length})</p>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Branch</th>
-                                    <th>Project</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                processedRows.slice(0, 10).forEach(r => {
-                    previewHtml += `<tr>
-                        <td>${r.branch_id}</td>
-                        <td>${r.project}</td>
-                        <td>${r.recovery_date.toISOString().split('T')[0]}</td>
-                        <td>Rs ${r.amount.toLocaleString()}</td>
-                    </tr>`;
-                });
-                previewHtml += `</tbody></table></div>`;
-                document.getElementById('recovery-preview-area center').innerHTML = previewHtml;
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function downloadRecoveryPDF() {
-            if (!globalPivotData || globalPivotData.length === 0) {
-                alert("Please upload a valid recovery file first!");
-                return;
+        let pivotMap = {};
+        processedRows.forEach(r => {
+            let dateStr = r.recovery_date.toISOString().split('T')[0];
+            let key = r.branch_id + "_" + r.project + "_" + dateStr;
+            if (!pivotMap[key]) {
+                pivotMap[key] = {
+                    branch_id: r.branch_id,
+                    project: r.project,
+                    recovery_date: dateStr,
+                    dateObj: r.recovery_date, // Sorting ke liye
+                    Receipts: 0,
+                    Amount: 0
+                };
             }
+            pivotMap[key].Receipts += 1;
+            pivotMap[key].Amount += r.amount;
+        });
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const selectedBranch = document.getElementById('recovery-branch-select').value;
+        // YAHAN DATE KE HISAB SE SORT KAR DIYA 1 2 3...
+        globalPivotData = Object.values(pivotMap).sort((a, b) => a.dateObj - b.dateObj);
 
-            let branchesToPrint = selectedBranch === "ALL" ? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
+        let branches = [...new Set(globalPivotData.map(item => item.branch_id))].sort();
+        let selectEl = document.getElementById('recovery-branch-select');
+        selectEl.innerHTML = '<option value="ALL">All Branches</option>';
+        branches.forEach(b => {
+            let opt = document.createElement('option');
+            opt.value = b;
+            opt.text = `Branch ${b}`;
+            selectEl.appendChild(opt);
+        });
 
-            branchesToPrint.forEach((branch, index) => {
-                if (index > 0) doc.addPage();
+        document.getElementById('recovery-options-container').style.display = 'block';
 
-                let branchRows = globalPivotData.filter(i => i.branch_id == branch);
-                
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(14);
-                doc.text(`Branch: ${branch}`, 14, 20);
+        // Preview Table
+        let previewHtml = `
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">📄 Previewing Data (Total Records: ${processedRows.length})</p>
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse: collapse; font-size:12px;">
+                    <thead>
+                        <tr style="background: #0f172a;">
+                            <th style="padding:8px; border:1px solid #334155;">Branch</th>
+                            <th style="padding:8px; border:1px solid #334155;">Project</th>
+                            <th style="padding:8px; border:1px solid #334155;">Date</th>
+                            <th style="padding:8px; border:1px solid #334155;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        processedRows.slice(0, 10).forEach(r => {
+            previewHtml += `<tr>
+                <td style="padding:8px; border:1px solid #334155;">${r.branch_id}</td>
+                <td style="padding:8px; border:1px solid #334155;">${r.project}</td>
+                <td style="padding:8px; border:1px solid #334155;">${r.recovery_date.toISOString().split('T')[0]}</td>
+                <td style="padding:8px; border:1px solid #334155;">Rs ${r.amount.toLocaleString()}</td>
+            </tr>`;
+        });
+        previewHtml += `</tbody></table></div>`;
+        document.getElementById('recovery-preview-area').innerHTML = previewHtml; // typo theek kiya
+    };
+    reader.readAsArrayBuffer(file);
+}
 
-                let projects = [...new Set(branchRows.map(i => i.project))];
-                let currentY = 28;
-                let branchTotalAmount = 0;
-                let branchTotalReceipts = 0;
+function downloadRecoveryPDF() {
+    if (!globalPivotData || globalPivotData.length === 0) {
+        alert("Please upload a valid recovery file first!");
+        return;
+    }
 
-                projects.forEach(project => {
-                    let projRows = branchRows.filter(i => i.project === project);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const selectedBranch = document.getElementById('recovery-branch-select').value;
 
-                    doc.setFontSize(12);
-                    doc.text(`Project: ${project}`, 14, currentY);
-                    currentY += 6;
+    let branchesToPrint = selectedBranch === "ALL"? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
 
-                    let tableData = [];
-                    let projAmount = 0;
-                    let projReceipts = 0;
+    branchesToPrint.forEach((branch, index) => {
+        if (index > 0) doc.addPage();
 
-                    projRows.forEach(row => {
-                        tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
-                        projAmount += row.Amount;
-                        projReceipts += row.Receipts;
-                    });
+        // Branch ke andar bhi date se sort
+        let branchRows = globalPivotData.filter(i => i.branch_id == branch).sort((a,b) => a.dateObj - b.dateObj);
 
-                    branchTotalAmount += projAmount;
-                    branchTotalReceipts += projReceipts;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text(`Branch: ${branch}`, 14, 20);
 
-                    doc.autoTable({
-                        startY: currentY,
-                        head: [['Date', 'Receipts', 'Amount']],
-                        body: tableData,
-                        theme: 'grid',
-                        headStyles: { fillColor: [15, 23, 42] },
-                        margin: { left: 14 }
-                    });
+        let projects = [...new Set(branchRows.map(i => i.project))];
+        let currentY = 28;
+        let branchTotalAmount = 0;
+        let branchTotalReceipts = 0;
 
-                    currentY = doc.lastAutoTable.finalY + 8;
-                });
+        projects.forEach(project => {
+            let projRows = branchRows.filter(i => i.project === project);
 
-                doc.setFontSize(11);
-                doc.text(`Branch Total Receipts: ${branchTotalReceipts} | Total Amount: Rs ${branchTotalAmount.toLocaleString()}`, 14, currentY + 5);
+            doc.setFontSize(12);
+            doc.text(`Project: ${project}`, 14, currentY);
+            currentY += 6;
+
+            let tableData = [];
+            let projAmount = 0;
+            let projReceipts = 0;
+
+            projRows.forEach(row => {
+                tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
+                projAmount += row.Amount;
+                projReceipts += row.Receipts;
             });
 
-            doc.save(`Recovery_Report_${selectedBranch}.pdf`);
-        }
+            branchTotalAmount += projAmount;
+            branchTotalReceipts += projReceipts;
+
+            doc.autoTable({
+                startY: currentY,
+                head: [['Date', 'Receipts', 'Amount']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: [15, 23, 42] },
+                margin: { left: 14 }
+            });
+
+            currentY = doc.lastAutoTable.finalY + 8;
+        });
+
+        doc.setFontSize(11);
+        doc.text(`Branch Total Receipts: ${branchTotalReceipts} | Total Amount: Rs ${branchTotalAmount.toLocaleString()}`, 14, currentY + 5);
+    });
+
+    doc.save(`Recovery_Report_${selectedBranch}.pdf`);
+}
 
   </script>
 </body>
