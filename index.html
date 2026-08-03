@@ -109,7 +109,9 @@
           <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
 	      <button class="nav-sub-btn" onclick="switchTab('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
-        </div>
+          <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
+
+		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
 <div style="margin-top: auto; padding-top: 15px; width: 100%; text-align: left;">
@@ -257,6 +259,33 @@
             </div>
         </div>
     </div>
+<!-- Recovery PDF Report Tab -->
+                <div id="recovery-tab" class="tab-content">
+                    <div class="card" style="text-align: left;">
+                        <h3 style="text-align: center;">📁 Recovery File Report & PDF</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Upload Excel recovery file to analyze and generate branch-wise PDF reports.</p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Upload Recovery File (Excel)</label>
+                                <input type="file" id="recovery-file-input" accept=".xlsx, .xls" style="font-size: 13px; color: #fff;" onchange="processRecoveryFile(event)">
+                            </div>
+
+                            <div id="recovery-options-container" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155;">
+                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch for PDF Download</label>
+                                <select id="recovery-branch-select" class="input-field" style="margin-bottom: 12px;">
+                                    <option value="ALL">All Branches</option>
+                                </select>
+                                <button class="action-btn" style="margin-top: 0; background: var(--btn-green);" onclick="downloadRecoveryPDF()">
+                                    📥 Download PDF Report
+                                </button>
+                            </div>
+
+                            <div id="recovery-preview-area"></div>
+                        </div>
+                    </div>
+                </div>
+
 
 
   <script>
@@ -584,6 +613,159 @@
             } catch (e) {
                 resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
             }
+        }
+	  // --- Recovery Excel Processing & PDF Logic ---
+        function processRecoveryFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+
+                let processedRows = [];
+                jsonRows.forEach(row => {
+                    let rDate = row['recovery_date'] || row['Recovery_Date'] || row['Date'];
+                    if (!rDate) return;
+                    
+                    let parsedDate = new Date(rDate);
+                    if (isNaN(parsedDate)) return;
+
+                    processedRows.push({
+                        branch_id: row['branch_id'] || row['Branch'] || 'Unknown',
+                        project: row['project'] || row['Project'] || 'General',
+                        receipt_no: row['receipt_no'] || row['Receipt'] || 1,
+                        amount: Number(row['amount'] || row['Amount'] || 0),
+                        recovery_date: parsedDate
+                    });
+                });
+
+                let pivotMap = {};
+                processedRows.forEach(r => {
+                    let dateStr = r.recovery_date.toISOString().split('T')[0];
+                    let key = r.branch_id + "_" + r.project + "_" + dateStr;
+                    if (!pivotMap[key]) {
+                        pivotMap[key] = {
+                            branch_id: r.branch_id,
+                            project: r.project,
+                            recovery_date: dateStr,
+                            Receipts: 0,
+                            Amount: 0
+                        };
+                    }
+                    pivotMap[key].Receipts += 1;
+                    pivotMap[key].Amount += r.amount;
+                });
+
+                globalPivotData = Object.values(pivotMap);
+
+                let branches = [...new Set(globalPivotData.map(item => item.branch_id))].sort();
+                let selectEl = document.getElementById('recovery-branch-select');
+                selectEl.innerHTML = '<option value="ALL">All Branches</option>';
+                branches.forEach(b => {
+                    let opt = document.createElement('option');
+                    opt.value = b;
+                    opt.text = `Branch ${b}`;
+                    selectEl.appendChild(opt);
+                });
+
+                document.getElementById('recovery-options-container').style.display = 'block';
+
+                let previewHtml = `
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">📄 Previewing Data (Total Records: ${processedRows.length})</p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Branch</th>
+                                    <th>Project</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                processedRows.slice(0, 10).forEach(r => {
+                    previewHtml += `<tr>
+                        <td>${r.branch_id}</td>
+                        <td>${r.project}</td>
+                        <td>${r.recovery_date.toISOString().split('T')[0]}</td>
+                        <td>Rs ${r.amount.toLocaleString()}</td>
+                    </tr>`;
+                });
+                previewHtml += `</tbody></table></div>`;
+                document.getElementById('recovery-preview-area').innerHTML = previewHtml;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function downloadRecoveryPDF() {
+            if (!globalPivotData || globalPivotData.length === 0) {
+                alert("Please upload a valid recovery file first!");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const selectedBranch = document.getElementById('recovery-branch-select').value;
+
+            let branchesToPrint = selectedBranch === "ALL" ? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
+
+            branchesToPrint.forEach((branch, index) => {
+                if (index > 0) doc.addPage();
+
+                let branchRows = globalPivotData.filter(i => i.branch_id == branch);
+                
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text(`Branch: ${branch}`, 14, 20);
+
+                let projects = [...new Set(branchRows.map(i => i.project))];
+                let currentY = 28;
+                let branchTotalAmount = 0;
+                let branchTotalReceipts = 0;
+
+                projects.forEach(project => {
+                    let projRows = branchRows.filter(i => i.project === project);
+
+                    doc.setFontSize(12);
+                    doc.text(`Project: ${project}`, 14, currentY);
+                    currentY += 6;
+
+                    let tableData = [];
+                    let projAmount = 0;
+                    let projReceipts = 0;
+
+                    projRows.forEach(row => {
+                        tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
+                        projAmount += row.Amount;
+                        projReceipts += row.Receipts;
+                    });
+
+                    branchTotalAmount += projAmount;
+                    branchTotalReceipts += projReceipts;
+
+                    doc.autoTable({
+                        startY: currentY,
+                        head: [['Date', 'Receipts', 'Amount']],
+                        body: tableData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [15, 23, 42] },
+                        margin: { left: 14 }
+                    });
+
+                    currentY = doc.lastAutoTable.finalY + 8;
+                });
+
+                doc.setFontSize(11);
+                doc.text(`Branch Total Receipts: ${branchTotalReceipts} | Total Amount: Rs ${branchTotalAmount.toLocaleString()}`, 14, currentY + 5);
+            });
+
+            doc.save(`Recovery_Report_${selectedBranch}.pdf`);
         }
 
   </script>
