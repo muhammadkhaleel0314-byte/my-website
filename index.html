@@ -230,39 +230,25 @@
             </div>
 			</div>
 			</div><!
-          <!-- Merge & CSV Tools Tab -->
-             	   <div id="merge-tools-tab" class="tab-content">
+          <!-- Merge & CSV Tools Tab (Combined Tool) -->
+                <div id="merge-tool-tab" class="tab-content">
                     <div class="card" style="text-align: left;">
-
-                        <h3 style="text-align: center;">📁 File Merge & Sanction Tools</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Merge your sanction files, branch files, and multiple CSVs easily in browser.</p>
+                        <h3 style="text-align: center;">📁 Merge CSVs with Branch Data</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Upload File.</p>
                         
-                        <!-- Tool 1: Merge Sanction & Branch File -->
                         <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-code-merge"></i> 1. Merge Sanction & Branch File</h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
                                 <div>
-                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Merge File (Sanction No)</label>
-                                    <input type="file" id="merge-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">1. Upload Multiple CSV Files</label>
+                                    <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Branch File (Branch Code)</label>
+                                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">2. Upload Branch File (Branch Code)</label>
                                     <input type="file" id="branch-file-input" accept=".xlsx, .xls, .csv" style="font-size: 12px; color: #fff;">
                                 </div>
                             </div>
-                            <button class="action-btn" style="padding: 8px; font-size: 13px;" onclick="processSanctionBranchMerge()">🚀 Process & Download Excel</button>
+                            <button class="action-btn" style="padding: 10px; font-size: 14px;" onclick="processSanctionBranchMerge()">🚀 Merge All & Download Excel</button>
                             <div id="sanction-result-box" style="margin-top: 10px; font-size: 12px;"></div>
-                        </div>
-
-                        <!-- Tool 2: Merge Multiple CSV Files (Skip 2 rows) -->
-                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 15px; border-radius: 12px;">
-                            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 10px;"><i class="fa-solid fa-files"></i> 2. Merge Multiple CSV Files (Skip 2 rows)</h4>
-                            <div style="margin-bottom: 12px;">
-                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Upload Multiple CSV Files</label>
-                                <input type="file" id="multi-csv-input" accept=".csv" multiple style="font-size: 12px; color: #fff;">
-                            </div>
-                            <button class="action-btn" style="padding: 8px; font-size: 13px; background: var(--primary);" onclick="processMultiCsvMerge()">🚀 Merge & Download CSV</button>
-                            <div id="csv-result-box" style="margin-top: 10px; font-size: 12px;"></div>
                         </div>
                     </div>
                 </div>
