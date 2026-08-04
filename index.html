@@ -664,6 +664,33 @@
 	// --- Recovery Excel Processing & PDF Logic ---
 let globalPivotData = []; // Global data store
 
+// Helper function taake date aik din peechay ya aagay na ho (Timezone fix)
+function parseExcelDate(val) {
+    if (!val) return null;
+    // Agar Excel ka serial number ho
+    if (typeof val === 'number') {
+        const utcDays = Math.floor(val - 25569);
+        const utcValue = utcDays * 86400 * 1000;
+        const dateInfo = new Date(utcValue);
+        return new Date(dateInfo.getFullYear(), dateInfo.getMonth(), dateInfo.getDate());
+    }
+    // Agar string format ho (jaise "2026-08-01" ya "Aug 1, 2026")
+    let parsed = new Date(val);
+    if (!isNaN(parsed)) {
+        return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    }
+    return null;
+}
+
+// Date ko exact YYYY-MM-DD string mein convert karne ke liye
+function formatLocalDate(dateObj) {
+    if (!dateObj || isNaN(dateObj)) return '';
+    let year = dateObj.getFullYear();
+    let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    let day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function processRecoveryFile(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -681,8 +708,8 @@ function processRecoveryFile(event) {
             let rDate = row['recovery_date'] || row['Recovery_Date'] || row['Date'];
             if (!rDate) return;
 
-            let parsedDate = new Date(rDate);
-            if (isNaN(parsedDate)) return;
+            let parsedDate = parseExcelDate(rDate);
+            if (!parsedDate || isNaN(parsedDate)) return;
 
             processedRows.push({
                 branch_id: row['branch_id'] || row['Branch'] || 'Unknown',
@@ -695,7 +722,7 @@ function processRecoveryFile(event) {
 
         let pivotMap = {};
         processedRows.forEach(r => {
-            let dateStr = r.recovery_date.toISOString().split('T')[0];
+            let dateStr = formatLocalDate(r.recovery_date);
             let key = r.branch_id + "_" + r.project + "_" + dateStr;
             if (!pivotMap[key]) {
                 pivotMap[key] = {
@@ -711,7 +738,7 @@ function processRecoveryFile(event) {
             pivotMap[key].Amount += r.amount;
         });
 
-        // YAHAN DATE KE HISAB SE SORT KAR DIYA 1 2 3...
+        // Date ke hisab se sort kar diya
         globalPivotData = Object.values(pivotMap).sort((a, b) => a.dateObj - b.dateObj);
 
         let branches = [...new Set(globalPivotData.map(item => item.branch_id))].sort();
@@ -743,14 +770,14 @@ function processRecoveryFile(event) {
         `;
         processedRows.slice(0, 10).forEach(r => {
             previewHtml += `<tr>
-                <td style="padding:8px; border:1px solid #334155;">${formatDate(r.recovery_date)}</td>
+                <td style="padding:8px; border:1px solid #334155;">${r.branch_id}</td>
                 <td style="padding:8px; border:1px solid #334155;">${r.project}</td>
-                <td style="padding:8px; border:1px solid #334155;">${r.recovery_date.toISOString().split('T')[0]}</td>
+                <td style="padding:8px; border:1px solid #334155;">${formatLocalDate(r.recovery_date)}</td>
                 <td style="padding:8px; border:1px solid #334155;">Rs ${r.amount.toLocaleString()}</td>
             </tr>`;
         });
         previewHtml += `</tbody></table></div>`;
-        document.getElementById('recovery-preview-area').innerHTML = previewHtml; // typo theek kiya
+        document.getElementById('recovery-preview-area').innerHTML = previewHtml;
     };
     reader.readAsArrayBuffer(file);
 }
@@ -765,13 +792,12 @@ function downloadRecoveryPDF() {
     const doc = new jsPDF();
     const selectedBranch = document.getElementById('recovery-branch-select').value;
 
-    let branchesToPrint = selectedBranch === "ALL"? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
+    let branchesToPrint = selectedBranch === "ALL" ? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
 
     branchesToPrint.forEach((branch, index) => {
         if (index > 0) doc.addPage();
 
-        // Branch ke andar bhi date se sort
-        let branchRows = globalPivotData.filter(i => i.branch_id == branch).sort((a,b) => a.dateObj - b.dateObj);
+        let branchRows = globalPivotData.filter(i => String(i.branch_id) === String(branch)).sort((a, b) => a.dateObj - b.dateObj);
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
@@ -794,8 +820,7 @@ function downloadRecoveryPDF() {
             let projReceipts = 0;
 
             projRows.forEach(row => {
-                // row.recovery_date abhi string format mein hai, to usko direct print kar sakte hain ya date format karke
-tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
+                tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
                 projAmount += row.Amount;
                 projReceipts += row.Receipts;
             });
