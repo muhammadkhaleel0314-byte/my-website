@@ -978,7 +978,47 @@ function downloadSingleBranchPDF(brName) {
 
     pdf.save(`${brName}_Loan_Disbursement.pdf`);
 }
+let uploadedRangeData = [];
 let currentSummaryData = {}; // ڈیٹا کو گلوبل سیو رکھنے کے لیے
+
+function handleRecoveryRangeUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    const isCsv = file.name.endsWith('.csv');
+
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        uploadedRangeData = XLSX.utils.sheet_to_json(worksheet);
+        
+        if (uploadedRangeData.length > 0) {
+            const columns = Object.keys(uploadedRangeData[0]);
+            let dateSelect = document.getElementById('recovery-date-col');
+            let branchSelect = document.getElementById('recovery-branch-col');
+            
+            dateSelect.innerHTML = '';
+            branchSelect.innerHTML = '';
+            
+            columns.forEach(col => {
+                dateSelect.innerHTML += `<option value="${col}">${col}</option>`;
+                branchSelect.innerHTML += `<option value="${col}">${col}</option>`;
+            });
+
+            document.getElementById('recovery-range-controls').style.display = 'flex';
+        }
+    };
+
+    if (isCsv) {
+        reader.readAsText(file);
+    } else {
+        reader.readAsArrayBuffer(file);
+    }
+}
 
 function processRecoveryRangeSummary() {
     const dateCol = document.getElementById('recovery-date-col').value;
@@ -990,8 +1030,6 @@ function processRecoveryRangeSummary() {
     let grandTotals = { "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
     let hasArea = uploadedRangeData[0].hasOwnProperty('area_id');
     let branchAreaMap = {};
-
-    // ایریا وائز ڈیٹا کو منظم کرنے کے لیے
     let areaWiseMap = {};
 
     uploadedRangeData.forEach(row => {
@@ -1019,7 +1057,6 @@ function processRecoveryRangeSummary() {
         grandTotals[range]++;
         grandTotals["Total"]++;
 
-        // ایریا وائز گروپنگ
         if (!areaWiseMap[area]) {
             areaWiseMap[area] = [];
         }
@@ -1086,7 +1123,6 @@ function processRecoveryRangeSummary() {
 
     tableHTML += `</tbody></table>`;
 
-    // ڈاؤن لوڈ پی ڈی ایف اور ایکسل کے بٹنز
     tableHTML += `<div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
         <button onclick="downloadRangePDFReport()" class="action-btn" style="margin-top: 0; background: #ef4444; width: auto; padding: 10px 20px;">📥 Download PDF Report (Area Wise)</button>
         <button onclick="downloadRangeExcelReport()" class="action-btn" style="margin-top: 0; background: #10b981; width: auto; padding: 10px 20px;">📊 Download Excel Report</button>
@@ -1095,7 +1131,6 @@ function processRecoveryRangeSummary() {
     document.getElementById('recovery-range-result-container').innerHTML = tableHTML;
 }
 
-// ایریا وائز پی ڈی ایف جنریٹ کرنے کا فنکشن (ہر ایریا الگ صفحے پر آئے گا)
 function downloadRangePDFReport() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('landscape');
@@ -1134,7 +1169,6 @@ function downloadRangePDFReport() {
             areaTableData.push(row);
         });
 
-        // ایریا کا سب ٹوٹل
         let ap1 = areaTotals.Total > 0 ? ((areaTotals["1-10"] / areaTotals.Total) * 100).toFixed(2) + "%" : "0.00%";
         let ap2 = areaTotals.Total > 0 ? ((areaTotals["11-20"] / areaTotals.Total) * 100).toFixed(2) + "%" : "0.00%";
         let ap3 = areaTotals.Total > 0 ? ((areaTotals["21-31"] / areaTotals.Total) * 100).toFixed(2) + "%" : "0.00%";
@@ -1165,7 +1199,6 @@ function downloadRangePDFReport() {
     doc.save('recovery_range_area_wise_summary.pdf');
 }
 
-// ایکسل (Excel) ڈاؤن لوڈ کرنے کا فنکشن
 function downloadRangeExcelReport() {
     let { summaryMap, hasArea } = currentSummaryData;
     let excelData = [];
@@ -1196,7 +1229,6 @@ function downloadRangeExcelReport() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recovery Summary");
     XLSX.writeFile(workbook, "recovery_range_summary.xlsx");
 }
-
   </script>
 </body>
 </html>
