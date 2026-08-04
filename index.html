@@ -113,8 +113,8 @@
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
 	      <button class="nav-sub-btn" onclick="switchTab('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
-		  <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
-		  <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
+	     <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
+		<button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -283,36 +283,7 @@
         </div>
     </div>
 </div><!
-<!-- Recovery PDF Report Tab -->
-<div id="recovery-tab" class="tab-content">
-    <div class="card">
-        <h3>📁 Recovery File Report & PDF</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Upload Excel or CSV recovery file to analyze and generate branch-wise reports.</p>
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600;">Upload Recovery File (Excel / CSV)</label>
-            <input type="file" id="recovery-file-input" accept=".xlsx, .xls, .csv" style="color: var(--text-main); font-size: 13px;" onchange="handleRecoveryFileUpload(event)">
-        </div>
 
-        <div id="recovery-controls" style="display: none; margin-bottom: 20px; gap: 15px; display: flex; flex-wrap: wrap;">
-            <div>
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted);">Select Date Column</label>
-                <select id="date-col-select" class="input-field" style="width: 200px; padding: 8px;"></select>
-            </div>
-            <div>
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted);">Select Branch Column</label>
-                <select id="branch-col-select" class="input-field" style="width: 200px; padding: 8px;"></select>
-            </div>
-            <div style="align-self: flex-end;">
-                <button class="action-btn" onclick="processRecoveryData()" style="background: var(--primary); color: white; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Generate Report</button>
-            </div>
-        </div>
-
-        <div id="recovery-result-container" style="margin-top: 20px; overflow-x: auto;">
-            <!-- Results Table & Download Buttons will load here -->
-        </div>
-    </div>
-</div>		
 <!--Loan Disbursement Tab -->
 <div id="loan-disbursement-tab" class="tab-content">
     <div class="card" style="text-align: left;">
@@ -332,6 +303,36 @@
             <div id="loan-results-container" style="display: none; flex-direction: column; gap: 15px;">
                 <!-- برانچ وائز ڈیٹا اور ڈاؤن لوڈ بٹنز یہاں خود بخود ظاہر ہوں گے -->
             </div>
+        </div>
+    </div>
+</div>
+		<!-- Recovery Range Wise Tab -->
+<div id="recovery-range-tab" class="tab-content">
+    <div class="card" style="margin: 0 auto; width: 100%; text-align: left;">
+        <h3 style="text-align: center;">📊 Recovery Date Range Summary</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Upload Recovery Excel / CSV to analyze date ranges (1-10, 11-20, 21-31) and generate reports.</p>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Upload Recovery File (Excel / CSV)</label>
+            <input type="file" id="recovery-range-file-input" accept=".xlsx, .xls, .csv" style="font-size: 13px; color: #fff; width: 100%;" onchange="handleRecoveryRangeUpload(event)">
+        </div>
+
+        <div id="recovery-range-controls" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Date Column</label>
+                <select id="recovery-date-col" class="input-field" style="width: 100%; padding: 8px;"></select>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch Column (branch_id)</label>
+                <select id="recovery-branch-col" class="input-field" style="width: 100%; padding: 8px;"></select>
+            </div>
+            <div style="align-self: flex-end;">
+                <button class="action-btn" onclick="processRecoveryRangeSummary()" style="margin-top: 0; background: var(--primary); padding: 9px 16px;">Generate Summary</button>
+            </div>
+        </div>
+
+        <div id="recovery-range-result-container" style="margin-top: 20px; overflow-x: auto;">
+            <!-- Results table will appear here -->
         </div>
     </div>
 </div>
@@ -979,9 +980,9 @@ function downloadSingleBranchPDF(brName) {
     pdf.save(`${brName}_Loan_Disbursement.pdf`);
 }
 
-let uploadedRecoveryData = [];
+let uploadedRangeData = [];
 
-function handleRecoveryFileUpload(event) {
+function handleRecoveryRangeUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -994,12 +995,12 @@ function handleRecoveryFileUpload(event) {
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        uploadedRecoveryData = XLSX.utils.sheet_to_json(worksheet);
+        uploadedRangeData = XLSX.utils.sheet_to_json(worksheet);
         
-        if (uploadedRecoveryData.length > 0) {
-            const columns = Object.keys(uploadedRecoveryData[0]);
-            let dateSelect = document.getElementById('date-col-select');
-            let branchSelect = document.getElementById('branch-col-select');
+        if (uploadedRangeData.length > 0) {
+            const columns = Object.keys(uploadedRangeData[0]);
+            let dateSelect = document.getElementById('recovery-date-col');
+            let branchSelect = document.getElementById('recovery-branch-col');
             
             dateSelect.innerHTML = '';
             branchSelect.innerHTML = '';
@@ -1009,7 +1010,7 @@ function handleRecoveryFileUpload(event) {
                 branchSelect.innerHTML += `<option value="${col}">${col}</option>`;
             });
 
-            document.getElementById('recovery-controls').style.display = 'flex';
+            document.getElementById('recovery-range-controls').style.display = 'flex';
         }
     };
 
@@ -1020,32 +1021,37 @@ function handleRecoveryFileUpload(event) {
     }
 }
 
-function processRecoveryData() {
-    const dateCol = document.getElementById('date-col-select').value;
-    const branchCol = document.getElementById('branch-col-select').value;
+function processRecoveryRangeSummary() {
+    const dateCol = document.getElementById('recovery-date-col').value;
+    const branchCol = document.getElementById('recovery-branch-col').value;
     
     if (!dateCol || !branchCol) return;
 
     let summaryMap = {};
     let grandTotals = { "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
-    let hasArea = uploadedRecoveryData[0].hasOwnProperty('area_id');
+    let hasArea = uploadedRangeData[0].hasOwnProperty('area_id');
+    let branchAreaMap = {};
 
-    uploadedRecoveryData.forEach(row => {
+    uploadedRangeData.forEach(row => {
         let rawDate = row[dateCol];
         let branch = row[branchCol];
         let area = hasArea ? row['area_id'] : '';
 
-        if (!rawDate || !branch) return;
+        if (!rawDate || branch === undefined || branch === null || branch === "") return;
 
         let dateObj = new Date(rawDate);
         let day = dateObj.getDate();
         if (isNaN(day)) return;
 
         let range = day <= 10 ? "1-10" : (day <= 20 ? "11-20" : "21-31");
-        let key = `${branch}`;
+        let key = String(branch);
+
+        if (hasArea && area) {
+            branchAreaMap[key] = area;
+        }
 
         if (!summaryMap[key]) {
-            summaryMap[key] = { branch: branch, area: area, "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
+            summaryMap[key] = { branch: branch, "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
         }
 
         summaryMap[key][range]++;
@@ -1054,14 +1060,17 @@ function processRecoveryData() {
         grandTotals["Total"]++;
     });
 
-    let resultHTML = `<table style="width:100%; border-collapse: collapse; color: var(--text-main); font-size: 13px;">
+    let tableHTML = `<table style="width:100%; border-collapse: collapse; color: var(--text-main); font-size: 13px;">
         <thead>
             <tr style="background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
                 ${hasArea ? '<th style="padding: 10px; text-align: left;">area_id</th>' : ''}
                 <th style="padding: 10px; text-align: left;">branch_id</th>
                 <th style="padding: 10px; text-align: center;">Recovery 1-10</th>
+                <th style="padding: 10px; text-align: center;">1-10 %</th>
                 <th style="padding: 10px; text-align: center;">Recovery 11-20</th>
+                <th style="padding: 10px; text-align: center;">11-20 %</th>
                 <th style="padding: 10px; text-align: center;">Recovery 21-31</th>
+                <th style="padding: 10px; text-align: center;">21-31 %</th>
                 <th style="padding: 10px; text-align: center;">Total</th>
             </tr>
         </thead>
@@ -1069,43 +1078,59 @@ function processRecoveryData() {
 
     for (let key in summaryMap) {
         let item = summaryMap[key];
-        resultHTML += `<tr style="border-bottom: 1px solid var(--border-color);">
-            ${hasArea ? `<td style="padding: 10px;">${item.area}</td>` : ''}
+        let total = item.Total;
+        let p1 = total > 0 ? ((item["1-10"] / total) * 100).toFixed(2) : "0.00";
+        let p2 = total > 0 ? ((item["11-20"] / total) * 100).toFixed(2) : "0.00";
+        let p3 = total > 0 ? ((item["21-31"] / total) * 100).toFixed(2) : "0.00";
+        let areaVal = hasArea ? (branchAreaMap[key] || '') : '';
+
+        tableHTML += `<tr style="border-bottom: 1px solid var(--border-color);">
+            ${hasArea ? `<td style="padding: 10px;">${areaVal}</td>` : ''}
             <td style="padding: 10px;">${item.branch}</td>
             <td style="padding: 10px; text-align: center;">${item["1-10"]}</td>
+            <td style="padding: 10px; text-align: center;">${p1}%</td>
             <td style="padding: 10px; text-align: center;">${item["11-20"]}</td>
+            <td style="padding: 10px; text-align: center;">${p2}%</td>
             <td style="padding: 10px; text-align: center;">${item["21-31"]}</td>
-            <td style="padding: 10px; text-align: center; font-weight: bold;">${item.Total}</td>
+            <td style="padding: 10px; text-align: center;">${p3}%</td>
+            <td style="padding: 10px; text-align: center; font-weight: bold;">${total}</td>
         </tr>`;
     }
 
-    // Grand Total Row
-    resultHTML += `<tr style="font-weight: bold; background: rgba(59, 130, 246, 0.1);">
+    let gTotal = grandTotals["Total"];
+    let gp1 = gTotal > 0 ? ((grandTotals["1-10"] / gTotal) * 100).toFixed(2) : "0.00";
+    let gp2 = gTotal > 0 ? ((grandTotals["11-20"] / gTotal) * 100).toFixed(2) : "0.00";
+    let gp3 = gTotal > 0 ? ((grandTotals["21-31"] / gTotal) * 100).toFixed(2) : "0.00";
+
+    tableHTML += `<tr style="font-weight: bold; background: rgba(56, 189, 248, 0.1);">
         ${hasArea ? '<td style="padding: 10px;"></td>' : ''}
         <td style="padding: 10px;">Grand Total</td>
         <td style="padding: 10px; text-align: center;">${grandTotals["1-10"]}</td>
+        <td style="padding: 10px; text-align: center;">${gp1}%</td>
         <td style="padding: 10px; text-align: center;">${grandTotals["11-20"]}</td>
+        <td style="padding: 10px; text-align: center;">${gp2}%</td>
         <td style="padding: 10px; text-align: center;">${grandTotals["21-31"]}</td>
-        <td style="padding: 10px; text-align: center;">${grandTotals["Total"]}</td>
+        <td style="padding: 10px; text-align: center;">${gp3}%</td>
+        <td style="padding: 10px; text-align: center;">${gTotal}</td>
     </tr>`;
 
-    resultHTML += `</tbody></table>`;
-    
-    resultHTML += `<div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button onclick="downloadPDF()" class="action-btn" style="background: #ef4444; color: white; padding: 8px 14px; border-radius: 6px; border: none; cursor: pointer;">⬇ Download PDF Report</button>
+    tableHTML += `</tbody></table>`;
+
+    tableHTML += `<div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button onclick="downloadRangePDFReport()" class="action-btn" style="margin-top: 0; background: #ef4444; width: auto; padding: 10px 20px;">📥 Download PDF Report</button>
     </div>`;
 
-    document.getElementById('recovery-result-container').innerHTML = resultHTML;
+    document.getElementById('recovery-range-result-container').innerHTML = tableHTML;
 }
 
-function downloadPDF() {
+function downloadRangePDFReport() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("Recovery Date Range Summary", 14, 15);
-    doc.autoTable({ html: '#recovery-result-container table', startY: 20 });
-    doc.save('recovery_summary.pdf');
+    const doc = new jsPDF('landscape');
+    doc.text("Recovery Range Wise Summary Report", 14, 15);
+    doc.autoTable({ html: '#recovery-range-result-container table', startY: 20, theme: 'grid', styles: { fontSize: 8 } });
+    doc.save('recovery_range_summary.pdf');
 }
-	
+			
   </script>
 </body>
 </html>
