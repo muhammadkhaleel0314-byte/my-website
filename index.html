@@ -114,7 +114,6 @@
 	      <button class="nav-sub-btn" onclick="switchTab('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 		  <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
-		  <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"> <i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -305,36 +304,6 @@
         </div>
     </div>
 </div>
-		<!-- Recovery PDF Report Tab -->
-<div id="recovery-tab" class="tab-content">
-    <div class="card">
-        <h3>📁 Recovery File Report & PDF</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Upload Excel or CSV recovery file to analyze and generate branch-wise reports.</p>
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600;">Upload Recovery File (Excel / CSV)</label>
-            <input type="file" id="recovery-file-input" accept=".xlsx, .xls, .csv" style="color: var(--text-main); font-size: 13px;" onchange="handleRecoveryFileUpload(event)">
-        </div>
-
-        <div id="recovery-controls" style="display: none; margin-bottom: 20px; gap: 15px; display: flex; flex-wrap: wrap;">
-            <div>
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted);">Select Date Column</label>
-                <select id="date-col-select" class="input-field" style="width: 200px; padding: 8px;"></select>
-            </div>
-            <div>
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted);">Select Branch Column</label>
-                <select id="branch-col-select" class="input-field" style="width: 200px; padding: 8px;"></select>
-            </div>
-            <div style="align-self: flex-end;">
-                <button class="action-btn" onclick="processRecoveryData()" style="background: var(--primary); color: white; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Generate Report</button>
-            </div>
-        </div>
-
-        <div id="recovery-result-container" style="margin-top: 20px; overflow-x: auto;">
-            <!-- Results Table & Download Buttons will load here -->
-        </div>
-    </div>
-</div>
 		<script>
     const FIXED_FIRST_12 = "421011234567";
 
@@ -365,49 +334,42 @@
     }
 
     async function handleLogin() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const errEl = document.getElementById('login-err');
-    
-    if (!user || !pass) {
-        errEl.innerText = "Please fill all fields!";
-        return;
-    }
-    
-    errEl.innerText = "Verifying...";
-    
-    try {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const errEl = document.getElementById('login-err');
+      if (!user || !pass) { errEl.innerText = "Please fill all fields!"; return; }
+      errEl.innerText = "Verifying...";
+      try {
         const snapshot = await db.ref(`users/${user}`).once('value');
         const userData = snapshot.val();
-        
-        if (!userData) {
-            errEl.innerText = "User not found!";
-            return;
-        }
-        
-        if (userData.password !== pass) {
-            errEl.innerText = "Incorrect password!";
-            return;
-        }
-        
-        const currentDevId = getDeviceId();
-        if (userData.device_id && userData.device_id !== currentDevId) {
-            errEl.innerText = "This account is locked to another device!";
-            return;
-        } else if (!userData.device_id) {
-            await db.ref(`users/${user}`).update({ device_id: currentDevId });
-        }
-        
-        currentUser = user;
-        document.getElementById('display-user').innerText = user;
+        if (userData && userData.password === pass) {
+          const thisDeviceId = getDeviceId();
+          if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
+          if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
+          currentUser = user;
+          localStorage.setItem('logged_user', user);
+          document.getElementById('display-user').innerText = user;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app-container').style.display = 'flex';
+          errEl.innerText = "";
+          loadUserHistory(user);
+        } else { errEl.innerText = "Invalid Username or Password!"; }
+      } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
+    }
+
+    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
+
+    window.onload = function() {
+      const savedUser = localStorage.getItem('logged_user');
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById('display-user').innerText = savedUser;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
-        
-    } catch (error) {
-        console.error(error);
-        errEl.innerText = "Login failed. Check connection.";
-    }
-}
+        loadUserHistory(savedUser);
+      }
+    };
+
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
@@ -985,139 +947,7 @@ function downloadSingleBranchPDF(brName) {
 
     pdf.save(`${brName}_Loan_Disbursement.pdf`);
 }
-			<!-- Required Libraries for Excel & PDF in Browser -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
-<script>
-let uploadedRecoveryData = [];
-
-function handleRecoveryFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    const isCsv = file.name.endsWith('.csv');
-
-    reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        uploadedRecoveryData = XLSX.utils.sheet_to_json(worksheet);
-        
-        if (uploadedRecoveryData.length > 0) {
-            const columns = Object.keys(uploadedRecoveryData[0]);
-            let dateSelect = document.getElementById('date-col-select');
-            let branchSelect = document.getElementById('branch-col-select');
-            
-            dateSelect.innerHTML = '';
-            branchSelect.innerHTML = '';
-            
-            columns.forEach(col => {
-                dateSelect.innerHTML += `<option value="${col}">${col}</option>`;
-                branchSelect.innerHTML += `<option value="${col}">${col}</option>`;
-            });
-
-            document.getElementById('recovery-controls').style.display = 'flex';
-        }
-    };
-
-    if (isCsv) {
-        reader.readAsText(file);
-    } else {
-        reader.readAsArrayBuffer(file);
-    }
-}
-
-function processRecoveryData() {
-    const dateCol = document.getElementById('date-col-select').value;
-    const branchCol = document.getElementById('branch-col-select').value;
-    
-    if (!dateCol || !branchCol) return;
-
-    let summaryMap = {};
-    let grandTotals = { "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
-    let hasArea = uploadedRecoveryData[0].hasOwnProperty('area_id');
-
-    uploadedRecoveryData.forEach(row => {
-        let rawDate = row[dateCol];
-        let branch = row[branchCol];
-        let area = hasArea ? row['area_id'] : '';
-
-        if (!rawDate || !branch) return;
-
-        let dateObj = new Date(rawDate);
-        let day = dateObj.getDate();
-        if (isNaN(day)) return;
-
-        let range = day <= 10 ? "1-10" : (day <= 20 ? "11-20" : "21-31");
-        let key = `${branch}`;
-
-        if (!summaryMap[key]) {
-            summaryMap[key] = { branch: branch, area: area, "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
-        }
-
-        summaryMap[key][range]++;
-        summaryMap[key]["Total"]++;
-        grandTotals[range]++;
-        grandTotals["Total"]++;
-    });
-
-    let resultHTML = `<table style="width:100%; border-collapse: collapse; color: var(--text-main); font-size: 13px;">
-        <thead>
-            <tr style="background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
-                ${hasArea ? '<th style="padding: 10px; text-align: left;">area_id</th>' : ''}
-                <th style="padding: 10px; text-align: left;">branch_id</th>
-                <th style="padding: 10px; text-align: center;">Recovery 1-10</th>
-                <th style="padding: 10px; text-align: center;">Recovery 11-20</th>
-                <th style="padding: 10px; text-align: center;">Recovery 21-31</th>
-                <th style="padding: 10px; text-align: center;">Total</th>
-            </tr>
-        </thead>
-        <tbody>`;
-
-    for (let key in summaryMap) {
-        let item = summaryMap[key];
-        resultHTML += `<tr style="border-bottom: 1px solid var(--border-color);">
-            ${hasArea ? `<td style="padding: 10px;">${item.area}</td>` : ''}
-            <td style="padding: 10px;">${item.branch}</td>
-            <td style="padding: 10px; text-align: center;">${item["1-10"]}</td>
-            <td style="padding: 10px; text-align: center;">${item["11-20"]}</td>
-            <td style="padding: 10px; text-align: center;">${item["21-31"]}</td>
-            <td style="padding: 10px; text-align: center; font-weight: bold;">${item.Total}</td>
-        </tr>`;
-    }
-
-    // Grand Total Row
-    resultHTML += `<tr style="font-weight: bold; background: rgba(59, 130, 246, 0.1);">
-        ${hasArea ? '<td style="padding: 10px;"></td>' : ''}
-        <td style="padding: 10px;">Grand Total</td>
-        <td style="padding: 10px; text-align: center;">${grandTotals["1-10"]}</td>
-        <td style="padding: 10px; text-align: center;">${grandTotals["11-20"]}</td>
-        <td style="padding: 10px; text-align: center;">${grandTotals["21-31"]}</td>
-        <td style="padding: 10px; text-align: center;">${grandTotals["Total"]}</td>
-    </tr>`;
-
-    resultHTML += `</tbody></table>`;
-    
-    resultHTML += `<div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button onclick="downloadPDF()" class="action-btn" style="background: #ef4444; color: white; padding: 8px 14px; border-radius: 6px; border: none; cursor: pointer;">⬇ Download PDF Report</button>
-    </div>`;
-
-    document.getElementById('recovery-result-container').innerHTML = resultHTML;
-}
-
-function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("Recovery Date Range Summary", 14, 15);
-    doc.autoTable({ html: '#recovery-result-container table', startY: 20 });
-    doc.save('recovery_summary.pdf');
-}	
-
- </script>
+	
+  </script>
 </body>
 </html>
