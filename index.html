@@ -339,7 +339,27 @@
         </div>
     </div>
 </div>
-		<
+		
+	<div id="reports-tab" class="tab-content" style="display:none;">
+  <div class="card">
+    <h2>FMO Progress Report</h2>
+
+    <div class="report-header" style="display:flex; gap:10px;">
+      <div class="form-group"><label><b>Area Name</b></label><input type="text" id="reportArea" value="Kallar Kahar"></div>
+      <div class="form-group"><label><b>Month</b></label><input type="text" id="reportMonth" placeholder="August 2025"></div>
+      <div class="form-group"><label><b>Project Name</b></label><input type="text" id="reportProject" placeholder="Project ABC"></div>
+    </div>
+
+    <div class="form-group"><label><b>Upload Excel</b></label><input type="file" id="fileInput" accept=".xlsx,.xls,.csv"></div>
+
+    <div id="reports-controls" style="display:none;">
+      <button class="btn-primary" onclick="generateExactReport()">Generate Report</button>
+      <button class="btn-secondary" onclick="downloadExactPDF()">⬇ Download PDF</button>
+      <button class="btn-secondary" onclick="window.print()">🖨 Print</button>
+    </div>
+    <div id="tableDiv" class="info">Please upload file.</div>
+  </div>
+</div>
 		<script>
     const FIXED_FIRST_12 = "421011234567";
 
@@ -1260,7 +1280,77 @@ function downloadRangeExcelReport() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recovery Summary");
     XLSX.writeFile(workbook, "recovery_range_summary.xlsx");
 }
-			
+let rawData = [];
+document.getElementById('fileInput').addEventListener('change', handleFile);
+
+function handleFile(e) {
+    const file = e.target.files[0]; const reader = new FileReader();
+    reader.onload = function(event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        rawData = XLSX.utils.sheet_to_json(sheet, {defval: 0});
+        document.getElementById('reports-controls').style.display = 'block';
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function toWords(num) {
+    const a = ['','One ','Two ','Three ','Four ','Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+    const b = ['', '', 'Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+    if (num == 0) return "Zero";
+    let words = "";
+    if (Math.floor(num/10000000) > 0){ words += toWords(Math.floor(num/10000000)) + "Crore "; num %= 10000000; }
+    if (Math.floor(num/100000) > 0){ words += toWords(Math.floor(num/100000)) + "Lakh "; num %= 100000; }
+    if (Math.floor(num/1000) > 0){ words += toWords(Math.floor(num/1000)) + "Thousand "; num %= 1000; }
+    if (Math.floor(num/100) > 0){ words += toWords(Math.floor(num/100)) + "Hundred "; num %= 100; }
+    if (num > 0){ words += (words!= ""? "and " : "") + (a[num] || b[Math.floor(num/10)] + " " + a[num%10]); }
+    return words.trim();
+}
+
+function generateExactReport() {
+    const area = document.getElementById('reportArea').value;
+    const month = document.getElementById('reportMonth').value;
+    const project = document.getElementById('reportProject').value;
+    const branches = [...new Set(rawData.map(r => r.Branch).filter(b => b))];
+    const metrics = Object.keys(rawData[0]).filter(k =>!["Regions","Branch"].includes(k));
+
+    let html = <div style="text-align:center;"><h3 style="margin:2px;">Progress Report FMO - ${month}</h3><h2 style="margin:2px;">Area ${area}</h2></div>;
+    html += '<table id="exact-table">';
+
+    // Row 1
+    html += <tr><td rowspan="2" class="area-col">Area<br>${area}</td><td colspan="${branches.length}" class="title-row">Progress Report FMO - ${month}</td><td class="branch-header">Project OverAll</td><td></td></tr>;
+    // Row 2
+    html += <tr><td colspan="${branches.length}" class="area-title">Area ${area}</td><td class="total-col">Grand Total</td><td class="inword-col">In Word</td></tr>;
+
+    // Row 3: Branch Names
+    html += '<tr><td class="metric-name"></td>';
+    branches.forEach(b => html += <td class="branch-header">${b}</td>);
+    html += '<td class="total-col"></td><td class="inword-col"></td></tr>';
+
+    // Data Rows
+    metrics.forEach(metric => {
+        html += <tr><td class="metric-name">${metric}</td>;
+        let rowTotal = 0;
+        branches.forEach(b => {
+            let row = rawData.find(r => r.Branch == b);
+            let val = row? Number(row[metric]) : 0;
+            rowTotal += val;
+            html += <td>${val.toLocaleString()}</td>;
+        });
+        html += <td class="total-col">${rowTotal.toLocaleString()}</td>;
+        html += <td class="inword-col">${toWords(Math.round(rowTotal))}</td></tr>;
+    });
+    html += '</table>';
+    document.getElementById('tableDiv').innerHTML = html;
+}
+
+function downloadExactPDF(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l','mm','a4');
+    doc.autoTable({ html: '#exact-table', styles: { fontSize: 6 }, headStyles: { fillColor: [255,217,102] } });
+    doc.save(FMO_Report.pdf);
+}			
   </script>
 </body>
 </html>
