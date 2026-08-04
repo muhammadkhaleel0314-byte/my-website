@@ -743,7 +743,7 @@ function processRecoveryFile(event) {
         `;
         processedRows.slice(0, 10).forEach(r => {
             previewHtml += `<tr>
-                <td style="padding:8px; border:1px solid #334155;">${r.branch_id}</td>
+                <td style="padding:8px; border:1px solid #334155;">${formatDate(r.recovery_date)}</td>
                 <td style="padding:8px; border:1px solid #334155;">${r.project}</td>
                 <td style="padding:8px; border:1px solid #334155;">${r.recovery_date.toISOString().split('T')[0]}</td>
                 <td style="padding:8px; border:1px solid #334155;">Rs ${r.amount.toLocaleString()}</td>
@@ -794,7 +794,8 @@ function downloadRecoveryPDF() {
             let projReceipts = 0;
 
             projRows.forEach(row => {
-                tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
+                // row.recovery_date abhi string format mein hai, to usko direct print kar sakte hain ya date format karke
+tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
                 projAmount += row.Amount;
                 projReceipts += row.Receipts;
             });
