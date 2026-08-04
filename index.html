@@ -119,6 +119,7 @@
 	     <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="switchTab('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
 		<button class="nav-sub-btn" onclick="switchTab('MPR', this)"><i class="fa-solid fa-file-invoice-dollar"></i> FMO Progress Report</button>
+         <button class="nav-sub-btn" onclick="switchTab('MPR', this)"><i class="fa-solid fa-file-invoice-dollar"></i> FMO Progress Report</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -339,7 +340,24 @@
         </div>
     </div>
 </div>
-		
+<!-- FMO Progress Report Tab -->
+<div id="MPR" class="tab-content">
+    <div class="card" style="text-align: left;">
+        <h3 style="text-align: center;">📥 Sheet 1 to Sheet 2 Processor</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
+            Sheet 1 ڈاؤن لوڈ کریں، یہاں اپ لوڈ کریں اور پروسیس کر کے Sheet 2 حاصل کریں۔
+        </p>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Upload Sheet 1 File</label>
+            <input type="file" id="sheet1-file-input" accept=".xlsx, .xls, .csv" style="font-size: 13px; color: #fff; width: 100%;" onchange="handleSheet1Upload(event)">
+        </div>
+
+        <button class="action-btn" id="generate-sheet2-btn" style="display: none; background: var(--btn-green);" onclick="generateAndDownloadSheet2()">
+            🚀 Process & Download Sheet 2
+        </button>
+    </div>
+</div>		
 
 		<script>
     const FIXED_FIRST_12 = "421011234567";
@@ -1261,7 +1279,61 @@ function downloadRangeExcelReport() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recovery Summary");
     XLSX.writeFile(workbook, "recovery_range_summary.xlsx");
 }
+let uploadedSheet1Data = null;
 
+// Step 1: Sheet 1 فائل کو ریڈ کرنا
+function handleSheet1Upload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // ڈیٹا کو JSON میں تبدیل کرنا
+            uploadedSheet1Data = XLSX.utils.sheet_to_json(worksheet);
+            
+            // ڈاؤن لوڈ بٹن شو کرنا
+            document.getElementById('generate-sheet2-btn').style.display = 'block';
+            alert("✅ Sheet 1 کامیابی سے اپ لوڈ ہو گئی ہے! اب 'Process & Download Sheet 2' پر کلک کریں۔");
+        } catch (error) {
+            console.error("Error reading file:", error);
+            alert("❌ فائل ریڈ کرنے میں مسئلہ ہے۔ براہ کرم درست Excel یا CSV فائل منتخب کریں۔");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// Step 2: ڈیٹا کو پراسیس کر کے Sheet 2 ڈاؤن لوڈ کرنا
+function generateAndDownloadSheet2() {
+    if (!uploadedSheet1Data || uploadedSheet1Data.length === 0) {
+        alert("⚠️ Sheet 1 میں کوئی ڈیٹا موجود نہیں ہے۔");
+        return;
+    }
+
+    // یہاں آپ اپنی ضرورت کے مطابق کالمز یا ڈیٹا کو موڈیفائی/میپ کر سکتے ہیں
+    const processedData = uploadedSheet1Data.map(row => {
+        return {
+            ...row, // پرانا تمام ڈیٹا ویسے ہی رہے گا
+            "Status": "Processed", // اگر نیا کالم ایڈ کرنا ہو
+            "Generated Date": new Date().toISOString().split('T')[0]
+        };
+    });
+
+    // نئی شیٹ اور ورک بک تیار کرنا
+    const newWorksheet = XLSX.utils.json_to_sheet(processedData);
+    const newWorkbook = XLSX.utils.book_new();
+    
+    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Sheet2_Output");
+
+    // نئی فائل ڈاؤن لوڈ کرنا
+    XLSX.writeFile(newWorkbook, "Sheet2_Progress_Report.xlsx");
+}
   </script>
 </body>
 </html>
