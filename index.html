@@ -978,47 +978,7 @@ function downloadSingleBranchPDF(brName) {
 
     pdf.save(`${brName}_Loan_Disbursement.pdf`);
 }
-
-let uploadedRangeData = [];
-
-function handleRecoveryRangeUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    const isCsv = file.name.endsWith('.csv');
-
-    reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        uploadedRangeData = XLSX.utils.sheet_to_json(worksheet);
-        
-        if (uploadedRangeData.length > 0) {
-            const columns = Object.keys(uploadedRangeData[0]);
-            let dateSelect = document.getElementById('recovery-date-col');
-            let branchSelect = document.getElementById('recovery-branch-col');
-            
-            dateSelect.innerHTML = '';
-            branchSelect.innerHTML = '';
-            
-            columns.forEach(col => {
-                dateSelect.innerHTML += `<option value="${col}">${col}</option>`;
-                branchSelect.innerHTML += `<option value="${col}">${col}</option>`;
-            });
-
-            document.getElementById('recovery-range-controls').style.display = 'flex';
-        }
-    };
-
-    if (isCsv) {
-        reader.readAsText(file);
-    } else {
-        reader.readAsArrayBuffer(file);
-    }
-}
+let currentSummaryData = {}; // ڈیٹا کو گلوبل سیو رکھنے کے لیے
 
 function processRecoveryRangeSummary() {
     const dateCol = document.getElementById('recovery-date-col').value;
@@ -1031,10 +991,13 @@ function processRecoveryRangeSummary() {
     let hasArea = uploadedRangeData[0].hasOwnProperty('area_id');
     let branchAreaMap = {};
 
+    // ایریا وائز ڈیٹا کو منظم کرنے کے لیے
+    let areaWiseMap = {};
+
     uploadedRangeData.forEach(row => {
         let rawDate = row[dateCol];
         let branch = row[branchCol];
-        let area = hasArea ? row['area_id'] : '';
+        let area = hasArea ? String(row['area_id']).trim() : 'General';
 
         if (!rawDate || branch === undefined || branch === null || branch === "") return;
 
@@ -1045,21 +1008,29 @@ function processRecoveryRangeSummary() {
         let range = day <= 10 ? "1-10" : (day <= 20 ? "11-20" : "21-31");
         let key = String(branch);
 
-        if (hasArea && area) {
-            branchAreaMap[key] = area;
-        }
+        branchAreaMap[key] = area;
 
         if (!summaryMap[key]) {
-            summaryMap[key] = { branch: branch, "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
+            summaryMap[key] = { area: area, branch: branch, "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
         }
 
         summaryMap[key][range]++;
         summaryMap[key]["Total"]++;
         grandTotals[range]++;
         grandTotals["Total"]++;
+
+        // ایریا وائز گروپنگ
+        if (!areaWiseMap[area]) {
+            areaWiseMap[area] = [];
+        }
+        if (!areaWiseMap[area].includes(key)) {
+            areaWiseMap[area].push(key);
+        }
     });
 
-    let tableHTML = `<table style="width:100%; border-collapse: collapse; color: var(--text-main); font-size: 13px;">
+    currentSummaryData = { summaryMap, branchAreaMap, grandTotals, hasArea, areaWiseMap };
+
+    let tableHTML = `<table id="recovery-summary-table" style="width:100%; border-collapse: collapse; color: var(--text-main); font-size: 13px;">
         <thead>
             <tr style="background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
                 ${hasArea ? '<th style="padding: 10px; text-align: left;">area_id</th>' : ''}
@@ -1081,7 +1052,7 @@ function processRecoveryRangeSummary() {
         let p1 = total > 0 ? ((item["1-10"] / total) * 100).toFixed(2) : "0.00";
         let p2 = total > 0 ? ((item["11-20"] / total) * 100).toFixed(2) : "0.00";
         let p3 = total > 0 ? ((item["21-31"] / total) * 100).toFixed(2) : "0.00";
-        let areaVal = hasArea ? (branchAreaMap[key] || '') : '';
+        let areaVal = item.area;
 
         tableHTML += `<tr style="border-bottom: 1px solid var(--border-color);">
             ${hasArea ? `<td style="padding: 10px;">${areaVal}</td>` : ''}
@@ -1102,8 +1073,8 @@ function processRecoveryRangeSummary() {
     let gp3 = gTotal > 0 ? ((grandTotals["21-31"] / gTotal) * 100).toFixed(2) : "0.00";
 
     tableHTML += `<tr style="font-weight: bold; background: rgba(56, 189, 248, 0.1);">
-        ${hasArea ? '<td style="padding: 10px;"></td>' : ''}
-        <td style="padding: 10px;">Grand Total</td>
+        ${hasArea ? '<td style="padding: 10px;">Grand Total</td>' : ''}
+        <td style="padding: 10px;">${hasArea ? '' : 'Grand Total'}</td>
         <td style="padding: 10px; text-align: center;">${grandTotals["1-10"]}</td>
         <td style="padding: 10px; text-align: center;">${gp1}%</td>
         <td style="padding: 10px; text-align: center;">${grandTotals["11-20"]}</td>
@@ -1115,20 +1086,117 @@ function processRecoveryRangeSummary() {
 
     tableHTML += `</tbody></table>`;
 
-    tableHTML += `<div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button onclick="downloadRangePDFReport()" class="action-btn" style="margin-top: 0; background: #ef4444; width: auto; padding: 10px 20px;">📥 Download PDF Report</button>
+    // ڈاؤن لوڈ پی ڈی ایف اور ایکسل کے بٹنز
+    tableHTML += `<div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button onclick="downloadRangePDFReport()" class="action-btn" style="margin-top: 0; background: #ef4444; width: auto; padding: 10px 20px;">📥 Download PDF Report (Area Wise)</button>
+        <button onclick="downloadRangeExcelReport()" class="action-btn" style="margin-top: 0; background: #10b981; width: auto; padding: 10px 20px;">📊 Download Excel Report</button>
     </div>`;
 
     document.getElementById('recovery-range-result-container').innerHTML = tableHTML;
 }
 
+// ایریا وائز پی ڈی ایف جنریٹ کرنے کا فنکشن (ہر ایریا الگ صفحے پر آئے گا)
 function downloadRangePDFReport() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('landscape');
-    doc.text("Recovery Range Wise Summary Report", 14, 15);
-    doc.autoTable({ html: '#recovery-range-result-container table', startY: 20, theme: 'grid', styles: { fontSize: 8 } });
-    doc.save('recovery_range_summary.pdf');
+    
+    let { summaryMap, grandTotals, hasArea, areaWiseMap } = currentSummaryData;
+    let isFirstPage = true;
+
+    for (let area in areaWiseMap) {
+        if (!isFirstPage) {
+            doc.addPage();
+        }
+        isFirstPage = false;
+
+        doc.text(`Recovery Range Wise Summary Report - Area: ${area}`, 14, 15);
+
+        let areaTableData = [];
+        let areaTotals = { "1-10": 0, "11-20": 0, "21-31": 0, "Total": 0 };
+
+        areaWiseMap[area].forEach(branchKey => {
+            let item = summaryMap[branchKey];
+            let total = item.Total;
+            let p1 = total > 0 ? ((item["1-10"] / total) * 100).toFixed(2) + "%" : "0.00%";
+            let p2 = total > 0 ? ((item["11-20"] / total) * 100).toFixed(2) + "%" : "0.00%";
+            let p3 = total > 0 ? ((item["21-31"] / total) * 100).toFixed(2) + "%" : "0.00%";
+
+            areaTotals["1-10"] += item["1-10"];
+            areaTotals["11-20"] += item["11-20"];
+            areaTotals["21-31"] += item["21-31"];
+            areaTotals["Total"] += item.Total;
+
+            let row = [];
+            if (hasArea) row.push(item.area);
+            row.push(item.branch);
+            row.push(item["1-10"], p1, item["11-20"], p2, item["21-31"], p3, item.Total);
+            
+            areaTableData.push(row);
+        });
+
+        // ایریا کا سب ٹوٹل
+        let ap1 = areaTotals.Total > 0 ? ((areaTotals["1-10"] / areaTotals.Total) * 100).toFixed(2) + "%" : "0.00%";
+        let ap2 = areaTotals.Total > 0 ? ((areaTotals["11-20"] / areaTotals.Total) * 100).toFixed(2) + "%" : "0.00%";
+        let ap3 = areaTotals.Total > 0 ? ((areaTotals["21-31"] / areaTotals.Total) * 100).toFixed(2) + "%" : "0.00%";
+
+        let totalRow = [];
+        if (hasArea) totalRow.push("Area Total");
+        totalRow.push(hasArea ? "" : "Area Total");
+        totalRow.push(areaTotals["1-10"], ap1, areaTotals["11-20"], ap2, areaTotals["21-31"], ap3, areaTotals.Total);
+        areaTableData.push(totalRow);
+
+        let headers = hasArea ? ['Area ID', 'Branch ID', 'Recovery 1-10', '1-10 %', 'Recovery 11-20', '11-20 %', 'Recovery 21-31', '21-31 %', 'Total'] : ['Branch ID', 'Recovery 1-10', '1-10 %', 'Recovery 11-20', '11-20 %', 'Recovery 21-31', '21-31 %', 'Total'];
+
+        doc.autoTable({
+            head: [headers],
+            body: areaTableData,
+            startY: 20,
+            theme: 'grid',
+            styles: { fontSize: 8 },
+            didParseCell: function(data) {
+                if (data.row.index === areaTableData.length - 1) {
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.fillColor = [56, 189, 248];
+                }
+            }
+        });
+    }
+
+    doc.save('recovery_range_area_wise_summary.pdf');
 }
+
+// ایکسل (Excel) ڈاؤن لوڈ کرنے کا فنکشن
+function downloadRangeExcelReport() {
+    let { summaryMap, hasArea } = currentSummaryData;
+    let excelData = [];
+
+    for (let key in summaryMap) {
+        let item = summaryMap[key];
+        let total = item.Total;
+        let p1 = total > 0 ? ((item["1-10"] / total) * 100).toFixed(2) + "%" : "0.00%";
+        let p2 = total > 0 ? ((item["11-20"] / total) * 100).toFixed(2) + "%" : "0.00%";
+        let p3 = total > 0 ? ((item["21-31"] / total) * 100).toFixed(2) + "%" : "0.00%";
+
+        let rowData = {};
+        if (hasArea) rowData["area_id"] = item.area;
+        rowData["branch_id"] = item.branch;
+        rowData["Recovery 1-10"] = item["1-10"];
+        rowData["1-10 %"] = p1;
+        rowData["Recovery 11-20"] = item["11-20"];
+        rowData["11-20 %"] = p2;
+        rowData["Recovery 21-31"] = item["21-31"];
+        rowData["21-31 %"] = p3;
+        rowData["Total"] = item.Total;
+
+        excelData.push(rowData);
+    }
+
+    let worksheet = XLSX.utils.json_to_sheet(excelData);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Recovery Summary");
+    XLSX.writeFile(workbook, "recovery_range_summary.xlsx");
+}
+
   </script>
 </body>
 </html>
