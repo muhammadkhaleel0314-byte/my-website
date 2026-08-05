@@ -1535,19 +1535,6 @@ function checkUserAccess(tabId, btnElement) {
     let currentUserElement = document.getElementById("display-user");
     let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
 
-    // اگر سکرین پر نام نہیں ملا تو لوکل اسٹوریج سے چیک کرو
-    if (!currentUser || currentUser === "guest") {
-        currentUser = (localStorage.getItem('logged_user') || "").trim().toLowerCase();
-    }
-
-    // صرف خلیل کے لیے اجازت ہے، باقی سب کے لیے بلاک
-    if (currentUser !== "khaleel") {
-        alert("⚠️ Unauthorized Access! آپ کو اس فیچر کو استعمال کرنے کی اجازت نہیں ہے۔");
-        return; // یہیں روک دے گا اور آگے نہیں جانے دے گا
-    }
-
-    // اگر خلیل ہوا تو ٹیب کھل جائے گا
-    switchTab(tabId, btnElement);
 }
 	
 </script>
