@@ -120,7 +120,7 @@
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 	     <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="switchTab('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
-		<button id="excel-pdf-nav-btn" class="nav-sub-btn" onclick="switchTab('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
+		<button id="excel-pdf-nav-btn" class="nav-sub-btn" onclick="checkAccessAndSwitch('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -1532,19 +1532,23 @@ function checkUserPermissions() {
     const restrictedBtn = document.getElementById("excel-pdf-nav-btn");
     const restrictedTab = document.getElementById("excel-pdf-adj-tab");
 
-    // یہاں ان یوزرز کے نام لکھ دیں جن کو آپ نے اجازت دینی ہے (بڑے یا چھوٹے حروف کا مسئلہ نہیں ہوگا)
-    const allowedUsers = ["khaleel", "admin_user", "manager_name"]; 
+    // یہ فنکشن چیک کرے گا کہ آیا یوزر مجاز ہے یا نہیں
+function checkAccessAndSwitch(tabId, btnElement) {
+    let currentUserElement = document.getElementById("display-user");
+    let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
 
-    // اگر لاگ ان یوزر مجاز لسٹ میں موجود نہیں ہے
+    // یہاں ان یوزرز کے نام لکھیں جنہیں اجازت دینی ہے (مثلاً صرف خلیل)
+    const allowedUsers = ["khaleel"]; 
+
+    // اگر لاگ ان یوزر مجاز لسٹ میں نہیں ہے
     if (!allowedUsers.includes(currentUser)) {
-        if (restrictedBtn) restrictedBtn.style.display = "none"; // بٹن چھپا دے گا
-        if (restrictedTab) restrictedTab.remove(); // ٹیب کو ہٹا دے گا
+        alert("⚠️ Unauthorized Access! آپ کو اس فیچر کو استعمال کرنے کی اجازت نہیں ہے۔");
+        return; // آگے نہیں جانے دے گا
     }
-}
 
-window.addEventListener("DOMContentLoaded", () => {
-    setTimeout(checkUserPermissions, 600);
-});
+    // اگر مجاز ہے تو ٹیب کھل جائے گا
+    switchTab(tabId, btnElement);
+}
 </script>
 </body>
 </html>
