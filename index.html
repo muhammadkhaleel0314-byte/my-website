@@ -1531,24 +1531,24 @@ function checkUserPermissions() {
     let currentUser = currentUserElement.textContent.trim().toLowerCase();
     const restrictedBtn = document.getElementById("excel-pdf-nav-btn");
     const restrictedTab = document.getElementById("excel-pdf-adj-tab");
-
-    // یہ فنکشن چیک کرے گا کہ آیا یوزر مجاز ہے یا نہیں
+// یہ فنکشن کلک کرنے پر چیک کرے گا کہ آیا یوزر کو اجازت ہے یا نہیں
 function checkAccessAndSwitch(tabId, btnElement) {
     let currentUserElement = document.getElementById("display-user");
     let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
 
-    // یہاں ان یوزرز کے نام لکھیں جنہیں اجازت دینی ہے (مثلاً صرف خلیل)
-    const allowedUsers = ["khaleel"]; 
+    // یہاں وہ یوزر لکھیں جسے اس فیچر کی اجازت دینی ہے (مثلاً صرف khaleel)
+    const allowedUser = "khaleel"; 
 
-    // اگر لاگ ان یوزر مجاز لسٹ میں نہیں ہے
-    if (!allowedUsers.includes(currentUser)) {
+    // اگر لاگ ان یوزر "khaleel" نہیں ہے (مثلاً haider یا کوئی اور ہے)
+    if (currentUser !== allowedUser) {
         alert("⚠️ Unauthorized Access! آپ کو اس فیچر کو استعمال کرنے کی اجازت نہیں ہے۔");
-        return; // آگے نہیں جانے دے گا
+        return; // یہیں روک دے گا اور ٹیب نہیں کھولے گا
     }
 
-    // اگر مجاز ہے تو ٹیب کھل جائے گا
+    // اگر یوزر "khaleel" ہوا تو ٹیب کھل جائے گا
     switchTab(tabId, btnElement);
 }
+    
 </script>
 </body>
 </html>
