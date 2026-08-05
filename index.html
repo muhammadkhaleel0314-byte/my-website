@@ -1524,25 +1524,26 @@ function downloadAdjustedPDF() {
     doc.save(`Branch_${selectedBranch}_Adjusted.pdf`);
 }
   
-// یوزر کی اجازت چیک کرنے کا فنکشن
 function checkUserPermissions() {
-    // یہ چیک کرے گا کہ اس وقت کون سا یوزر لاگ ان ہے
-    let currentUser = document.getElementById("display-user").textContent.trim();
-
+    let currentUserElement = document.getElementById("display-user");
+    if (!currentUserElement) return;
+    
+    let currentUser = currentUserElement.textContent.trim().toLowerCase();
     const restrictedBtn = document.getElementById("excel-pdf-nav-btn");
     const restrictedTab = document.getElementById("excel-pdf-adj-tab");
 
-    // اگر لاگ ان یوزر "Khaleel" نہیں ہے (مثلاً Haider ہے)
-    if (currentUser.toLowerCase() !== "khaleel") {
-        if (restrictedBtn) restrictedBtn.style.display = "none"; // سائیڈ بار سے بٹن غائب کر دے گا
-        if (restrictedTab) restrictedTab.remove(); // ٹیب کو مکمل ہٹا دے گا تاکہ کوئی رسائی نہ کر سکے
+    // یہاں ان یوزرز کے نام لکھ دیں جن کو آپ نے اجازت دینی ہے (بڑے یا چھوٹے حروف کا مسئلہ نہیں ہوگا)
+    const allowedUsers = ["khaleel", "admin_user", "manager_name"]; 
+
+    // اگر لاگ ان یوزر مجاز لسٹ میں موجود نہیں ہے
+    if (!allowedUsers.includes(currentUser)) {
+        if (restrictedBtn) restrictedBtn.style.display = "none"; // بٹن چھپا دے گا
+        if (restrictedTab) restrictedTab.remove(); // ٹیب کو ہٹا دے گا
     }
 }
 
-// جیسے ہی لاگ ان ہو یا پیج ریفش ہو، یہ چیک کر لے گا
 window.addEventListener("DOMContentLoaded", () => {
-    // تھوڑا سا ٹائم دے تاکہ لاگ ان نام مکمل لوڈ ہو جائے
-    setTimeout(checkUserPermissions, 500);
+    setTimeout(checkUserPermissions, 600);
 });
 </script>
 </body>
