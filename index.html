@@ -120,7 +120,7 @@
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 	     <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="switchTab('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
-		<button class="nav-sub-btn" onclick="switchTab('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
+		<button id="excel-pdf-nav-btn" class="nav-sub-btn" onclick="switchTab('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -1523,6 +1523,28 @@ function downloadAdjustedPDF() {
 
     doc.save(`Branch_${selectedBranch}_Adjusted.pdf`);
 }
-  </script>
+  
+// یوزر کی اجازت چیک کرنے کا فنکشن
+function checkUserPermissions() {
+    // یہ چیک کرے گا کہ اس وقت کون سا یوزر لاگ ان ہے
+    let currentUser = document.getElementById("display-user").textContent.trim();
+
+    const restrictedBtn = document.getElementById("excel-pdf-nav-btn");
+    const restrictedTab = document.getElementById("excel-pdf-adj-tab");
+
+    // اگر لاگ ان یوزر "Khaleel" نہیں ہے (مثلاً Haider ہے)
+    if (currentUser.toLowerCase() !== "khaleel") {
+        if (restrictedBtn) restrictedBtn.style.display = "none"; // سائیڈ بار سے بٹن غائب کر دے گا
+        if (restrictedTab) restrictedTab.remove(); // ٹیب کو مکمل ہٹا دے گا تاکہ کوئی رسائی نہ کر سکے
+    }
+}
+
+// جیسے ہی لاگ ان ہو یا پیج ریفش ہو، یہ چیک کر لے گا
+window.addEventListener("DOMContentLoaded", () => {
+    // تھوڑا سا ٹائم دے تاکہ لاگ ان نام مکمل لوڈ ہو جائے
+    setTimeout(checkUserPermissions, 500);
+});
+}
+</script>
 </body>
 </html>
