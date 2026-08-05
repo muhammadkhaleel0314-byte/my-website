@@ -1531,15 +1531,21 @@ function checkUserPermissions() {
     let currentUser = currentUserElement.textContent.trim().toLowerCase();
     const restrictedBtn = document.getElementById("excel-pdf-nav-btn");
     const restrictedTab = document.getElementById("excel-pdf-adj-tab");
-// یہ فنکشن کلک کرنے پر چیک کرے گا کہ آیا یوزر کو اجازت ہے یا نہیں
+// یہ فنکشن کلک کرنے پر چیک کرے گا کہ آیا یوزر مجاز ہے یا نہیں
 function checkAccessAndSwitch(tabId, btnElement) {
     let currentUserElement = document.getElementById("display-user");
     let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
 
+    // اگر ابھی بھی ڈسپلے پر یوزر کا نام نہیں آیا (Guest ہے)
+    if (!currentUser || currentUser === "guest") {
+        // لوکل اسٹوریج (localStorage) سے چیک کریں کہ کون سا یوزر لاگ ان ہے
+        currentUser = (localStorage.getItem('logged_user') || "").trim().toLowerCase();
+    }
+
     // یہاں وہ یوزر لکھیں جسے اس فیچر کی اجازت دینی ہے (مثلاً صرف khaleel)
     const allowedUser = "khaleel"; 
 
-    // اگر لاگ ان یوزر "khaleel" نہیں ہے (مثلاً haider یا کوئی اور ہے)
+    // اگر لاگ ان یوزر "khaleel" نہیں ہے
     if (currentUser !== allowedUser) {
         alert("⚠️ Unauthorized Access! آپ کو اس فیچر کو استعمال کرنے کی اجازت نہیں ہے۔");
         return; // یہیں روک دے گا اور ٹیب نہیں کھولے گا
@@ -1547,8 +1553,7 @@ function checkAccessAndSwitch(tabId, btnElement) {
 
     // اگر یوزر "khaleel" ہوا تو ٹیب کھل جائے گا
     switchTab(tabId, btnElement);
-}
-    
+} 
 </script>
 </body>
 </html>
