@@ -344,9 +344,9 @@
 <!-- Excel to PDF Adjustment Tab -->
 <div id="excel-pdf-adj-tab" class="tab-content">
     <div class="card" style="margin: 0 auto; width: 100%; text-align: left;">
-        <h3 style="text-align: center;">📄 Excel to PDF Smart Adjustment</h3>
+        <h3 style="text-align: center;">📄 Excel to PDF Smart Adjustment & Editor</h3>
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
-            Upload your Excel/CSV file, select the branch column, and download a perfectly adjusted branch-wise PDF.
+            Upload file, delete unwanted rows/columns, select branch, and format pagination.
         </p>
 
         <!-- فائل اپ لوڈ -->
@@ -355,26 +355,49 @@
             <input type="file" id="adj-file-input" accept=".xlsx, .xls, .csv" style="font-size: 13px; color: #fff; width: 100%; padding: 8px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 8px;" onchange="handleAdjFileUpload(event)">
         </div>
 
-        <!-- کنٹرولز اور ڈراپ ڈاؤنز -->
-        <div id="adj-controls" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px;">
+        <!-- ایڈیٹنگ اور کنٹرولز سیکشن -->
+        <div id="adj-controls" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px;">
             
-            <div>
-                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch Column (ہیڈنگ منتخب کریں)</label>
-                <select id="adj-column-select" class="input-field" style="width: 100%; padding: 8px;" onchange="populateAdjBranchList()"></select>
+            <!-- رو اور کالم ڈیلیٹ کرنے کا سیکشن -->
+            <div style="border-bottom: 1px solid #334155; padding-bottom: 12px;">
+                <h4 style="font-size: 13px; color: var(--primary); margin-bottom: 8px;">🛠️ Manual Row/Column Deletion</h4>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                    <select id="adj-delete-type" class="input-field" style="width: 35%; padding: 6px;" onchange="toggleDeleteInputLabels()">
+                        <option value="col">Column (کالم)</option>
+                        <option value="row">Row Number (رو نمبر)</option>
+                    </select>
+                    <input type="text" id="adj-delete-target" class="input-field" placeholder="Enter Column Name or Row #" style="width: 45%; padding: 6px;">
+                    <button class="action-btn" onclick="executeManualDelete()" style="width: 20%; margin-top: 0; background: var(--btn-red); padding: 6px; font-size: 12px;">Delete</button>
+                </div>
+                <p id="delete-hint" style="font-size: 11px; color: var(--text-muted);">کالم کا نام لکھیں جو ڈیلیٹ کرنا ہے (مثال: Name)</p>
             </div>
 
-            <div>
-                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch (برانچ منتخب کریں)</label>
-                <select id="adj-branch-select" class="input-field" style="width: 100%; padding: 8px;"></select>
+            <!-- برانچ سلیکشن -->
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Branch Column</label>
+                    <select id="adj-column-select" class="input-field" style="width: 100%; padding: 6px;" onchange="populateAdjBranchList()"></select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Select Branch</label>
+                    <select id="adj-branch-select" class="input-field" style="width: 100%; padding: 6px;"></select>
+                </div>
             </div>
 
-            <!-- PDF Page Orientation / Adjustment Options -->
-            <div>
-                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">PDF Page Layout (صفحہ کی ترتیب)</label>
-                <select id="adj-orientation-select" class="input-field" style="width: 100%; padding: 8px;">
-                    <option value="portrait">Portrait (عمودی - سیدھا صفحہ)</option>
-                    <option value="landscape" selected>Landscape (افقی - چوڑا صفحہ - بہترین برائے کالمز)</option>
-                </select>
+            <!-- پیج اور سائز سیٹنگز -->
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Orientation</label>
+                    <select id="adj-orientation-select" class="input-field" style="width: 100%; padding: 6px;">
+                        <option value="portrait">Portrait (سیدھا)</option>
+                        <option value="landscape" selected>Landscape (چوڑا)</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Target Pages Limit (صفحات کی حد)</label>
+                    <input type="number" id="adj-target-pages" class="input-field" value="1" min="1" max="10" placeholder="e.g. 2" style="width: 100%; padding: 6px;">
+                </div>
             </div>
 
             <button class="action-btn" onclick="downloadAdjustedPDF()" style="background: var(--btn-green); width: 100%; margin-top: 5px;">
@@ -1305,7 +1328,7 @@ function downloadRangeExcelReport() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recovery Summary");
     XLSX.writeFile(workbook, "recovery_range_summary.xlsx");
 }
-	let adjFileRows = [];
+let adjFileRows = [];
 let adjFileHeaders = [];
 
 function handleAdjFileUpload(event) {
@@ -1329,29 +1352,20 @@ function handleAdjFileUpload(event) {
                 return;
             }
 
-            adjFileHeaders = jsonRows[0]; 
+            adjFileHeaders = jsonRows[0].filter(Boolean); 
+            // ڈیٹا کو آبجیکٹ لسٹ میں بدلنا
             adjFileRows = XLSX.utils.sheet_to_json(worksheet); 
 
-            // ہیڈنگز کو ڈراپ ڈاؤن میں ڈالیں
-            const colSelect = document.getElementById('adj-column-select');
-            colSelect.innerHTML = '';
-            adjFileHeaders.forEach((header) => {
-                if (header) {
-                    const option = document.createElement('option');
-                    option.value = header;
-                    option.textContent = header;
-                    colSelect.appendChild(option);
-                }
-            });
+            updateColumnDropdowns();
 
             document.getElementById('adj-controls').style.display = 'flex';
-            document.getElementById('adj-preview-status').innerHTML = `<span style="color: var(--btn-green);">✅ فائل کامیابی سے لوڈ ہو گئی! کل قطاریں: ${adjFileRows.length}</span>`;
+            document.getElementById('adj-preview-status').innerHTML = `<span style="color: var(--btn-green);">✅ فائل لوڈ ہو گئی! کل قطاریں: ${adjFileRows.length}</span>`;
 
             populateAdjBranchList();
 
         } catch (error) {
             console.error(error);
-            alert("فائل پڑھنے میں خرابی پیش آئی۔");
+            alert("فائل پڑھने میں خرابی پیش آئی۔");
         }
     };
 
@@ -1362,10 +1376,23 @@ function handleAdjFileUpload(event) {
     }
 }
 
+function updateColumnDropdowns() {
+    const colSelect = document.getElementById('adj-column-select');
+    colSelect.innerHTML = '';
+    adjFileHeaders.forEach((header) => {
+        const option = document.createElement('option');
+        option.value = header;
+        option.textContent = header;
+        colSelect.appendChild(option);
+    });
+}
+
 function populateAdjBranchList() {
     const selectedHeader = document.getElementById('adj-column-select').value;
     const branchSelect = document.getElementById('adj-branch-select');
     branchSelect.innerHTML = '';
+
+    if (!selectedHeader) return;
 
     const branches = [...new Set(adjFileRows.map(row => row[selectedHeader]))].filter(Boolean);
     branches.sort();
@@ -1378,10 +1405,60 @@ function populateAdjBranchList() {
     });
 }
 
+function toggleDeleteInputLabels() {
+    const type = document.getElementById('adj-delete-type').value;
+    const hint = document.getElementById('delete-hint');
+    const input = document.getElementById('adj-delete-target');
+    if (type === 'col') {
+        hint.textContent = "کالم کا نام درج کریں جو ختم کرنا ہے (مثال: Amount)";
+        input.placeholder = "Column Name";
+    } else {
+        hint.textContent = "رو کا نمبر درج کریں (1 سے شروع ہونے والی قطار)";
+        input.placeholder = "Row Number (e.g. 3)";
+    }
+}
+
+function executeManualDelete() {
+    const type = document.getElementById('adj-delete-type').value;
+    const target = document.getElementById('adj-delete-target').value.trim();
+
+    if (!target) {
+        alert("براہ کرم نام یا نمبر درج کریں!");
+        return;
+    }
+
+    if (type === 'col') {
+        if (!adjFileHeaders.includes(target)) {
+            alert("یہ کالم موجود نہیں ہے!");
+            return;
+        }
+        // ہیڈنگز سے ہٹانا
+        adjFileHeaders = adjFileHeaders.filter(h => h !== target);
+        // تمام روٹس سے وہ کالم نکالنا
+        adjFileRows.forEach(row => delete row[target]);
+        updateColumnDropdowns();
+        populateAdjBranchList();
+        alert(`کالم '${target}' کامیابی سے حذف کر دیا گیا!`);
+    } else {
+        const rowIndex = parseInt(target) - 1;
+        if (isNaN(rowIndex) || rowIndex < 0 || rowIndex >= adjFileRows.length) {
+            alert("درست رو نمبر درج کریں!");
+            return;
+        }
+        adjFileRows.splice(rowIndex, 1);
+        populateAdjBranchList();
+        alert(`قطار نمبر ${target} کامیابی سے حذف کر دی گئی!`);
+    }
+    
+    document.getElementById('adj-delete-target').value = '';
+    document.getElementById('adj-preview-status').innerHTML = `<span style="color: var(--primary);">⚠️ ڈیٹا اپ ڈیٹ ہو گیا ہے، اب کل قطاریں: ${adjFileRows.length} ہیں</span>`;
+}
+
 function downloadAdjustedPDF() {
     const selectedHeader = document.getElementById('adj-column-select').value;
     const selectedBranch = document.getElementById('adj-branch-select').value;
     const orientation = document.getElementById('adj-orientation-select').value;
+    const targetPages = parseInt(document.getElementById('adj-target-pages').value) || 1;
 
     if (!selectedBranch) {
         alert("براہ کرم برانچ منتخب کریں!");
@@ -1395,15 +1472,13 @@ function downloadAdjustedPDF() {
         return;
     }
 
-    // jsPDF اور autoTable کے ذریعے Smart Adjustment
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
-        orientation: orientation, // 'landscape' یا 'portrait'
+        orientation: orientation,
         unit: 'mm',
         format: 'a4'
     });
 
-    // ہیڈر اور ٹائ틀
     doc.setFontSize(14);
     doc.text(`Branch Report: ${selectedBranch}`, 14, 15);
     doc.setFontSize(9);
@@ -1412,33 +1487,34 @@ function downloadAdjustedPDF() {
     const tableColumns = adjFileHeaders;
     const tableRows = filteredData.map(row => adjFileHeaders.map(header => row[header] !== undefined ? String(row[header]) : ''));
 
-    // آٹو ایڈجسٹمنٹ ٹیبل (AutoTable Settings for Fit-to-Page)
+    // آٹو سائز فقرہ (Font Size) سیٹ کرنا تاکہ مطلوبہ صفحات (Target Pages) کا ہدف پورا ہو سکے
+    let dynamicFontSize = 7;
+    if (targetPages === 1 && tableRows.length > 35) {
+        dynamicFontSize = Math.max(4, Math.floor(35 / (tableRows.length / 10)));
+    }
+
     doc.autoTable({
         head: [tableColumns],
         body: tableRows,
         startY: 25,
         theme: 'grid',
         styles: { 
-            fontSize: 7,          // فقرے کا سائز چھوٹا رکھا تاکہ زیادہ کالمز بھی فٹ آ جائیں
-            cellPadding: 2,       // سیل کے اندر کا فاصلہ
-            overflow: 'linebreak' // اگر ٹیکسٹ زیادہ ہو تو اگلی لائن میں شفٹ ہو جائے
+            fontSize: dynamicFontSize, 
+            cellPadding: 2, 
+            overflow: 'linebreak' 
         },
         headStyles: { 
             fillColor: [56, 189, 248], 
             textColor: 255, 
             fontStyle: 'bold' 
         },
-        // خود بخود کالمز کی چوڑائی پیج کے سائز کے مطابق ایڈجسٹ کرے گا
-        columnStyles: {
-            // آپ چاہیں تو مخصوص کالم کی چوڑائی بھی سیٹ کر سکتے ہیں
-        },
-        margin: { top: 25, right: 10, bottom: 15, left: 10 },
-        // صفحہ خود بخود ایڈجسٹ ہو جائے گا تاکہ ڈیٹا کٹے نہیں
-        horizontalPageBreak: true
+        // **اہم تبدیلی:** کالم کبھی بھی دائیں طرف دوسرے صفحے پر نہیں جائیں گے، بلکہ ڈیٹا نیچے (Rows کی شکل میں) شفٹ ہوگا
+        horizontalPageBreak: false,
+        margin: { top: 25, right: 10, bottom: 15, left: 10 }
     });
 
     doc.save(`Branch_${selectedBranch}_Adjusted.pdf`);
-}		
+}	
 
   </script>
 </body>
