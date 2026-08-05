@@ -120,7 +120,7 @@
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 	     <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="switchTab('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
-		
+		<button class="nav-sub-btn" onclick="switchTab('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -341,7 +341,50 @@
         </div>
     </div>
 </div>
+<!-- Excel to PDF Adjustment Tab -->
+<div id="excel-pdf-adj-tab" class="tab-content">
+    <div class="card" style="margin: 0 auto; width: 100%; text-align: left;">
+        <h3 style="text-align: center;">📄 Excel to PDF Smart Adjustment</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
+            Upload your Excel/CSV file, select the branch column, and download a perfectly adjusted branch-wise PDF.
+        </p>
 
+        <!-- فائل اپ لوڈ -->
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Upload Excel / CSV File</label>
+            <input type="file" id="adj-file-input" accept=".xlsx, .xls, .csv" style="font-size: 13px; color: #fff; width: 100%; padding: 8px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 8px;" onchange="handleAdjFileUpload(event)">
+        </div>
+
+        <!-- کنٹرولز اور ڈراپ ڈاؤنز -->
+        <div id="adj-controls" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px;">
+            
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch Column (ہیڈنگ منتخب کریں)</label>
+                <select id="adj-column-select" class="input-field" style="width: 100%; padding: 8px;" onchange="populateAdjBranchList()"></select>
+            </div>
+
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Select Branch (برانچ منتخب کریں)</label>
+                <select id="adj-branch-select" class="input-field" style="width: 100%; padding: 8px;"></select>
+            </div>
+
+            <!-- PDF Page Orientation / Adjustment Options -->
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">PDF Page Layout (صفحہ کی ترتیب)</label>
+                <select id="adj-orientation-select" class="input-field" style="width: 100%; padding: 8px;">
+                    <option value="portrait">Portrait (عمودی - سیدھا صفحہ)</option>
+                    <option value="landscape" selected>Landscape (افقی - چوڑا صفحہ - بہترین برائے کالمز)</option>
+                </select>
+            </div>
+
+            <button class="action-btn" onclick="downloadAdjustedPDF()" style="background: var(--btn-green); width: 100%; margin-top: 5px;">
+                📥 Download Adjusted PDF Report
+            </button>
+        </div>
+
+        <div id="adj-preview-status" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+    </div>
+</div>
 		<script>
     const FIXED_FIRST_12 = "421011234567";
 
@@ -1262,6 +1305,140 @@ function downloadRangeExcelReport() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recovery Summary");
     XLSX.writeFile(workbook, "recovery_range_summary.xlsx");
 }
+	let adjFileRows = [];
+let adjFileHeaders = [];
+
+function handleAdjFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    const isCsv = file.name.endsWith('.csv');
+
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            if (jsonRows.length === 0) {
+                alert("فائل خالی ہے!");
+                return;
+            }
+
+            adjFileHeaders = jsonRows[0]; 
+            adjFileRows = XLSX.utils.sheet_to_json(worksheet); 
+
+            // ہیڈنگز کو ڈراپ ڈاؤن میں ڈالیں
+            const colSelect = document.getElementById('adj-column-select');
+            colSelect.innerHTML = '';
+            adjFileHeaders.forEach((header) => {
+                if (header) {
+                    const option = document.createElement('option');
+                    option.value = header;
+                    option.textContent = header;
+                    colSelect.appendChild(option);
+                }
+            });
+
+            document.getElementById('adj-controls').style.display = 'flex';
+            document.getElementById('adj-preview-status').innerHTML = `<span style="color: var(--btn-green);">✅ فائل کامیابی سے لوڈ ہو گئی! کل قطاریں: ${adjFileRows.length}</span>`;
+
+            populateAdjBranchList();
+
+        } catch (error) {
+            console.error(error);
+            alert("فائل پڑھنے میں خرابی پیش آئی۔");
+        }
+    };
+
+    if (isCsv) {
+        reader.readAsText(file);
+    } else {
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+function populateAdjBranchList() {
+    const selectedHeader = document.getElementById('adj-column-select').value;
+    const branchSelect = document.getElementById('adj-branch-select');
+    branchSelect.innerHTML = '';
+
+    const branches = [...new Set(adjFileRows.map(row => row[selectedHeader]))].filter(Boolean);
+    branches.sort();
+
+    branches.forEach(branch => {
+        const option = document.createElement('option');
+        option.value = branch;
+        option.textContent = branch;
+        branchSelect.appendChild(option);
+    });
+}
+
+function downloadAdjustedPDF() {
+    const selectedHeader = document.getElementById('adj-column-select').value;
+    const selectedBranch = document.getElementById('adj-branch-select').value;
+    const orientation = document.getElementById('adj-orientation-select').value;
+
+    if (!selectedBranch) {
+        alert("براہ کرم برانچ منتخب کریں!");
+        return;
+    }
+
+    const filteredData = adjFileRows.filter(row => String(row[selectedHeader]) === String(selectedBranch));
+
+    if (filteredData.length === 0) {
+        alert("اس برانچ کا کوئی ڈیٹا نہیں ملا!");
+        return;
+    }
+
+    // jsPDF اور autoTable کے ذریعے Smart Adjustment
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: orientation, // 'landscape' یا 'portrait'
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    // ہیڈر اور ٹائ틀
+    doc.setFontSize(14);
+    doc.text(`Branch Report: ${selectedBranch}`, 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 21);
+
+    const tableColumns = adjFileHeaders;
+    const tableRows = filteredData.map(row => adjFileHeaders.map(header => row[header] !== undefined ? String(row[header]) : ''));
+
+    // آٹو ایڈجسٹمنٹ ٹیبل (AutoTable Settings for Fit-to-Page)
+    doc.autoTable({
+        head: [tableColumns],
+        body: tableRows,
+        startY: 25,
+        theme: 'grid',
+        styles: { 
+            fontSize: 7,          // فقرے کا سائز چھوٹا رکھا تاکہ زیادہ کالمز بھی فٹ آ جائیں
+            cellPadding: 2,       // سیل کے اندر کا فاصلہ
+            overflow: 'linebreak' // اگر ٹیکسٹ زیادہ ہو تو اگلی لائن میں شفٹ ہو جائے
+        },
+        headStyles: { 
+            fillColor: [56, 189, 248], 
+            textColor: 255, 
+            fontStyle: 'bold' 
+        },
+        // خود بخود کالمز کی چوڑائی پیج کے سائز کے مطابق ایڈجسٹ کرے گا
+        columnStyles: {
+            // آپ چاہیں تو مخصوص کالم کی چوڑائی بھی سیٹ کر سکتے ہیں
+        },
+        margin: { top: 25, right: 10, bottom: 15, left: 10 },
+        // صفحہ خود بخود ایڈجسٹ ہو جائے گا تاکہ ڈیٹا کٹے نہیں
+        horizontalPageBreak: true
+    });
+
+    doc.save(`Branch_${selectedBranch}_Adjusted.pdf`);
+}		
 
   </script>
 </body>
