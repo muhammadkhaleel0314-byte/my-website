@@ -120,7 +120,7 @@
           <button class="nav-sub-btn" onclick="switchTab('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 	     <button class="nav-sub-btn" onclick="switchTab('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="switchTab('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
-		<button class="nav-sub-btn" onclick="switchTab('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
+		<button id="excel-pdf-nav-btn" class="nav-sub-btn" onclick="checkUserAccess('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -441,44 +441,70 @@
       if (!devId) { devId = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now(); localStorage.setItem('device_unique_id', devId); }
       return devId;
     }
-
-    async function handleLogin() {
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      const errEl = document.getElementById('login-err');
-      if (!user || !pass) { errEl.innerText = "Please fill all fields!"; return; }
-      errEl.innerText = "Verifying...";
-      try {
+	// 1. آپ کا اصلی اور فکسڈ لاگ ان فنکشن (جو اب فائر بیس کے ساتھ بالکل صحیح چلے گا)
+async function handleLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const errEl = document.getElementById('login-err');
+    
+    if (!user || !pass) { 
+        errEl.innerText = "Please fill all fields!"; 
+        return; 
+    }
+    
+    errEl.innerText = "Verifying...";
+    
+    try {
         const snapshot = await db.ref(`users/${user}`).once('value');
         const userData = snapshot.val();
+        
         if (userData && userData.password === pass) {
-          const thisDeviceId = getDeviceId();
-          if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
-          if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
-          currentUser = user;
-          localStorage.setItem('logged_user', user);
-          document.getElementById('display-user').innerText = user;
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('app-container').style.display = 'flex';
-          errEl.innerText = "";
-          loadUserHistory(user);
-        } else { errEl.innerText = "Invalid Username or Password!"; }
-      } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
+            const thisDeviceId = getDeviceId();
+            if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { 
+                errEl.innerText = "⛔ Account registered to another device!"; 
+                return; 
+            }
+            if (!userData.boundDeviceId) { 
+                await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); 
+            }
+            
+            currentUser = user;
+            localStorage.setItem('logged_user', user);
+            document.getElementById('display-user').innerText = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            errEl.innerText = "";
+            loadUserHistory(user);
+        } else { 
+            errEl.innerText = "Invalid Username or Password!"; 
+        }
+    } catch (e) { 
+        console.error(e); 
+        errEl.innerText = "Database connection error!"; 
+    }
+}
+
+// 2. سائیڈ بار کے بٹن کے لیے اجازت کا چیک (صرف خلیل کے لیے اجازت)
+function checkUserAccess(tabId, btnElement) {
+    let currentUserElement = document.getElementById("display-user");
+    let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
+
+    if (!currentUser || currentUser === "guest") {
+        currentUser = (localStorage.getItem('logged_user') || "").trim().toLowerCase();
     }
 
-    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
+    // یہاں وہ یوزر نیم لکھیں جسے اجازت دینی ہے
+    const allowedUser = "khaleel";
 
-    window.onload = function() {
-      const savedUser = localStorage.getItem('logged_user');
-      if (savedUser) {
-        currentUser = savedUser;
-        document.getElementById('display-user').innerText = savedUser;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        loadUserHistory(savedUser);
-      }
-    };
+    if (currentUser !== allowedUser) {
+        alert("⚠️ Unauthorized Access! آپ کو اس فیچر کو استعمال کرنے کی اجازت نہیں ہے۔");
+        return; // یہیں روک دے گا
+    }
 
+    // اگر خلیل ہوا تو ٹیب کھل جائے گا
+    switchTab(tabId, btnElement);
+}
+    
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
