@@ -882,10 +882,10 @@ function downloadRecoveryPDF() {
 
     let branchesToPrint = selectedBranch === "ALL" ? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
 
-    // Overall summary tracking ke liye variables
+    // Date-wise overall summary tracking ke liye variables
     let overallTotalAmount = 0;
     let overallTotalReceipts = 0;
-    let projectWiseSummary = {};
+    let dateWiseSummaryMap = {};
 
     branchesToPrint.forEach((branch, index) => {
         if (index > 0) doc.addPage();
@@ -916,18 +916,17 @@ function downloadRecoveryPDF() {
                 tableData.push([row.recovery_date, row.Receipts, `Rs ${row.Amount.toLocaleString()}`]);
                 projAmount += row.Amount;
                 projReceipts += row.Receipts;
+
+                // Date-wise summary collect karein (All projects combined for each date)
+                if (!dateWiseSummaryMap[row.recovery_date]) {
+                    dateWiseSummaryMap[row.recovery_date] = { receipts: 0, amount: 0, dateObj: row.dateObj };
+                }
+                dateWiseSummaryMap[row.recovery_date].receipts += row.Receipts;
+                dateWiseSummaryMap[row.recovery_date].amount += row.Amount;
             });
 
-            // Branch & Overall totals mein add karein
             branchTotalAmount += projAmount;
             branchTotalReceipts += projReceipts;
-
-            // Project wise summary update karein
-            if (!projectWiseSummary[project]) {
-                projectWiseSummary[project] = { receipts: 0, amount: 0 };
-            }
-            projectWiseSummary[project].receipts += projReceipts;
-            projectWiseSummary[project].amount += projAmount;
 
             doc.autoTable({
                 startY: currentY,
@@ -956,21 +955,24 @@ function downloadRecoveryPDF() {
         overallTotalReceipts += branchTotalReceipts;
     });
 
-    // **Aakhri page par Overall / Project-wise Summary**
+    // **Aakhri page par Date-wise Summary (jaise 1-Aug, 2-Aug etc. ka total)**
     doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text(`Overall Summary Report`, 14, 20);
+    doc.text(`Date-wise Overall Summary Report`, 14, 20);
+
+    // Dates ko sort kar lein taake tarteeb se aayein
+    let sortedDates = Object.keys(dateWiseSummaryMap).sort((a, b) => dateWiseSummaryMap[a].dateObj - dateWiseSummaryMap[b].dateObj);
 
     let summaryTableData = [];
-    Object.keys(projectWiseSummary).forEach(proj => {
-        let pData = projectWiseSummary[proj];
-        summaryTableData.push([proj, pData.receipts, `Rs ${pData.amount.toLocaleString()}`]);
+    sortedDates.forEach(dateStr => {
+        let dData = dateWiseSummaryMap[dateStr];
+        summaryTableData.push([dateStr, dData.receipts, `Rs ${dData.amount.toLocaleString()}`]);
     });
 
     doc.autoTable({
         startY: 28,
-        head: [['Project Name', 'Total Receipts / Banday', 'Total Amount']],
+        head: [['Date', 'Total Receipts (Banday)', 'Total Amount']],
         body: summaryTableData,
         theme: 'grid',
         headStyles: { fillColor: [15, 23, 42] },
