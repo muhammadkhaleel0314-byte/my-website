@@ -884,6 +884,11 @@ function downloadRecoveryPDF() {
 
     let branchesToPrint = selectedBranch === "ALL" ? [...new Set(globalPivotData.map(i => i.branch_id))] : [selectedBranch];
 
+    // Overall summary tracking ke liye variables
+    let overallTotalAmount = 0;
+    let overallTotalReceipts = 0;
+    let projectWiseSummary = {};
+
     branchesToPrint.forEach((branch, index) => {
         if (index > 0) doc.addPage();
 
@@ -915,8 +920,16 @@ function downloadRecoveryPDF() {
                 projReceipts += row.Receipts;
             });
 
+            // Branch & Overall totals mein add karein
             branchTotalAmount += projAmount;
             branchTotalReceipts += projReceipts;
+
+            // Project wise summary update karein
+            if (!projectWiseSummary[project]) {
+                projectWiseSummary[project] = { receipts: 0, amount: 0 };
+            }
+            projectWiseSummary[project].receipts += projReceipts;
+            projectWiseSummary[project].amount += projAmount;
 
             doc.autoTable({
                 startY: currentY,
@@ -927,17 +940,54 @@ function downloadRecoveryPDF() {
                 margin: { left: 14 }
             });
 
-            currentY = doc.lastAutoTable.finalY + 8;
+            currentY = doc.lastAutoTable.finalY + 6;
+
+            // **Har project ke neeche uska total**
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Project Total -> Receipts: ${projReceipts} | Amount: Rs ${projAmount.toLocaleString()}`, 14, currentY);
+            currentY += 8;
         });
 
+        // Branch Total
         doc.setFontSize(11);
-        doc.text(`Branch Total Receipts: ${branchTotalReceipts} | Total Amount: Rs ${branchTotalAmount.toLocaleString()}`, 14, currentY + 5);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Branch Total Receipts: ${branchTotalReceipts} | Total Amount: Rs ${branchTotalAmount.toLocaleString()}`, 14, currentY + 2);
+        
+        overallTotalAmount += branchTotalAmount;
+        overallTotalReceipts += branchTotalReceipts;
     });
+
+    // **Aakhri page par Overall / Project-wise Summary**
+    doc.addPage();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Overall Summary Report`, 14, 20);
+
+    let summaryTableData = [];
+    Object.keys(projectWiseSummary).forEach(proj => {
+        let pData = projectWiseSummary[proj];
+        summaryTableData.push([proj, pData.receipts, `Rs ${pData.amount.toLocaleString()}`]);
+    });
+
+    doc.autoTable({
+        startY: 28,
+        head: [['Project Name', 'Total Receipts / Banday', 'Total Amount']],
+        body: summaryTableData,
+        theme: 'grid',
+        headStyles: { fillColor: [15, 23, 42] },
+        margin: { left: 14 }
+    });
+
+    let finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.text(`Grand Total Receipts: ${overallTotalReceipts}`, 14, finalY);
+    doc.text(`Grand Total Amount: Rs ${overallTotalAmount.toLocaleString()}`, 14, finalY + 6);
 
     doc.save(`Recovery_Report_${selectedBranch}.pdf`);
 }
-			let globalBranchData = {};
 
+let globalBranchData = {};
 function processLoanExcelFile(e) {
     const file = e.target.files[0];
     if (!file) return;
