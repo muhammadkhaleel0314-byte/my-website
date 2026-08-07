@@ -161,236 +161,257 @@
             <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
           </div>
         </div>
-
-       <!-- ACAG Modern Styled Links Tab -->
+<!-- Ultra-Modern Cyber/Tech Links Tab -->
 <div id="links-tab" class="tab-content">
-  <div class="acag-wrapper">
-    <div class="acag-header">
-      <div class="acag-badge">🌟 ACAG Portal Hub</div>
-      <h2>🔗 My Links & Portals</h2>
-      <p>Access all your advanced verification, application, and management portals below.</p>
+  <div class="cyber-container">
+    <div class="cyber-header">
+      <span class="cyber-tag">⚡ PORTAL NETWORK</span>
+      <h2>🔗 My Links & Tools</h2>
+      <p>Secure and direct access to all essential verification and management workflows.</p>
     </div>
 
     <style>
-      .acag-wrapper {
-        background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 70%);
-        padding: 36px 24px;
-        border-radius: 24px;
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      .cyber-container {
+        background: #090d16;
+        padding: 32px 20px;
+        border-radius: 20px;
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
         text-align: left;
       }
-      .acag-header {
+      .cyber-header {
         text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
       }
-      .acag-badge {
+      .cyber-tag {
         display: inline-block;
-        background: rgba(56, 189, 248, 0.1);
+        background: rgba(56, 189, 248, 0.08);
         color: var(--primary, #38bdf8);
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 12px;
-        border: 1px solid rgba(56, 189, 248, 0.3);
-      }
-      .acag-header h2 {
-        color: #ffffff;
-        font-size: 26px;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 11px;
         font-weight: 700;
-        margin-bottom: 8px;
-        letter-spacing: -0.5px;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
       }
-      .acag-header p {
-        font-size: 14px;
+      .cyber-header h2 {
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .cyber-header p {
+        font-size: 13px;
         color: #94a3b8;
       }
 
-      .acag-grid {
+      .cyber-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
       }
 
-      .acag-card {
-        background: rgba(30, 41, 59, 0.75);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px;
-        padding: 24px;
+      .cyber-card {
+        background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+        border: 1px solid #1e293b;
+        border-radius: 14px;
+        padding: 20px;
         text-decoration: none;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
-        overflow: hidden;
       }
 
-      /* Glowing border line on top */
-      .acag-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
-        opacity: 0.6;
-        transition: opacity 0.3s ease;
+      .cyber-card:hover {
+        transform: translateY(-5px);
+        border-color: #38bdf8;
+        background: linear-gradient(135deg, #162032, #111827);
+        box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2);
       }
 
-      .acag-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(56, 189, 248, 0.5);
-        box-shadow: 0 15px 30px -10px rgba(56, 189, 248, 0.25);
-        background: rgba(30, 41, 59, 0.95);
-      }
-
-      .acag-card:hover::before {
-        opacity: 1;
-      }
-
-      .acag-icon-box {
-        font-size: 32px;
+      .cyber-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
         margin-bottom: 16px;
+      }
+
+      .cyber-icon {
+        font-size: 26px;
         background: rgba(56, 189, 248, 0.1);
-        width: 60px;
-        height: 60px;
-        border-radius: 14px;
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(56, 189, 248, 0.2);
+        flex-shrink: 0;
+        border: 1px solid rgba(56, 189, 248, 0.15);
       }
 
-      .acag-title {
-        font-size: 17px;
+      .cyber-title {
+        font-size: 15px;
         font-weight: 600;
         color: #ffffff;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
 
-      .acag-desc {
-        font-size: 13px;
+      .cyber-desc {
+        font-size: 12px;
         color: #94a3b8;
-        line-height: 1.5;
-        margin-bottom: 20px;
+        line-height: 1.4;
       }
 
-      .acag-footer {
+      .cyber-action {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         color: #38bdf8;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
-        padding-top: 14px;
+        padding-top: 12px;
       }
 
-      .acag-arrow {
-        transition: transform 0.3s ease;
-      }
-      .acag-card:hover .acag-arrow {
-        transform: translateX(5px);
+      .cyber-card:hover .cyber-action span:last-child {
+        transform: translateX(4px);
+        transition: transform 0.2s ease;
       }
     </style>
 
-    <div class="acag-grid">
+    <div class="cyber-grid">
       <!-- 1. PMY Verify -->
-      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">📊</div>
-          <div class="acag-title">PMY Verify</div>
-          <div class="acag-desc">Advanced PMY verification system for secure data checks.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">📊</div>
+            <div>
+              <div class="cyber-title">PMY Verify</div>
+              <div class="cyber-desc">Advanced PMY verification system.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 2. BOP Account -->
-      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">🏦</div>
-          <div class="acag-title">BOP Account</div>
-          <div class="acag-desc">Manage banking details, services, and transactions safely.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">🏦</div>
+            <div>
+              <div class="cyber-title">BOP Account</div>
+              <div class="cyber-desc">Manage banking details and services.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 3. ACAG Batch -->
-      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">📁</div>
-          <div class="acag-title">ACAG Batch</div>
-          <div class="acag-desc">Track and analyze ACAG batch processing data seamlessly.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">📁</div>
+            <div>
+              <div class="cyber-title">ACAG Batch</div>
+              <div class="cyber-desc">Track ACAG batch processing data.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 4. PMY Apply -->
-      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">📲</div>
-          <div class="acag-title">PMY Apply</div>
-          <div class="acag-desc">Apply online for schemes and track live applications.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">📲</div>
+            <div>
+              <div class="cyber-title">PMY Apply</div>
+              <div class="cyber-desc">Apply online and track applications.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 5. ACAG Apply -->
-      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">📝</div>
-          <div class="acag-title">ACAG Apply</div>
-          <div class="acag-desc">Smart application workflow system for the Punjab government.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">📝</div>
+            <div>
+              <div class="cyber-title">ACAG Apply</div>
+              <div class="cyber-desc">Smart ACAG application workflow.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 6. QR Generator -->
-      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">🚀</div>
-          <div class="acag-title">QR Generator</div>
-          <div class="acag-desc">Generate stylish and responsive custom QR codes instantly.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">🚀</div>
+            <div>
+              <div class="cyber-title">QR Generator</div>
+              <div class="cyber-desc">Generate stylish QR codes.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 7. New Service -->
-      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">🔗</div>
-          <div class="acag-title">Pmy Address List</div>
-          <div class="acag-desc">Quickly download the complete PMY Address List PDF file.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">🔗</div>
+            <div>
+              <div class="cyber-title">New Service</div>
+              <div class="cyber-desc">Pmy Address List download PDF.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 8. Bop Verify List -->
-      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">🌐</div>
-          <div class="acag-title">Bop Verify List</div>
-          <div class="acag-desc">Access additional banking verification data lists securely.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">🌐</div>
+            <div>
+              <div class="cyber-title">Bop Verify List</div>
+              <div class="cyber-desc">Access additional features securely.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 9. Apni Chhat Mahfooz Chhat -->
-      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="acag-card">
+      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="cyber-card">
         <div>
-          <div class="acag-icon-box">✨</div>
-          <div class="acag-title">Apni Chhat Mahfooz Chhat</div>
-          <div class="acag-desc">Housing initiative portal. Fully active and working smoothly.</div>
+          <div class="cyber-top">
+            <div class="cyber-icon">✨</div>
+            <div>
+              <div class="cyber-title">Apni Chhat Mahfooz Chhat</div>
+              <div class="cyber-desc">Working Now.</div>
+            </div>
+          </div>
         </div>
-        <div class="acag-footer"><span>Open Portal</span> <span class="acag-arrow">→</span></div>
+        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
       </a>
     </div>
   </div>
 </div>
+      
           <!-- Merge & CSV Tools Tab (Combined Tool) -->
                 <div id="merge-tools-tab" class="tab-content">
                     <div class="card" style="text-align: left;">
