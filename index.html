@@ -162,97 +162,188 @@
           </div>
         </div>
 
-        <!-- My Links Tab -->
+       <!-- Modernized 'My Links' Section -->
 <div id="links-tab" class="tab-content">
-  <div class="card" style="text-align: left;">
-    <h3 style="text-align: center;">🔗 My Link's</h3>
-    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Access all your important portals and tools below:</p>
+  <div class="card" style="text-align: left; background-color: #0f172a; padding: 32px; border-radius: 20px; border: 1px solid #1e293b;">
+    <h3 style="text-align: center; color: #ffffff; font-size: 28px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px;">🔗 My Portals</h3>
+    <p style="font-size: 15px; color: #94a3b8; margin-bottom: 36px; text-align: center; max-width: 400px; margin-left: auto; margin-right: auto;">Access all your important tools and services below with a single click.</p>
     
-    <div class="links-grid">
-      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="link-card-item">
+    <style>
+      /* Modern Grid Layout */
+      .modern-links-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 0 10px;
+      }
+
+      /* The New Modern Card Item */
+      .modern-link-item {
+        background: linear-gradient(145deg, #1e293b, #152337);
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 24px;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth bouncy effect */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Hover Effects: Lift and Glow */
+      .modern-link-item:hover {
+        transform: translateY(-8px) scale(1.01);
+        border-color: var(--primary, #3b82f6); /* Glow with primary color */
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(59, 130, 246, 0.2);
+      }
+
+      /* Subtle Shine Effect on Hover */
+      .modern-link-item::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(to bottom right, rgba(255,255,255,0.05), transparent, transparent);
+        transform: rotate(30deg);
+        opacity: 0;
+        transition: opacity 0.6s ease;
+      }
+      .modern-link-item:hover::before {
+        opacity: 1;
+      }
+
+      /* Typography Styles */
+      .link-icon {
+        font-size: 36px;
+        margin-bottom: 16px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      }
+      .link-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 8px;
+        letter-spacing: 0.2px;
+      }
+      .link-description {
+        font-size: 13px;
+        color: #cbd5e1;
+        line-height: 1.6;
+      }
+      .link-action {
+        color: var(--primary, #3b82f6);
+        font-size: 13px;
+        margin-top: 20px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+      .modern-link-item:hover .link-action {
+        opacity: 1;
+      }
+    </style>
+
+    <div class="modern-links-grid">
+      <!-- 1. PMY Verify -->
+      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Verify</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Advanced PMY verification system.</div>
+          <div class="link-icon">📊</div>
+          <div class="link-title">PMY Verify</div>
+          <div class="link-description">Advanced system for quick and accurate PMY verification processes.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 2. BOP Account -->
+      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">🏦</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">BOP Account</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Manage banking details and services.</div>
+          <div class="link-icon">🏦</div>
+          <div class="link-title">BOP Account</div>
+          <div class="link-description">Manage your Bank of Punjab account details and related services securely.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 3. ACAG Batch -->
+      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Batch</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Track ACAG batch processing data.</div>
+          <div class="link-icon">📁</div>
+          <div class="link-title">ACAG Batch</div>
+          <div class="link-description">Monitor and track ACAG batch processing data and status updates.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 4. PMY Apply -->
+      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">📲</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">PMY Apply</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Apply online and track applications.</div>
+          <div class="link-icon">📲</div>
+          <div class="link-title">PMY Apply</div>
+          <div class="link-description">Official portal to apply online for PMY schemes and track application status.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 5. ACAG Apply -->
+      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">ACAG Apply</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Smart ACAG application workflow.</div>
+          <div class="link-icon">📝</div>
+          <div class="link-title">ACAG Apply</div>
+          <div class="link-description">Streamlined workflow for smart ACAG application submission.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 6. QR Generator -->
+      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">QR Generator</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Generate stylish QR codes.</div>
+          <div class="link-icon">🚀</div>
+          <div class="link-title">QR Generator</div>
+          <div class="link-description">Quickly generate stylish and customized QR codes for any purpose.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 7. New Service -->
+      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">🔗</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">New Service</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Pmy Address List download PDF.</div>
+          <div class="link-icon">🔗</div>
+          <div class="link-title">Pmy Address List</div>
+          <div class="link-description">Service to download the PMY Address List directly in PDF format.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 8. Bop Verify List -->
+      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Bop Verify List</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Access additional features securely.</div>
+          <div class="link-icon">🌐</div>
+          <div class="link-title">Bop Verify List</div>
+          <div class="link-description">Access additional verification features and data lists securely.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
 
-      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="link-card-item">
+      <!-- 9. Apni Chhat Mahfooz Chhat -->
+      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="modern-link-item">
         <div>
-          <div style="font-size: 24px; margin-bottom: 8px;">✨</div>
-          <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">Apni Chhat Mahfooz Chhat</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Working Now.</div>
+          <div class="link-icon">✨</div>
+          <div class="link-title">Apni Chhat Mahfooz Chhat</div>
+          <div class="link-description">Portal for the "Apni Chhat Mahfooz Chhat" housing initiative. Active and working.</div>
         </div>
-        <div style="color: var(--primary); font-size: 12px; margin-top: 12px; font-weight: 500;">Open Portal →</div>
+        <div class="link-action">Access Portal <span>→</span></div>
       </a>
     </div>
   </div>
-</div>
-		  
+</div>	  
           <!-- Merge & CSV Tools Tab (Combined Tool) -->
                 <div id="merge-tools-tab" class="tab-content">
                     <div class="card" style="text-align: left;">
