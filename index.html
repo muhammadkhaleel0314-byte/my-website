@@ -436,23 +436,19 @@
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 9. Apni Chhat Mahfooz Chhat -->
-      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="u-card card-9">
-        <div>
-          <div class="u-top">
-            <div class="u-icon">✨</div>
-            <div>
-              <div class="u-title">Apni Chhat Mahfooz Chhat</div>
-              <div class="u-desc">Working Now.</div>
-            </div>
-          </div>
-        </div>
-        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
-      </a>
+      <!-- Apni Chhat Mahfooz Chhat Card -->
+<a href="javascript:void(0);" onclick="verifyPortalAccess('https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec', 'Apni Chhat Mahfooz Chhat')" class="u-card card-9">
+  <div>
+    <div class="u-top">
+      <div class="u-icon">✨</div>
+      <div>
+        <div class="u-title">Apni Chhat Mahfooz Chhat</div>
+        <div class="u-desc">Authorized access only.</div>
+      </div>
     </div>
   </div>
-</div>
-      
+  <div class="u-action"><span>Secure Portal</span> <span>→</span></div>
+</a>
           <!-- Merge & CSV Tools Tab (Combined Tool) -->
                 <div id="merge-tools-tab" class="tab-content">
                     <div class="card" style="text-align: left;">
@@ -1829,6 +1825,21 @@ function checkUserAccess(tabId, btnElement) {
     // اگر اجازت ہوئی تو ٹیب کھل جائے گا
     switchTab(tabId, btnElement);
 }
+			<script>
+  const authorizedUsers = ["admin", "khaleel", "special_user"]; 
+
+  function verifyPortalAccess(url, portalName) {
+    let currentUser = document.getElementById("display-user") ? document.getElementById("display-user").innerText.trim() : "";
+    
+    if (!currentUser || currentUser === "Guest" || !authorizedUsers.includes(currentUser.toLowerCase())) {
+      alert("❌ Access Denied: Aapke paas '" + portalName + "' ko access karne ki ijazat nahi hai!");
+      return;
+    }
+    
+    window.open(url, '_blank');
+    if(typeof playSound === 'function') playSound();
+  }
+</script>
   </script>
 </body>
 </html>
