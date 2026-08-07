@@ -1407,8 +1407,17 @@ function handleAdjFileUpload(event) {
 
     reader.onload = function(e) {
         try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            let workbook;
+            if (isCsv) {
+                // CSV کے لیے ٹیکسٹ ڈیٹا استعمال کریں
+                const csvText = e.target.result;
+                workbook = XLSX.read(csvText, { type: 'string' });
+            } else {
+                // Excel فائلوں (.xlsx, .xls) کے لیے Uint8Array استعمال کریں
+                const data = new Uint8Array(e.target.result);
+                workbook = XLSX.read(data, { type: 'array' });
+            }
+
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             
@@ -1455,13 +1464,15 @@ function updateDropdowns() {
 
     // ڈیلیٹ کرنے والے کالم کا ڈراپ ڈاؤن
     const deleteColSelect = document.getElementById('adj-delete-col-select');
-    deleteColSelect.innerHTML = '';
-    adjFileHeaders.forEach((header) => {
-        const option = document.createElement('option');
-        option.value = header;
-        option.textContent = header;
-        deleteColSelect.appendChild(option);
-    });
+    if (deleteColSelect) {
+        deleteColSelect.innerHTML = '';
+        adjFileHeaders.forEach((header) => {
+            const option = document.createElement('option');
+            option.value = header;
+            option.textContent = header;
+            deleteColSelect.appendChild(option);
+        });
+    }
 }
 
 function populateAdjBranchList() {
@@ -1558,16 +1569,15 @@ function downloadAdjustedPDF() {
     const tableColumns = adjFileHeaders;
     const tableRows = filteredData.map(row => adjFileHeaders.map(header => row[header] !== undefined ? String(row[header]) : ''));
 
-    // ٹیکسٹ اور باکس ایڈجسٹمنٹ (تاکہ کوئی بھی لمبا نام یا ایڈریس باکس سے باہر نہ جائے)
     doc.autoTable({
         head: [tableColumns],
         body: tableRows,
         startY: 25,
         theme: 'grid',
         styles: { 
-            fontSize: 6.5,       // چھوٹے فونٹ سائز سے تمام کالمز بہترین فٹ ہوں گے
-            cellPadding: 1.8,    // سیل کے اندر مناسب اسپیسنگ
-            overflow: 'linebreak',// لمبے الفاظ خود بخود اگلی لائن میں شفٹ ہوں گے
+            fontSize: 6.5,       
+            cellPadding: 1.8,    
+            overflow: 'linebreak',
             halign: 'left'
         },
         headStyles: { 
@@ -1576,14 +1586,28 @@ function downloadAdjustedPDF() {
             fontStyle: 'bold',
             halign: 'center'
         },
-        columnStyles: {
-            // تمام کالمز پر خودکار ٹیکسٹ ریپنگ لاگو رہے گی
-        },
-        horizontalPageBreak: false, // کالمز دائیں طرف نہیں بلکہ قطاریں نیچے والے صفحے پر جائیں گی
+        columnStyles: {},
+        horizontalPageBreak: false, 
         margin: { top: 25, right: 10, bottom: 15, left: 10 }
     });
 
     doc.save(`Branch_${selectedBranch}_Adjusted.pdf`);
+}
+
+function checkUserAccess(tabId, btnElement) {
+    let currentUserElement = document.getElementById("display-user");
+    let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
+    if (!currentUser || currentUser === "guest") {
+        currentUser = (localStorage.getItem('logged_user') || "").trim().toLowerCase();
+    }
+    
+    const allowedUsers = ["khaleel", "user2", "user1"]; 
+    if (!allowedUsers.includes(currentUser)) {
+        alert("⚠️ Unauthorized to Access this option.");
+        return;
+    }
+    
+    switchTab(tabId, btnElement);
 }
 			function checkUserAccess(tabId, btnElement) {
     let currentUserElement = document.getElementById("display-user");
