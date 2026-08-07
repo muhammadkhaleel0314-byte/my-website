@@ -161,29 +161,29 @@
             <div style="display: flex; justify-content: center; width: 100%;"><div id="qrcode-box"></div></div>
           </div>
         </div>
-<!-- Ultra-Modern Cyber/Tech Links Tab -->
+<!-- Unique Multi-Color Modern Cards Tab -->
 <div id="links-tab" class="tab-content">
-  <div class="cyber-container">
-    <div class="cyber-header">
-      <span class="cyber-tag">⚡ PORTAL NETWORK</span>
+  <div class="unique-container">
+    <div class="unique-header">
+      <span class="unique-tag">⚡ PORTAL NETWORK</span>
       <h2>🔗 My Links & Tools</h2>
-      <p>Secure and direct access to all essential verification and management workflows.</p>
+      <p>Direct access to multi-styled verification and management portals.</p>
     </div>
 
     <style>
-      .cyber-container {
+      .unique-container {
         background: #090d16;
         padding: 32px 20px;
         border-radius: 20px;
-        border: 1px solid rgba(56, 189, 248, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
         text-align: left;
       }
-      .cyber-header {
+      .unique-header {
         text-align: center;
         margin-bottom: 28px;
       }
-      .cyber-tag {
+      .unique-tag {
         display: inline-block;
         background: rgba(56, 189, 248, 0.08);
         color: var(--primary, #38bdf8);
@@ -195,26 +195,25 @@
         margin-bottom: 10px;
         border: 1px solid rgba(56, 189, 248, 0.2);
       }
-      .cyber-header h2 {
+      .unique-header h2 {
         color: #ffffff;
         font-size: 24px;
         font-weight: 700;
         margin-bottom: 6px;
       }
-      .cyber-header p {
+      .unique-header p {
         font-size: 13px;
         color: #94a3b8;
       }
 
-      .cyber-grid {
+      .unique-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 16px;
       }
 
-      .cyber-card {
-        background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
-        border: 1px solid #1e293b;
+      /* Base Unique Card */
+      .u-card {
         border-radius: 14px;
         padding: 20px;
         text-decoration: none;
@@ -223,25 +222,21 @@
         justify-content: space-between;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
       }
-
-      .cyber-card:hover {
+      .u-card:hover {
         transform: translateY(-5px);
-        border-color: #38bdf8;
-        background: linear-gradient(135deg, #162032, #111827);
-        box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2);
       }
 
-      .cyber-top {
+      .u-top {
         display: flex;
         align-items: flex-start;
         gap: 14px;
         margin-bottom: 16px;
       }
-
-      .cyber-icon {
+      .u-icon {
         font-size: 26px;
-        background: rgba(56, 189, 248, 0.1);
         width: 48px;
         height: 48px;
         border-radius: 10px;
@@ -249,164 +244,210 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        border: 1px solid rgba(56, 189, 248, 0.15);
       }
-
-      .cyber-title {
+      .u-title {
         font-size: 15px;
         font-weight: 600;
         color: #ffffff;
         margin-bottom: 4px;
       }
-
-      .cyber-desc {
+      .u-desc {
         font-size: 12px;
         color: #94a3b8;
         line-height: 1.4;
       }
-
-      .cyber-action {
+      .u-action {
         display: flex;
         align-items: center;
         justify-content: space-between;
         font-size: 12px;
         font-weight: 600;
-        color: #38bdf8;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
         padding-top: 12px;
       }
 
-      .cyber-card:hover .cyber-action span:last-child {
-        transform: translateX(4px);
-        transition: transform 0.2s ease;
-      }
+      /* --- 1. PMY Verify (Cyan / Blue Theme) --- */
+      .card-1 { background: linear-gradient(135deg, #0c203b 0%, #0f172a 100%); }
+      .card-1:hover { border-color: #38bdf8; box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.25); }
+      .card-1 .u-icon { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); }
+      .card-1 .u-action { color: #38bdf8; }
+
+      /* --- 2. BOP Account (Emerald / Green Theme) --- */
+      .card-2 { background: linear-gradient(135deg, #062e21 0%, #0f172a 100%); }
+      .card-2:hover { border-color: #34d399; box-shadow: 0 10px 25px -5px rgba(52, 211, 153, 0.25); }
+      .card-2 .u-icon { background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.25); }
+      .card-2 .u-action { color: #34d399; }
+
+      /* --- 3. ACAG Batch (Amber / Orange Theme) --- */
+      .card-3 { background: linear-gradient(135deg, #33210c 0%, #0f172a 100%); }
+      .card-3:hover { border-color: #fbbf24; box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.25); }
+      .card-3 .u-icon { background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.25); }
+      .card-3 .u-action { color: #fbbf24; }
+
+      /* --- 4. PMY Apply (Purple / Violet Theme) --- */
+      .card-4 { background: linear-gradient(135deg, #23113b 0%, #0f172a 100%); }
+      .card-4:hover { border-color: #c084fc; box-shadow: 0 10px 25px -5px rgba(192, 132, 252, 0.25); }
+      .card-4 .u-icon { background: rgba(192, 132, 252, 0.12); border: 1px solid rgba(192, 132, 252, 0.25); }
+      .card-4 .u-action { color: #c084fc; }
+
+      /* --- 5. ACAG Apply (Rose / Pink Theme) --- */
+      .card-5 { background: linear-gradient(135deg, #38121f 0%, #0f172a 100%); }
+      .card-5:hover { border-color: #fb7185; box-shadow: 0 10px 25px -5px rgba(251, 113, 133, 0.25); }
+      .card-5 .u-icon { background: rgba(251, 113, 133, 0.12); border: 1px solid rgba(251, 113, 133, 0.25); }
+      .card-5 .u-action { color: #fb7185; }
+
+      /* --- 6. QR Generator (Indigo / Blue Theme) --- */
+      .card-6 { background: linear-gradient(135deg, #111d4a 0%, #0f172a 100%); }
+      .card-6:hover { border-color: #818cf8; box-shadow: 0 10px 25px -5px rgba(129, 140, 248, 0.25); }
+      .card-6 .u-icon { background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.25); }
+      .card-6 .u-action { color: #818cf8; }
+
+      /* --- 7. New Service (Teal Theme) --- */
+      .card-7 { background: linear-gradient(135deg, #082f33 0%, #0f172a 100%); }
+      .card-7:hover { border-color: #2dd4bf; box-shadow: 0 10px 25px -5px rgba(45, 212, 191, 0.25); }
+      .card-7 .u-icon { background: rgba(45, 212, 191, 0.12); border: 1px solid rgba(45, 212, 191, 0.25); }
+      .card-7 .u-action { color: #2dd4bf; }
+
+      /* --- 8. Bop Verify List (Sky / Blue Theme) --- */
+      .card-8 { background: linear-gradient(135deg, #0c2a38 0%, #0f172a 100%); }
+      .card-8:hover { border-color: #38bdf8; box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.25); }
+      .card-8 .u-icon { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); }
+      .card-8 .u-action { color: #38bdf8; }
+
+      /* --- 9. Apni Chhat Mahfooz Chhat (Gold / Yellow Theme) --- */
+      .card-9 { background: linear-gradient(135deg, #382d08 0%, #0f172a 100%); }
+      .card-9:hover { border-color: #facc15; box-shadow: 0 10px 25px -5px rgba(250, 204, 21, 0.25); }
+      .card-9 .u-icon { background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.25); }
+      .card-9 .u-action { color: #facc15; }
+
+      .u-card:hover .u-action span:last-child { transform: translateX(4px); transition: transform 0.2s ease; }
     </style>
 
-    <div class="cyber-grid">
+    <div class="unique-grid">
       <!-- 1. PMY Verify -->
-      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="u-card card-1">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">📊</div>
+          <div class="u-top">
+            <div class="u-icon">📊</div>
             <div>
-              <div class="cyber-title">PMY Verify</div>
-              <div class="cyber-desc">Advanced PMY verification system.</div>
+              <div class="u-title">PMY Verify</div>
+              <div class="u-desc">Advanced PMY verification system.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 2. BOP Account -->
-      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="u-card card-2">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">🏦</div>
+          <div class="u-top">
+            <div class="u-icon">🏦</div>
             <div>
-              <div class="cyber-title">BOP Account</div>
-              <div class="cyber-desc">Manage banking details and services.</div>
+              <div class="u-title">BOP Account</div>
+              <div class="u-desc">Manage banking details and services.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 3. ACAG Batch -->
-      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="u-card card-3">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">📁</div>
+          <div class="u-top">
+            <div class="u-icon">📁</div>
             <div>
-              <div class="cyber-title">ACAG Batch</div>
-              <div class="cyber-desc">Track ACAG batch processing data.</div>
+              <div class="u-title">ACAG Batch</div>
+              <div class="u-desc">Track ACAG batch processing data.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 4. PMY Apply -->
-      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="u-card card-4">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">📲</div>
+          <div class="u-top">
+            <div class="u-icon">📲</div>
             <div>
-              <div class="cyber-title">PMY Apply</div>
-              <div class="cyber-desc">Apply online and track applications.</div>
+              <div class="u-title">PMY Apply</div>
+              <div class="u-desc">Apply online and track applications.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 5. ACAG Apply -->
-      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="u-card card-5">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">📝</div>
+          <div class="u-top">
+            <div class="u-icon">📝</div>
             <div>
-              <div class="cyber-title">ACAG Apply</div>
-              <div class="cyber-desc">Smart ACAG application workflow.</div>
+              <div class="u-title">ACAG Apply</div>
+              <div class="u-desc">Smart ACAG application workflow.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 6. QR Generator -->
-      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="u-card card-6">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">🚀</div>
+          <div class="u-top">
+            <div class="u-icon">🚀</div>
             <div>
-              <div class="cyber-title">QR Generator</div>
-              <div class="cyber-desc">Generate stylish QR codes.</div>
+              <div class="u-title">QR Generator</div>
+              <div class="u-desc">Generate stylish QR codes.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 7. New Service -->
-      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="u-card card-7">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">🔗</div>
+          <div class="u-top">
+            <div class="u-icon">🔗</div>
             <div>
-              <div class="cyber-title">New Service</div>
-              <div class="cyber-desc">Pmy Address List download PDF.</div>
+              <div class="u-title">New Service</div>
+              <div class="u-desc">Pmy Address List download PDF.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 8. Bop Verify List -->
-      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="u-card card-8">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">🌐</div>
+          <div class="u-top">
+            <div class="u-icon">🌐</div>
             <div>
-              <div class="cyber-title">Bop Verify List</div>
-              <div class="cyber-desc">Access additional features securely.</div>
+              <div class="u-title">Bop Verify List</div>
+              <div class="u-desc">Access additional features securely.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
       <!-- 9. Apni Chhat Mahfooz Chhat -->
-      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="cyber-card">
+      <a href="https://script.google.com/macros/s/AKfycbyB_ng_Q5HLA9PPZFURoIaPbLvUC9C5Q48_NFLNLhIaCXaPwavbMwoHWcQNwUfQL4n2/exec" target="_blank" onclick="playSound()" class="u-card card-9">
         <div>
-          <div class="cyber-top">
-            <div class="cyber-icon">✨</div>
+          <div class="u-top">
+            <div class="u-icon">✨</div>
             <div>
-              <div class="cyber-title">Apni Chhat Mahfooz Chhat</div>
-              <div class="cyber-desc">Working Now.</div>
+              <div class="u-title">Apni Chhat Mahfooz Chhat</div>
+              <div class="u-desc">Working Now.</div>
             </div>
           </div>
         </div>
-        <div class="cyber-action"><span>Open Portal</span> <span>→</span></div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
     </div>
   </div>
