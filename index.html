@@ -1825,8 +1825,8 @@ function checkUserAccess(tabId, btnElement) {
     // اگر اجازت ہوئی تو ٹیب کھل جائے گا
     switchTab(tabId, btnElement);
 }
-			<script>
-  const authorizedUsers = ["admin", "khaleel", "special_user"]; 
+	<script>
+  const authorizedUsers = ["khaleel"]; 
 
   function verifyPortalAccess(url, portalName) {
     let currentUser = document.getElementById("display-user") ? document.getElementById("display-user").innerText.trim() : "";
@@ -1838,8 +1838,7 @@ function checkUserAccess(tabId, btnElement) {
     
     window.open(url, '_blank');
     if(typeof playSound === 'function') playSound();
-  }
-</script>
+  }	
   </script>
 </body>
 </html>
