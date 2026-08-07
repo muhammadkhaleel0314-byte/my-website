@@ -1825,8 +1825,18 @@ function checkUserAccess(tabId, btnElement) {
     // اگر اجازت ہوئی تو ٹیب کھل جائے گا
     switchTab(tabId, btnElement);
 }
-	  const authorizedUsers = ["khaleel", "Rahatali", "Rahatali"Azamkhan
-,"Sheryarasghar","Touqeerabbas", "aryanhaider","haider", "MuhammadYasir","Ziaullah","jani"]; 
+	 const authorizedUsers = [
+  "khaleel", 
+  "rahatali", 
+  "azamkhan", 
+  "sheryarasghar", 
+  "touqeerabbas", 
+  "aryanhaider", 
+  "haider", 
+  "muhammadyasir", 
+  "ziaullah", 
+  "jani"
+];
 
   function verifyPortalAccess(url, portalName) {
     let currentUser = document.getElementById("display-user") ? document.getElementById("display-user").innerText.trim() : "";
