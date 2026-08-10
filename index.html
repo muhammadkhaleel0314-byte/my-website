@@ -948,6 +948,57 @@
                 resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
             }
         }
+			// --- Simple Merge Logic: Multiple CSV/Excel files ko merge karega (Pehli file ki heading upar, baaki sab ka data neeche) ---
+async function processSimpleMerge() {
+    const filesInput = document.getElementById('multi-csv-input').files; // Aap apna input ID yahan change kar sakte hain
+    const resultBox = document.getElementById('sanction-result-box'); // Apni result box ki ID yahan dein
+
+    if (!filesInput || filesInput.length === 0) {
+        resultBox.innerHTML = `<span style="color: #ef4444;">Please upload at least one file!</span>`;
+        return;
+    }
+
+    resultBox.innerHTML = `<span style="color: var(--primary);">Merging all files into one...</span>`;
+
+    let allRows = [];
+    let missingFiles = [];
+
+    try {
+        for (let file of filesInput) {
+            let fileData = await readFileAsync(file, true); // Assuming readFileAsync aapke paas pehle se defined hai
+            let wb = XLSX.read(fileData, { type: 'string' });
+            let sheetName = wb.SheetNames[0];
+            let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+
+            if (jsonRows.length > 0) {
+                // Saari rows ko cumulative array mein push kar rahe hain (pehli file ki headings sheet ke headers ban jayengi)
+                jsonRows.forEach(row => {
+                    allRows.push(row);
+                });
+            } else {
+                missingFiles.push(file.name);
+            }
+        }
+
+        if (missingFiles.length > 0) {
+            resultBox.innerHTML += `<br><span style="color: #f59e0b;">Warning: Empty files: ${missingFiles.join(', ')}</span>`;
+        }
+
+        if (allRows.length > 0) {
+            const finalWs = XLSX.utils.json_to_sheet(allRows);
+            const finalWb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(finalWb, finalWs, "Simple_Merged_Report");
+
+            XLSX.writeFile(finalWb, "Simple_Merged_Report.xlsx");
+            resultBox.innerHTML = `<span style="color: #22c55e;">Success! Merged ${allRows.length} rows into a single file and downloaded.</span>`;
+        } else {
+            resultBox.innerHTML = `<span style="color: #ef4444;">No valid rows found to merge.</span>`;
+        }
+
+    } catch (e) {
+        resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
+    }
+}
 	// --- Recovery Excel Processing & PDF Logic ---
 let globalPivotData = []; // Global data store
 
