@@ -1914,20 +1914,20 @@ function checkUserAccess(tabId, btnElement) {
   function verifyPortalAccess(url, portalName) {
     let currentUser = localStorage.getItem('current_user');
     
+    // اگر لاگ ان نہیں ہے تو الرٹ دیں
     if (!currentUser) {
         alert("⚠️ براہ کرم پہلے سائن ان کریں!");
         return;
     }
     
-    // نئے ٹیب میں کھولنے کے بجائے ویب سائٹ کے اندر مادل میں کھولیں
-    document.getElementById('portal-modal-title').innerText = portalName;
-    document.getElementById('portal-iframe').src = url;
-    document.getElementById('portal-modal').style.display = 'flex';
-}
-
-function closePortalModal() {
-    document.getElementById('portal-modal').style.display = 'none';
-    document.getElementById('portal-iframe').src = ''; // لنک ری سیٹ کرنے کے لیے
+    // اگر آپ صرف اپنے ہی یوزر پر چلانا چاہتے ہیں تو یہ چیک رکھ سکتے ہیں
+    if (currentUser !== 'khaleel') {
+        alert("⚠️ یہ لنک غیر متعلقہ ڈیوائس پر نہیں کھل سکتا!");
+        return;
+    }
+    
+    // سیدھا نئے ٹیب میں لنک کھولیں (چونکہ گوگل اسکرپٹ آئی فریم میں ایرر دیتا ہے)
+    window.open(url, '_blank');
 }
   </script>
 </body>
