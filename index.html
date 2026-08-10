@@ -1911,16 +1911,8 @@ function checkUserAccess(tabId, btnElement) {
   "jani"
 ];
 
- function verifyPortalAccess(url, portalName) {
-    // صرف مجاز یوزرز کی لسٹ چیک کریں
-    let currentUser = localStorage.getItem('current_user');
-    
-    if (!currentUser) {
-        alert("⚠️ براہ کرم پہلے سائن ان کریں!");
-        return;
-    }
-    
-    // سیدھا نئے ٹیب میں لنک کھولیں
+function verifyPortalAccess(url, portalName) {
+    // بغیر کسی لاگ ان یا لوکل اسٹوریج کی قید کے سیدھا نیا ٹیب کھولیں
     window.open(url, '_blank');
 }
   </script>
