@@ -948,10 +948,10 @@
                 resultBox.innerHTML = `<span style="color: #ef4444;">Error: ${e.message}</span>`;
             }
         }
-			// --- Simple Merge Logic: Multiple CSV/Excel files ko merge karega (Pehli file ki heading upar, baaki sab ka data neeche) ---
+		// --- Simple Merge Logic: Multiple CSV/Excel files ko merge karega (Pehli file ki heading upar, baaki sab ka data neeche) ---
 async function processSimpleMerge() {
-    const filesInput = document.getElementById('multi-csv-input').files; // Aap apna input ID yahan change kar sakte hain
-    const resultBox = document.getElementById('sanction-result-box'); // Apni result box ki ID yahan dein
+    const filesInput = document.getElementById('multi-csv-input').files;
+    const resultBox = document.getElementById('sanction-result-box');
 
     if (!filesInput || filesInput.length === 0) {
         resultBox.innerHTML = `<span style="color: #ef4444;">Please upload at least one file!</span>`;
@@ -965,13 +965,13 @@ async function processSimpleMerge() {
 
     try {
         for (let file of filesInput) {
-            let fileData = await readFileAsync(file, true); // Assuming readFileAsync aapke paas pehle se defined hai
+            let fileData = await readFileAsync(file, true);
             let wb = XLSX.read(fileData, { type: 'string' });
             let sheetName = wb.SheetNames[0];
             let jsonRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
 
             if (jsonRows.length > 0) {
-                // Saari rows ko cumulative array mein push kar rahe hain (pehli file ki headings sheet ke headers ban jayengi)
+                // Saari rows ko cumulative array mein push kar rahe hain
                 jsonRows.forEach(row => {
                     allRows.push(row);
                 });
