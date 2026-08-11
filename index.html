@@ -1888,7 +1888,8 @@ function checkUserAccess(tabId, btnElement) {
     switchTab(tabId, btnElement);
 }
 	 const authorizedUsers = [
-  "khaleel", 
+  "khaleel",
+  "khaleel2",
   "rahatali", 
   "azamkhan", 
   "sheryarasghar", 
@@ -1897,14 +1898,23 @@ function checkUserAccess(tabId, btnElement) {
   "haider",
   "Haider1",
   "khaleel1",
-  "khaleel2",
   "muhammadyasir", 
   "bakshahid",
   "ziaullah", 
   "jani"
 ];
- 
-}	
+
+  function verifyPortalAccess(url, portalName) {
+    let currentUser = document.getElementById("display-user") ? document.getElementById("display-user").innerText.trim() : "";
+    
+    if (!currentUser || currentUser === "Guest" || !authorizedUsers.includes(currentUser.toLowerCase())) {
+      alert("❌ Access Denied: Aapke paas '" + portalName + "' ko access karne ki ijazat nahi hai!");
+      return;
+    }
+    
+    window.open(url, '_blank');
+    if(typeof playSound === 'function') playSound();
+  }	
   </script>
 </body>
 </html>
