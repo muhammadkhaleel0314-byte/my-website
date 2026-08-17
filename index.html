@@ -633,46 +633,45 @@
 </div>
 		<!-- Telehealth Report Tab -->
 <div id="telehealth-tab" class="tab-content">
-    <div class="card" style="text-align: left; max-width: 100%;">
-        <h3 style="text-align: center; color: var(--primary);">Telehealth Target Vs Achievement Report</h3>
+    <div class="card" style="text-align: left; max-width: 100%; width: 100%;">
+        <h3 style="text-align: center; color: var(--primary); margin-bottom: 5px;">Telehealth Target Vs Achievement Report</h3>
         <p id="currentDateHeader" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;"></p>
 
-        <!-- Excel Upload Section (Sirf pehli baar format set karne ke liye) -->
+        <!-- Excel Upload Section -->
         <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center;">
-            <label style="font-size: 12px; color: var(--primary); font-weight: bold; display: block; margin-bottom: 6px;">📂 Upload Excel File Once (Format set karne ke liye)</label>
+            <label style="font-size: 12px; color: var(--primary); font-weight: bold; display: block; margin-bottom: 6px;">📂 Upload Excel File (Format Set karne ke liye)</label>
             <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" style="font-size: 11px; color: #fff;">
         </div>
 
-        <div style="text-align: center; margin-bottom: 15px;">
+        <div style="text-align: center; margin-bottom: 20px;">
             <button class="action-btn" style="background: #2563eb; width: auto; padding: 10px 20px; margin-top: 0;" onclick="downloadTelehealthExcel()">📥 Download Excel (CSV)</button>
         </div>
 
-        <!-- Report Table -->
-        <div style="overflow-x: auto;">
-            <table id="telehealthTable" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; text-align: center;">
+        <!-- Report Table Container -->
+        <div style="width: 100%; overflow-x: auto;">
+            <table id="telehealthTable" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; white-space: nowrap;">
                 <thead>
                     <tr style="background: #334155; color: white;">
-                        <th style="padding: 8px; border: 1px solid #475569;">Sr #</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Region</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Area</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Branch</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Target</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Today Target</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Today Achive</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Total Achieved</th>
-                        <th style="padding: 8px; border: 1px solid #475569;">Action</th>
+                        <th style="padding: 10px; border: 1px solid #475569;">Sr #</th>
+                        <th style="padding: 10px; border: 1px solid #475569; text-align: left;">Staff / Role</th>
+                        <th style="padding: 10px; border: 1px solid #475569; text-align: left;">Branch Name</th>
+                        <th style="padding: 10px; border: 1px solid #475569;">Target</th>
+                        <th style="padding: 10px; border: 1px solid #475569;">Achievement</th>
+                        <th style="padding: 10px; border: 1px solid #475569;">Difference Today</th>
+                        <th style="padding: 10px; border: 1px solid #475569;">Total Difference</th>
+                        <th style="padding: 10px; border: 1px solid #475569;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="teleTableBody" style="background: rgba(15, 23, 42, 0.4);">
-                    <!-- Rows will load here -->
+                    <!-- Rows will load dynamically -->
                 </tbody>
                 <tfoot>
-                    <tr style="font-weight: bold; background: #1e293b; color: #38bdf8;">
-                        <td colspan="4" style="padding: 8px; border: 1px solid #475569; text-align: right;">Total:</td>
-                        <td id="teleSumTarget" style="padding: 8px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTodayTarget" style="padding: 8px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTodayAchieve" style="padding: 8px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTotalAchieve" style="padding: 8px; border: 1px solid #475569;">0</td>
+                    <tr style="font-weight: bold; background: #1e293b; color: #38bdf8; font-size: 13px;">
+                        <td colspan="3" style="padding: 12px; border: 1px solid #475569; text-align: right;">OVERALL GRAND TOTAL:</td>
+                        <td id="teleSumTarget" style="padding: 12px; border: 1px solid #475569;">0</td>
+                        <td id="teleSumAchievement" style="padding: 12px; border: 1px solid #475569;">0</td>
+                        <td id="teleSumDiffToday" style="padding: 12px; border: 1px solid #475569;">0</td>
+                        <td id="teleSumTotalDiff" style="padding: 12px; border: 1px solid #475569;">0</td>
                         <td style="border: 1px solid #475569;"></td>
                     </tr>
                 </tfoot>
@@ -1982,63 +1981,96 @@ function loadTelehealthData() {
     if(!tbody) return;
     tbody.innerHTML = "";
 
-    let sumTarget = 0, sumTodayTarget = 0, sumTodayAchieve = 0, sumTotalAchieve = 0;
+    let grandTarget = 0, grandAchievement = 0, grandDiffToday = 0, grandTotalDiff = 0;
     let index = 1;
 
+    // Grouping by Branch to show Branch-wise Sub-totals
+    let branches = {};
     for (let key in reports) {
         let item = reports[key];
-        
-        sumTarget += Number(item.target) || 0;
-        sumTodayTarget += Number(item.todayTarget) || 0;
-        sumTodayAchieve += Number(item.todayAchieve) || 0;
-        sumTotalAchieve += Number(item.totalAchieve) || 0;
-
-        let row = `<tr>
-            <td style="padding: 6px; border: 1px solid #334155;">${index++}</td>
-            <td style="padding: 6px; border: 1px solid #334155;">${item.region}</td>
-            <td style="padding: 6px; border: 1px solid #334155;">${item.area}</td>
-            <td style="padding: 6px; border: 1px solid #334155;">${item.branch}</td>
-            <td style="padding: 6px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${item.target}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-            <td style="padding: 6px; border: 1px solid #334155;"><input type="number" id="ttarget_${key}" value="${item.todayTarget}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-            <td style="padding: 6px; border: 1px solid #334155;"><input type="number" id="tachieve_${key}" value="${item.todayAchieve}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-            <td style="padding: 6px; border: 1px solid #334155; font-weight: bold; color: #38bdf8;" id="total_${key}">${item.totalAchieve}</td>
-            <td style="padding: 6px; border: 1px solid #334155;">
-                <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
-            </td>
-        </tr>`;
-        tbody.innerHTML += row;
+        let branchName = item.branch || "Other";
+        if(!branches[branchName]) branches[branchName] = [];
+        branches[branchName].push({ key, item });
     }
 
-    document.getElementById('teleSumTarget').innerText = sumTarget;
-    document.getElementById('teleSumTodayTarget').innerText = sumTodayTarget;
-    document.getElementById('teleSumTodayAchieve').innerText = sumTodayAchieve;
-    document.getElementById('teleSumTotalAchieve').innerText = sumTotalAchieve;
+    for (let branchName in branches) {
+        let branchRows = branches[branchName];
+        let branchTarget = 0, branchAchievement = 0, branchDiffToday = 0, branchTotalDiff = 0;
+
+        // Render staff rows for this branch
+        branchRows.forEach(({ key, item }) => {
+            let target = Number(item.target) || 0;
+            let achievement = Number(item.achievement) || 0;
+            let diffToday = Number(item.diffToday) || 0;
+            let totalDiff = Number(item.totalDiff) || 0;
+
+            branchTarget += target;
+            branchAchievement += achievement;
+            branchDiffToday += diffToday;
+            branchTotalDiff += totalDiff;
+
+            let row = `<tr>
+                <td style="padding: 8px; border: 1px solid #334155;">${index++}</td>
+                <td style="padding: 8px; border: 1px solid #334155; text-align: left;">${item.staff || 'Staff'}</td>
+                <td style="padding: 8px; border: 1px solid #334155; text-align: left; font-weight: 600;">${item.branch}</td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="diffToday_${key}" value="${diffToday}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;" id="totalDiff_${key}">${totalDiff}</td>
+                <td style="padding: 8px; border: 1px solid #334155;">
+                    <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
+                </td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // Branch Sub-Total Row
+        grandTarget += branchTarget;
+        grandAchievement += branchAchievement;
+        grandDiffToday += branchDiffToday;
+        grandTotalDiff += branchTotalDiff;
+
+        let branchSubTotalRow = `<tr style="background: rgba(51, 65, 85, 0.5); font-weight: bold; color: #f8fafc;">
+            <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday}</td>
+            <td style="padding: 8px; border: 1px solid #475569; color: #38bdf8;">${branchTotalDiff}</td>
+            <td style="border: 1px solid #475569;"></td>
+        </tr>`;
+        tbody.innerHTML += branchSubTotalRow;
+    }
+
+    // Update Overall Footer Totals
+    document.getElementById('teleSumTarget').innerText = grandTarget;
+    document.getElementById('teleSumAchievement').innerText = grandAchievement;
+    document.getElementById('teleSumDiffToday').innerText = grandDiffToday;
+    document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// Seedha table ke andar values change karke Update button dabane par logic
+// Inline Update Logic with Cumulative Total Support
 function updateInlineRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
-        let newTodayTarget = parseFloat(document.getElementById(`ttarget_${key}`).value) || 0;
-        let newTodayAchieve = parseFloat(document.getElementById(`tachieve_${key}`).value) || 0;
+        let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
+        let newDiffToday = parseFloat(document.getElementById(`diffToday_${key}`).value) || 0;
         
-        // Purana achieved difference ya calculation maintain karte hue cumulative total update karna
-        let oldTodayAchieve = Number(reports[key].todayAchieve) || 0;
-        let diff = newTodayAchieve - oldTodayAchieve;
+        let oldAchievement = Number(reports[key].achievement) || 0;
+        let diff = newAchievement - oldAchievement;
 
         reports[key].target = newTarget;
-        reports[key].todayTarget = newTodayTarget;
-        reports[key].todayAchieve = newTodayAchieve;
-        reports[key].totalAchieve = Number(reports[key].totalAchieve) + diff;
+        reports[key].achievement = newAchievement;
+        reports[key].diffToday = newDiffToday;
+        reports[key].totalDiff = Number(reports[key].totalDiff) + diff;
 
         localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
         loadTelehealthData();
-        alert("Branch updated successfully!");
+        if(typeof playSound === 'function') playSound();
     }
 }
 
-// Excel Upload
+// Excel Upload Handler matching your file format
 function handleExcelUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -2055,22 +2087,21 @@ function handleExcelUpload(event) {
             let reports = {};
             let importedCount = 0;
 
+            // Columns layout from your file: [Branch/Staff, BranchName, Target, Achievement, Difference Today, Total Difference]
             for (let i = 1; i < jsonRows.length; i++) {
                 let row = jsonRows[i];
-                if (row.length >= 7) {
-                    let region = String(row[1] || "").trim();
-                    let area = String(row[2] || "").trim();
-                    let branch = String(row[3] || "").trim();
-                    let target = parseFloat(row[4]) || 0;
-                    let todayTarget = parseFloat(row[5]) || 0;
-                    let todayAchieve = parseFloat(row[6]) || 0;
-                    let totalAchieve = parseFloat(row[7]) || todayAchieve;
+                if (row.length >= 6) {
+                    let staff = String(row[0] || "").trim();
+                    let branch = String(row[1] || "").trim();
+                    let target = parseFloat(row[2]) || 0;
+                    let achievement = parseFloat(row[3]) || 0;
+                    let diffToday = parseFloat(row[4]) || 0;
+                    let totalDiff = parseFloat(row[5]) || achievement;
 
-                    if (region && area && branch) {
-                        const branchKey = `${region}_${area}_${branch}`;
-                        reports[branchKey] = {
-                            region, area, branch, target, todayTarget, todayAchieve,
-                            totalAchieve: totalAchieve
+                    if (staff && branch && branch.toLowerCase() !== 'branch') {
+                        const uniqueKey = `${branch}_${staff}`.replace(/\s+/g, '_');
+                        reports[uniqueKey] = {
+                            staff, branch, target, achievement, diffToday, totalDiff
                         };
                         importedCount++;
                     }
@@ -2079,11 +2110,11 @@ function handleExcelUpload(event) {
 
             localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
             loadTelehealthData();
-            alert(`Excel format loaded! ${importedCount} branches imported.`);
+            alert(`Excel file successfully loaded! ${importedCount} rows imported.`);
             document.getElementById('excelUploadInput').value = "";
         } catch (error) {
             console.error(error);
-            alert("Error reading Excel file.");
+            alert("Error reading Excel file format.");
         }
     };
     reader.readAsArrayBuffer(file);
@@ -2107,7 +2138,6 @@ function downloadTelehealthExcel() {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-}
-  </script>
+}  </script>
 </body>
 </html>
