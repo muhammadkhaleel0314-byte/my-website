@@ -631,65 +631,36 @@
         <div id="adj-preview-status" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
     </div>
 </div>
-		 <!-- Telehealth Report Tab -->
+		<!-- Telehealth Report Tab -->
 <div id="telehealth-tab" class="tab-content">
     <div class="card" style="text-align: left; max-width: 100%;">
         <h3 style="text-align: center; color: var(--primary);">Telehealth Target Vs Achievement Report</h3>
         <p id="currentDateHeader" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;"></p>
 
-        <!-- Excel Upload Section (Sirf naya format set karne ke liye) -->
-        <div style="background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center;">
-            <label style="font-size: 13px; color: var(--primary); font-weight: bold; display: block; margin-bottom: 8px;">📂 Upload Excel File Once (New Format Set karne ke liye)</label>
-            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" style="font-size: 12px; color: #fff;">
+        <!-- Excel Upload Section (Sirf pehli baar format set karne ke liye) -->
+        <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center;">
+            <label style="font-size: 12px; color: var(--primary); font-weight: bold; display: block; margin-bottom: 6px;">📂 Upload Excel File Once (Format set karne ke liye)</label>
+            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" style="font-size: 11px; color: #fff;">
         </div>
 
-        <!-- Manual Add / Edit Row Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 15px; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px; border: 1px solid #334155;">
-            <div>
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Region</label>
-                <input type="text" id="tele-region" class="input-field" placeholder="Chakwal">
-            </div>
-            <div>
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Area Name</label>
-                <input type="text" id="tele-area" class="input-field" placeholder="Kallar Kahar">
-            </div>
-            <div>
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Branch Name</label>
-                <input type="text" id="tele-branch" class="input-field" placeholder="Munal">
-            </div>
-            <div>
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Target</label>
-                <input type="number" id="tele-target" class="input-field" placeholder="100">
-            </div>
-            <div>
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Today Target</label>
-                <input type="number" id="tele-today-target" class="input-field" placeholder="10">
-            </div>
-            <div>
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Today Achive</label>
-                <input type="number" id="tele-today-achieve" class="input-field" placeholder="5">
-            </div>
-        </div>
-
-        <div style="text-align: center; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button class="action-btn" style="background: var(--btn-green); width: auto; padding: 10px 20px; margin-top: 0;" onclick="saveOrUpdateOnlineRow()">💾 Online Save / Update</button>
+        <div style="text-align: center; margin-bottom: 15px;">
             <button class="action-btn" style="background: #2563eb; width: auto; padding: 10px 20px; margin-top: 0;" onclick="downloadTelehealthExcel()">📥 Download Excel (CSV)</button>
         </div>
 
         <!-- Report Table -->
         <div style="overflow-x: auto;">
-            <table id="telehealthTable" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: center;">
+            <table id="telehealthTable" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; text-align: center;">
                 <thead>
                     <tr style="background: #334155; color: white;">
-                        <th style="padding: 10px; border: 1px solid #475569;">Sr #</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Region</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Area</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Branch</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Target</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Today Target</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Today Achive</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Total Achieved</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Action</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Sr #</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Region</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Area</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Branch</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Target</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Today Target</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Today Achive</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Total Achieved</th>
+                        <th style="padding: 8px; border: 1px solid #475569;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="teleTableBody" style="background: rgba(15, 23, 42, 0.4);">
@@ -697,11 +668,11 @@
                 </tbody>
                 <tfoot>
                     <tr style="font-weight: bold; background: #1e293b; color: #38bdf8;">
-                        <td colspan="4" style="padding: 10px; border: 1px solid #475569; text-align: right;">Total:</td>
-                        <td id="teleSumTarget" style="padding: 10px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTodayTarget" style="padding: 10px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTodayAchieve" style="padding: 10px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTotalAchieve" style="padding: 10px; border: 1px solid #475569;">0</td>
+                        <td colspan="4" style="padding: 8px; border: 1px solid #475569; text-align: right;">Total:</td>
+                        <td id="teleSumTarget" style="padding: 8px; border: 1px solid #475569;">0</td>
+                        <td id="teleSumTodayTarget" style="padding: 8px; border: 1px solid #475569;">0</td>
+                        <td id="teleSumTodayAchieve" style="padding: 8px; border: 1px solid #475569;">0</td>
+                        <td id="teleSumTotalAchieve" style="padding: 8px; border: 1px solid #475569;">0</td>
                         <td style="border: 1px solid #475569;"></td>
                     </tr>
                 </tfoot>
@@ -2005,41 +1976,6 @@ document.addEventListener("DOMContentLoaded", function() {
     loadTelehealthData();
 });
 
-// Save or Update single row online without losing previous format/data
-function saveOrUpdateOnlineRow() {
-    const region = document.getElementById('tele-region').value.trim();
-    const area = document.getElementById('tele-area').value.trim();
-    const branch = document.getElementById('tele-branch').value.trim();
-    const target = parseFloat(document.getElementById('tele-target').value) || 0;
-    const todayTarget = parseFloat(document.getElementById('tele-today-target').value) || 0;
-    const todayAchieve = parseFloat(document.getElementById('tele-today-achieve').value) || 0;
-
-    if (!region || !area || !branch) {
-        alert("Please fill Region, Area, and Branch names!");
-        return;
-    }
-
-    let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
-    const branchKey = `${region}_${area}_${branch}`;
-
-    if (reports[branchKey]) {
-        reports[branchKey].target = target;
-        reports[branchKey].todayTarget = todayTarget;
-        reports[branchKey].todayAchieve = todayAchieve;
-        reports[branchKey].totalAchieve = Number(reports[branchKey].totalAchieve) + todayAchieve;
-    } else {
-        reports[branchKey] = {
-            region, area, branch, target, todayTarget, todayAchieve,
-            totalAchieve: todayAchieve
-        };
-    }
-
-    localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
-    loadTelehealthData();
-    clearTeleForm();
-    alert("Successfully updated online!");
-}
-
 function loadTelehealthData() {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     let tbody = document.getElementById('teleTableBody');
@@ -2052,22 +1988,22 @@ function loadTelehealthData() {
     for (let key in reports) {
         let item = reports[key];
         
-        sumTarget += item.target;
-        sumTodayTarget += item.todayTarget;
-        sumTodayAchieve += item.todayAchieve;
-        sumTotalAchieve += item.totalAchieve;
+        sumTarget += Number(item.target) || 0;
+        sumTodayTarget += Number(item.todayTarget) || 0;
+        sumTodayAchieve += Number(item.todayAchieve) || 0;
+        sumTotalAchieve += Number(item.totalAchieve) || 0;
 
         let row = `<tr>
-            <td style="padding: 8px; border: 1px solid #334155;">${index++}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">${item.region}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">${item.area}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">${item.branch}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">${item.target}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">${item.todayTarget}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">${item.todayAchieve}</td>
-            <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: #38bdf8;">${item.totalAchieve}</td>
-            <td style="padding: 8px; border: 1px solid #334155;">
-                <button onclick="editRow('${key}')" style="background:#0284c7; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;">Edit</button>
+            <td style="padding: 6px; border: 1px solid #334155;">${index++}</td>
+            <td style="padding: 6px; border: 1px solid #334155;">${item.region}</td>
+            <td style="padding: 6px; border: 1px solid #334155;">${item.area}</td>
+            <td style="padding: 6px; border: 1px solid #334155;">${item.branch}</td>
+            <td style="padding: 6px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${item.target}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
+            <td style="padding: 6px; border: 1px solid #334155;"><input type="number" id="ttarget_${key}" value="${item.todayTarget}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
+            <td style="padding: 6px; border: 1px solid #334155;"><input type="number" id="tachieve_${key}" value="${item.todayAchieve}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
+            <td style="padding: 6px; border: 1px solid #334155; font-weight: bold; color: #38bdf8;" id="total_${key}">${item.totalAchieve}</td>
+            <td style="padding: 6px; border: 1px solid #334155;">
+                <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
             </td>
         </tr>`;
         tbody.innerHTML += row;
@@ -2079,31 +2015,30 @@ function loadTelehealthData() {
     document.getElementById('teleSumTotalAchieve').innerText = sumTotalAchieve;
 }
 
-// Edit existing row online directly from form
-function editRow(key) {
+// Seedha table ke andar values change karke Update button dabane par logic
+function updateInlineRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
-        let item = reports[key];
-        document.getElementById('tele-region').value = item.region;
-        document.getElementById('tele-area').value = item.area;
-        document.getElementById('tele-branch').value = item.branch;
-        document.getElementById('tele-target').value = item.target;
-        document.getElementById('tele-today-target').value = item.todayTarget;
-        document.getElementById('tele-today-achieve').value = item.todayAchieve;
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
+        let newTodayTarget = parseFloat(document.getElementById(`ttarget_${key}`).value) || 0;
+        let newTodayAchieve = parseFloat(document.getElementById(`tachieve_${key}`).value) || 0;
+        
+        // Purana achieved difference ya calculation maintain karte hue cumulative total update karna
+        let oldTodayAchieve = Number(reports[key].todayAchieve) || 0;
+        let diff = newTodayAchieve - oldTodayAchieve;
+
+        reports[key].target = newTarget;
+        reports[key].todayTarget = newTodayTarget;
+        reports[key].todayAchieve = newTodayAchieve;
+        reports[key].totalAchieve = Number(reports[key].totalAchieve) + diff;
+
+        localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
+        loadTelehealthData();
+        alert("Branch updated successfully!");
     }
 }
 
-function clearTeleForm() {
-    document.getElementById('tele-region').value = "";
-    document.getElementById('tele-area').value = "";
-    document.getElementById('tele-branch').value = "";
-    document.getElementById('tele-target').value = "";
-    document.getElementById('tele-today-target').value = "";
-    document.getElementById('tele-today-achieve').value = "";
-}
-
-// Excel Upload: Jab tak nayi file upload na ho, purana format aur data retain rahega
+// Excel Upload
 function handleExcelUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -2117,7 +2052,7 @@ function handleExcelUpload(event) {
             const worksheet = workbook.Sheets[firstSheetName];
             const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-            let reports = {}; // Nayi file upload hone par naya format set hoga
+            let reports = {};
             let importedCount = 0;
 
             for (let i = 1; i < jsonRows.length; i++) {
@@ -2144,11 +2079,11 @@ function handleExcelUpload(event) {
 
             localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
             loadTelehealthData();
-            alert(`Excel format successfully loaded! ${importedCount} branches imported.`);
+            alert(`Excel format loaded! ${importedCount} branches imported.`);
             document.getElementById('excelUploadInput').value = "";
         } catch (error) {
             console.error(error);
-            alert("Error reading Excel file format.");
+            alert("Error reading Excel file.");
         }
     };
     reader.readAsArrayBuffer(file);
@@ -2159,7 +2094,7 @@ function downloadTelehealthExcel() {
     let csv = [];
     for (let i = 0; i < table.rows.length; i++) {
         let row = [], cols = table.rows[i].querySelectorAll("td, th");
-        for (let j = 0; j < cols.length - 1; j++) // Action column exclude karny ke liye
+        for (let j = 0; j < cols.length - 1; j++) 
             row.push('"' + cols[j].innerText + '"');
         csv.push(row.join(","));
     }
