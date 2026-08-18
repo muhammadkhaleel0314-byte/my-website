@@ -2060,53 +2060,34 @@ function loadTelehealthData() {
 function updateInlineRow(key) {
     let today = new Date().toISOString().slice(0, 10);
     let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-    
+
     if(reports[key]) {
         let newStaff = document.getElementById(`staff_${key}`).value;
         let newBranch = document.getElementById(`branch_${key}`).value;
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
-        
-        // 1. Naya Diff Today (Achievement - Target)
+
+        // 1. Naya Diff Today
         let nayaDiffToday = newAchievement - newTarget;
-        
-        // 2. Purana Data
-        let puranaDiffToday = Number(reports[key].diffToday) || 0;
+
+        // 2. Purana TotalDiff نکالیں
         let puranaTotalDiff = Number(reports[key].totalDiff) || 0;
-        
-        // 3. Updated Formula for Cumulative Total Difference (Handling +/- signs automatically)
-        // Purane total se purana diff hata kar naya diff properly signs ke sath add/subtract hoga
-        let nayaTotalDiff = puranaTotalDiff - puranaDiffToday + nayaDiffToday;
+
+        // 3. **نیا لاجک: Running Sum**
+        // نیا TotalDiff = پرانا TotalDiff + آج کا نیا Diff
+        let nayaTotalDiff = puranaTotalDiff + nayaDiffToday;
 
         reports[key].staff = newStaff;
         reports[key].branch = newBranch;
         reports[key].target = newTarget;
         reports[key].achievement = newAchievement;
-        reports[key].diffToday = nayaDiffToday;
-        reports[key].totalDiff = nayaTotalDiff;
+        reports[key].diffToday = nayaDiffToday; // Display کے لیے
+        reports[key].totalDiff = nayaTotalDiff; // Cumulative کے لیے
 
         localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
         loadTelehealthData();
         if(typeof playSound === 'function') playSound();
     }
-}
-// Specific Branch row addition
-function addBranchRow(branchName) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-    let newKey = 'row_' + Date.now();
-    
-    reports[newKey] = {
-        staff: "New Staff",
-        branch: branchName,
-        target: 10,
-        achievement: 10,
-        diffToday: 0,
-        totalDiff: 0
-    };
-    
-    localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
-    loadTelehealthData();
 }
 
 // Delete Row function
