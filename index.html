@@ -2054,7 +2054,7 @@ function loadTelehealthData() {
     document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// **Durst Total Difference Logic ke sath Update Function**
+// **Running Sum / Cumulative Total Difference Logic**
 function updateInlineRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
@@ -2063,14 +2063,19 @@ function updateInlineRow(key) {
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
         
+        // Aaj ka naya difference
         let newDiffToday = newAchievement - newTarget;
         
-        // Purana difference nikal kar naye difference ko total mein adjust karna
+        // Purana total difference jo pehle se stored tha
+        let currentTotalDiff = Number(reports[key].totalDiff) || 0;
+        
+        // Purana diffToday nikal kar current total se minus karein aur naya diffToday plus karein 
+        // taake purani value replace ho kar running sum theek bane
         let oldTarget = Number(reports[key].target) || 0;
         let oldAchievement = Number(reports[key].achievement) || 0;
         let oldDiffToday = oldAchievement - oldTarget;
         
-        let currentTotalDiff = Number(reports[key].totalDiff) || newDiffToday;
+        // True Running Sum Formula: Purana Total - Purana Aaj ka Diff + Naya Aaj ka Diff
         let updatedTotalDiff = currentTotalDiff - oldDiffToday + newDiffToday;
 
         reports[key].staff = newStaff;
@@ -2088,7 +2093,7 @@ function updateInlineRow(key) {
 function addBranchRow(branchName) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     let newKey = 'row_' + Date.now();
-    let initialDiff = -10; // Default target 10 - achievement 0 = -10
+    let initialDiff = -10; // Target 10 - Achievement 0 = -10
     reports[newKey] = {
         staff: "Staff",
         branch: branchName,
@@ -2114,11 +2119,10 @@ function deleteTelehealthRow(key) {
     }
 }
 
-// **Picture / JPG Export mein text cutne aur inputs hide karne ka hal**
+// **JPG / Image Export Function (Text Cut issue fixed)**
 function downloadTelehealthImage(format = 'jpg') {
     let reportElement = document.getElementById("telehealthTable"); 
     if(window.html2canvas) {
-        // Inputs ko temporary plain text mein convert karna taake picture mein text na kate
         let inputs = reportElement.querySelectorAll('input');
         inputs.forEach(input => {
             let span = document.createElement('span');
@@ -2131,7 +2135,6 @@ function downloadTelehealthImage(format = 'jpg') {
             input.parentNode.appendChild(span);
         });
 
-        // Action column ke buttons ko hide karna snapshot ke waqt
         let actionCells = reportElement.querySelectorAll('td:last-child, th:last-child');
         actionCells.forEach(cell => cell.style.display = 'none');
 
@@ -2151,7 +2154,6 @@ function downloadTelehealthImage(format = 'jpg') {
             link.href = dataUrl;
             link.click();
 
-            // Wapis inputs aur buttons ko restore karna
             inputs.forEach(input => input.style.display = '');
             actionCells.forEach(cell => cell.style.display = '');
             reportElement.querySelectorAll('.temp-span-replace').forEach(span => span.remove());
@@ -2198,10 +2200,10 @@ function handleExcelUpload(event) {
                 if (row.length >= 6) {
                     let staff = String(row[0] || "").trim();
                     let branch = String(row[1] || "").trim();
-                    let target = parseFloat(row.target || row[2]) || 0;
-                    let achievement = parseFloat(row.achievement || row[3]) || 0;
+                    let target = parseFloat(row[2]) || 0;
+                    let achievement = parseFloat(row[3]) || 0;
                     let diffToday = achievement - target;
-                    let totalDiff = parseFloat(row.totalDiff || row[5]) || diffToday;
+                    let totalDiff = parseFloat(row[5]) || diffToday;
 
                     if (staff && branch && branch.toLowerCase() !== 'branch') {
                         reports[`${branch}_${staff}`.replace(/\s+/g, '_')] = {
