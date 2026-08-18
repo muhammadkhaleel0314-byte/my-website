@@ -1999,8 +1999,10 @@ function loadTelehealthData() {
         branchRows.forEach(({ key, item }) => {
             let target = Number(item.target) || 0;
             let achievement = Number(item.achievement) || 0;
-            let diffToday = Number(item.diffToday) || 0;
-            let totalDiff = Number(item.totalDiff) || 0;
+            
+            // آپ کے بتائے ہوئے فارمولے کے مطابق Difference Today اور Total Difference کا خودکار حساب
+            let diffToday = achievement - target;
+            let totalDiff = Number(item.totalDiff || 0);
 
             branchTarget += target;
             branchAchievement += achievement;
@@ -2013,8 +2015,8 @@ function loadTelehealthData() {
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="branch_${key}" value="${item.branch}" style="width:100px; background:#0f172a; color:#fff; border:1px solid #475569; padding:4px; border-radius:4px; font-weight: 600;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="diffToday_${key}" value="${diffToday}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;" id="totalDiff_${key}">${totalDiff}</td>
+                <td style="padding: 8px; border: 1px solid #334155; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday}</td>
+                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold;" id="totalDiff_${key}">${totalDiff}</td>
                 <td style="padding: 8px; border: 1px solid #334155;">
                     <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
                     <button onclick="deleteTelehealthRow('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">X</button>
@@ -2045,7 +2047,7 @@ function loadTelehealthData() {
     document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// Function to add a new dynamic row
+// برانچ کی نئی رو (Row) ایڈ کرنے کا فنکشن
 function addNewTelehealthRow() {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     let newKey = 'row_' + Date.now();
@@ -2061,7 +2063,7 @@ function addNewTelehealthRow() {
     loadTelehealthData();
 }
 
-// Function to delete a specific row
+// رو کو ڈیلیٹ کرنے کا فنکشن
 function deleteTelehealthRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
@@ -2071,7 +2073,7 @@ function deleteTelehealthRow(key) {
     }
 }
 
-// Inline Update Logic with Cumulative Total Support
+// آپ کی شرط کے مطابق Inline Update اور Total Difference کا حساب کتاب
 function updateInlineRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
@@ -2079,17 +2081,25 @@ function updateInlineRow(key) {
         let newBranch = document.getElementById(`branch_${key}`).value;
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
-        let newDiffToday = parseFloat(document.getElementById(`diffToday_${key}`).value) || 0;
+        
+        // آج کا نیا فرق (Achievement - Target)
+        let newDiffToday = newAchievement - newTarget;
         
         let oldAchievement = Number(reports[key].achievement) || 0;
-        let diff = newAchievement - oldAchievement;
+        let oldTarget = Number(reports[key].target) || 0;
+        let oldDiffToday = oldAchievement - oldTarget;
+        
+        let currentTotalDiff = Number(reports[key].totalDiff) || 0;
+        
+        // ٹوٹل ڈفرنس میں آج کے فرق کا نیا اضافہ/کمی (جیسا آپ نے بتایا: پچھلے کل کا ٹوٹل + نیا ڈفرنس)
+        let updatedTotalDiff = currentTotalDiff - oldDiffToday + newDiffToday;
 
         reports[key].staff = newStaff;
         reports[key].branch = newBranch;
         reports[key].target = newTarget;
         reports[key].achievement = newAchievement;
         reports[key].diffToday = newDiffToday;
-        reports[key].totalDiff = Number(reports[key].totalDiff) + diff;
+        reports[key].totalDiff = updatedTotalDiff;
 
         localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
         loadTelehealthData();
@@ -2097,7 +2107,7 @@ function updateInlineRow(key) {
     }
 }
 
-// Excel Upload Handler matching your file format
+// Excel Upload Handler
 function handleExcelUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -2122,7 +2132,7 @@ function handleExcelUpload(event) {
                     let target = parseFloat(row[2]) || 0;
                     let achievement = parseFloat(row[3]) || 0;
                     let diffToday = parseFloat(row[4]) || 0;
-                    let totalDiff = parseFloat(row[5]) || achievement;
+                    let totalDiff = parseFloat(row[5]) || 0;
 
                     if (staff && branch && branch.toLowerCase() !== 'branch') {
                         const uniqueKey = `${branch}_${staff}`.replace(/\s+/g, '_');
@@ -2180,6 +2190,7 @@ function downloadTelehealthImage() {
     } else {
         alert("html2canvas library is required for image download.");
     }
+}
  </script>
 </body>
 </html>
