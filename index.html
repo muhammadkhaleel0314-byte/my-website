@@ -2000,7 +2000,7 @@ function loadTelehealthData() {
             let target = Number(item.target) || 0;
             let achievement = Number(item.achievement) || 0;
             
-            // آپ کے بتائے ہوئے فارمولے کے مطابق Difference Today اور Total Difference کا خودکار حساب
+            // آپ کے اصول کے مطابق آج کا فرق: Achievement - Target
             let diffToday = achievement - target;
             let totalDiff = Number(item.totalDiff || 0);
 
@@ -2015,11 +2015,11 @@ function loadTelehealthData() {
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="branch_${key}" value="${item.branch}" style="width:100px; background:#0f172a; color:#fff; border:1px solid #475569; padding:4px; border-radius:4px; font-weight: 600;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-                <td style="padding: 8px; border: 1px solid #334155; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday}</td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold;" id="totalDiff_${key}">${totalDiff}</td>
+                <td style="padding: 8px; border: 1px solid #334155; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0 ? '+' + diffToday : diffToday}</td>
+                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0 ? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0 ? '+' + totalDiff : totalDiff}</td>
                 <td style="padding: 8px; border: 1px solid #334155;">
-                    <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
-                    <button onclick="deleteTelehealthRow('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:4px;">X</button>
+                    <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
+                    <button onclick="deleteTelehealthRow('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 6px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:2px;">X</button>
                 </td>
             </tr>`;
             tbody.innerHTML += row;
@@ -2034,8 +2034,8 @@ function loadTelehealthData() {
             <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday}</td>
-            <td style="padding: 8px; border: 1px solid #475569; color: #38bdf8;">${branchTotalDiff}</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
+            <td style="padding: 8px; border: 1px solid #475569; color: #38bdf8;">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
             <td style="border: 1px solid #475569;"></td>
         </tr>`;
         tbody.innerHTML += branchSubTotalRow;
@@ -2047,23 +2047,23 @@ function loadTelehealthData() {
     document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// برانچ کی نئی رو (Row) ایڈ کرنے کا فنکشن
+// برانچ یا اسٹاف کی نئی رو (Row) ایڈ کرنے کا فنکشن
 function addNewTelehealthRow() {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     let newKey = 'row_' + Date.now();
     reports[newKey] = {
-        staff: "New Staff",
-        branch: "New Branch",
-        target: 0,
+        staff: "Staff Name",
+        branch: "Branch Name",
+        target: 10,
         achievement: 0,
-        diffToday: 0,
-        totalDiff: 0
+        diffToday: -10,
+        totalDiff: -10
     };
     localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
     loadTelehealthData();
 }
 
-// رو کو ڈیلیٹ کرنے کا فنکشن
+// رو ڈیلیٹ کرنے کا فنکشن
 function deleteTelehealthRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
@@ -2073,7 +2073,7 @@ function deleteTelehealthRow(key) {
     }
 }
 
-// آپ کی شرط کے مطابق Inline Update اور Total Difference کا حساب کتاب
+// آپ کی بتائی ہوئی شرط کے مطابق مکمل اپ ڈیٹ اور ٹوٹل ڈفرنس کا حساب
 function updateInlineRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
@@ -2082,16 +2082,15 @@ function updateInlineRow(key) {
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
         
-        // آج کا نیا فرق (Achievement - Target)
+        // نیا آج کا ڈفرنس
         let newDiffToday = newAchievement - newTarget;
         
+        // پچھلا پرانا ڈفرنس ہٹائیں اور نیا شامل کریں تاکہ Total Difference درست رہے
         let oldAchievement = Number(reports[key].achievement) || 0;
         let oldTarget = Number(reports[key].target) || 0;
         let oldDiffToday = oldAchievement - oldTarget;
         
         let currentTotalDiff = Number(reports[key].totalDiff) || 0;
-        
-        // ٹوٹل ڈفرنس میں آج کے فرق کا نیا اضافہ/کمی (جیسا آپ نے بتایا: پچھلے کل کا ٹوٹل + نیا ڈفرنس)
         let updatedTotalDiff = currentTotalDiff - oldDiffToday + newDiffToday;
 
         reports[key].staff = newStaff;
@@ -2177,14 +2176,24 @@ function downloadTelehealthExcel() {
     document.body.removeChild(downloadLink);
 }
 
-// Download Table as Image (Snapshot / Picture)
-function downloadTelehealthImage() {
+// Download Table as Image (Snapshot / Picture in PNG and JPG format)
+function downloadTelehealthImage(format = 'png') {
     let reportElement = document.getElementById("telehealthTable"); 
     if(window.html2canvas) {
         html2canvas(reportElement).then(canvas => {
             let link = document.createElement('a');
-            link.download = 'Telehealth_Report_Snapshot.png';
-            link.href = canvas.toDataURL('image/png');
+            let dataUrl, fileName;
+            
+            if (format.toLowerCase() === 'jpg' || format.toLowerCase() === 'jpeg') {
+                dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                fileName = 'Telehealth_Report_Snapshot.jpg';
+            } else {
+                dataUrl = canvas.toDataURL('image/png');
+                fileName = 'Telehealth_Report_Snapshot.png';
+            }
+
+            link.download = fileName;
+            link.href = dataUrl;
             link.click();
         });
     } else {
