@@ -1973,63 +1973,6 @@ function checkUserAccess(tabId, btnElement) {
     window.open(url, '_blank');
     if(typeof playSound === 'function') playSound();
   }	
-	<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telehealth Daily Report</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<style>
-    body { background: #0f172a; color: #fff; font-family: Arial; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #334155; padding: 8px; text-align: center; }
-    th { background: #1e293b; }
-    button { cursor: pointer; }
-    #currentDateHeader { font-size: 18px; font-weight: bold; color: #38bdf8; }
-</style>
-</head>
-<body>
-
-<h2>Telehealth Report - <span id="currentDateHeader"></span></h2>
-
-<div>
-    <button onclick="addBranchRow('Dalelpur')" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px;">+ Add New Row</button>
-    <button onclick="downloadTelehealthImage('jpg')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:4px;">Download JPG</button>
-    <button onclick="downloadTelehealthExcel()" style="background:#22c55e; color:white; border:none; padding:8px 12px; border-radius:4px;">Download Excel</button>
-    <input type="file" id="excelUploadInput" accept=".xlsx,.csv" onchange="handleExcelUpload(event)" style="color:white;">
-</div>
-
-<div id="telehealthTable">
-<table>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Staff</th>
-            <th>Branch</th>
-            <th>Target</th>
-            <th>Achievement</th>
-            <th>Diff Today</th>
-            <th>Total Diff</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="teleTableBody"></tbody>
-    <tfoot>
-        <tr style="background:#1e293b; font-weight:bold;">
-            <td colspan="3">Grand Total</td>
-            <td id="teleSumTarget">0</td>
-            <td id="teleSumAchievement">0</td>
-            <td id="teleSumDiffToday">0</td>
-            <td id="teleSumTotalDiff">0</td>
-            <td></td>
-        </tr>
-    </tfoot>
-</table>
-</div>
-
-<script>
 document.addEventListener("DOMContentLoaded", function() {
     const today = new Date().toISOString().slice(0, 10);
     const dateHeader = document.getElementById('currentDateHeader');
@@ -2062,7 +2005,7 @@ function loadTelehealthData() {
         branchRows.forEach(({ key, item }) => {
             let target = Number(item.target) || 0;
             let achievement = Number(item.achievement) || 0;
-
+            
             // Logic: Achievement - Target
             let diffToday = achievement - target;
             let totalDiff = Number(item.totalDiff || 0);
@@ -2078,8 +2021,8 @@ function loadTelehealthData() {
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="branch_${key}" value="${item.branch}" style="width:100px; background:#0f172a; color:#fff; border:1px solid #475569; padding:4px; border-radius:4px; font-weight: 600;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${diffToday >= 0? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0? '+' + diffToday : diffToday}</td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0? '+' + totalDiff : totalDiff}</td>
+                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0 ? '+' + diffToday : diffToday}</td>
+                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0 ? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0 ? '+' + totalDiff : totalDiff}</td>
                 <td style="padding: 8px; border: 1px solid #334155; white-space: nowrap;">
                     <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold;">Update</button>
                     <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold; margin-left:2px;" title="Add Row">+</button>
@@ -2098,8 +2041,8 @@ function loadTelehealthData() {
             <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0? '+' + branchDiffToday : branchDiffToday}</td>
-            <td style="padding: 8px; border: 1px solid #475569; color: ${branchTotalDiff >= 0? '#38bdf8' : '#ef4444'};">${branchTotalDiff >= 0? '+' + branchTotalDiff : branchTotalDiff}</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
+            <td style="padding: 8px; border: 1px solid #475569; color: ${branchTotalDiff >= 0 ? '#38bdf8' : '#ef4444'};">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
             <td style="border: 1px solid #475569; text-align: center;">
                 <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:10px;" title="Add Row">+</button>
             </td>
@@ -2109,28 +2052,28 @@ function loadTelehealthData() {
 
     document.getElementById('teleSumTarget').innerText = grandTarget;
     document.getElementById('teleSumAchievement').innerText = grandAchievement;
-    document.getElementById('teleSumDiffToday').innerText = grandDiffToday >= 0? '+' + grandDiffToday : grandDiffToday;
-    document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff >= 0? '+' + grandTotalDiff : grandTotalDiff;
+    document.getElementById('teleSumDiffToday').innerText = grandDiffToday;
+    document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// **RUNNING BALANCE LOGIC ADDED HERE**
+// **Running Balance / Cumulative Total Difference Formula Logic**
 function updateInlineRow(key) {
     let today = new Date().toISOString().slice(0, 10);
     let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-
+    
     if(reports[key]) {
         let newStaff = document.getElementById(`staff_${key}`).value;
         let newBranch = document.getElementById(`branch_${key}`).value;
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
-
+        
         // 1. Naya Diff Today
         let nayaDiffToday = newAchievement - newTarget;
-
+        
         // 2. Purana Data
         let puranaDiffToday = Number(reports[key].diffToday) || 0;
         let puranaTotalDiff = Number(reports[key].totalDiff) || 0;
-
+        
         // 3. Formula: nayaTotalDiff = puranaTotalDiff - puranaDiffToday + nayaDiffToday
         let nayaTotalDiff = puranaTotalDiff - puranaDiffToday + nayaDiffToday;
 
@@ -2152,8 +2095,7 @@ function addBranchRow(branchName) {
     let today = new Date().toISOString().slice(0, 10);
     let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
     let newKey = 'row_' + Date.now();
-
-    // Naya row hamesha 0 se start hoga
+    
     reports[newKey] = {
         staff: "New Staff",
         branch: branchName,
@@ -2162,7 +2104,7 @@ function addBranchRow(branchName) {
         diffToday: 0,
         totalDiff: 0
     };
-
+    
     localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
     loadTelehealthData();
 }
@@ -2206,7 +2148,7 @@ function handleExcelUpload(event) {
                     let diffToday = parseFloat(row[4]) || (achievement - target);
                     let totalDiff = parseFloat(row[5]) || diffToday;
 
-                    if (staff && branch && branch.toLowerCase()!== 'branch') {
+                    if (staff && branch && branch.toLowerCase() !== 'branch') {
                         const uniqueKey = `${branch}_${staff}`.replace(/\s+/g, '_') + '_' + i;
                         reports[uniqueKey] = {
                             staff, branch, target, achievement, diffToday, totalDiff
@@ -2234,7 +2176,7 @@ function downloadTelehealthExcel() {
     let csv = [];
     for (let i = 0; i < table.rows.length; i++) {
         let row = [], cols = table.rows[i].querySelectorAll("td, th");
-        for (let j = 0; j < cols.length - 1; j++)
+        for (let j = 0; j < cols.length - 1; j++) 
             row.push('"' + cols[j].innerText + '"');
         csv.push(row.join(","));
     }
@@ -2249,15 +2191,15 @@ function downloadTelehealthExcel() {
     document.body.removeChild(downloadLink);
 }
 
-// Image Download Feature
+// Image Download Feature (PNG & JPEG with auto html2canvas loader check)
 function downloadTelehealthImage(format = 'png') {
-    let reportElement = document.getElementById("telehealthTable");
-
+    let reportElement = document.getElementById("telehealthTable"); 
+    
     function triggerDownload() {
         html2canvas(reportElement).then(canvas => {
             let link = document.createElement('a');
             let dataUrl, fileName;
-
+            
             if (format.toLowerCase() === 'jpg' || format.toLowerCase() === 'jpeg') {
                 dataUrl = canvas.toDataURL('image/jpeg', 0.9);
                 fileName = 'Telehealth_Report_Snapshot.jpg';
@@ -2275,6 +2217,7 @@ function downloadTelehealthImage(format = 'png') {
     if (window.html2canvas) {
         triggerDownload();
     } else {
+        // Auto-load html2canvas library if missing so it never errors out
         let script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
         script.onload = triggerDownload;
