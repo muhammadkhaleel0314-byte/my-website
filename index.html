@@ -2230,7 +2230,27 @@ function downloadTelehealthImage(format = 'png') {
         document.head.appendChild(script);
     }
 }
+// Add Branch Row Function
+function addBranchRow(branchName) {
+    let today = new Date().toISOString().slice(0, 10);
+    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
+    
+    // Unique key generate karne ke liye timestamp use karein
+    let uniqueKey = branchName.replace(/\s+/g, '_') + '_New_' + Date.now();
+    
+    reports[uniqueKey] = {
+        staff: "New Staff",
+        branch: branchName,
+        target: 0,
+        achievement: 0,
+        diffToday: 0,
+        totalDiff: 0
+    };
 
+    localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
+    loadTelehealthData();
+    if(typeof playSound === 'function') playSound();
+}
  </script>
 </body>
 </html>
