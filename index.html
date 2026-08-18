@@ -2056,26 +2056,27 @@ function loadTelehealthData() {
 
 // **Running Sum / Cumulative Total Difference Logic**
 function updateInlineRow(key) {
-    let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
+    let today = new Date().toISOString().slice(0, 10); // Daily key
+    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
+
     if(reports[key]) {
         let newStaff = document.getElementById(`staff_${key}`).value;
         let newBranch = document.getElementById(`branch_${key}`).value;
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
-        
-        // Aaj ka naya difference
+
+        // 1. Aaj ka naya difference
         let newDiffToday = newAchievement - newTarget;
-        
-        // Purana total difference jo pehle se stored tha
-        let currentTotalDiff = Number(reports[key].totalDiff) || 0;
-        
-        // Purana diffToday nikal kar current total se minus karein aur naya diffToday plus karein 
-        // taake purani value replace ho kar running sum theek bane
+
+        // 2. Purana data nikalain
         let oldTarget = Number(reports[key].target) || 0;
         let oldAchievement = Number(reports[key].achievement) || 0;
         let oldDiffToday = oldAchievement - oldTarget;
-        
-        // True Running Sum Formula: Purana Total - Purana Aaj ka Diff + Naya Aaj ka Diff
+        let currentTotalDiff = Number(reports[key].totalDiff) || 0;
+
+        // 3. NEW LOGIC: Running Balance
+        // Pehle purane aaj wale diff ko total se minus karo
+        // Phir naya aaj wala diff plus karo
         let updatedTotalDiff = currentTotalDiff - oldDiffToday + newDiffToday;
 
         reports[key].staff = newStaff;
@@ -2083,9 +2084,9 @@ function updateInlineRow(key) {
         reports[key].target = newTarget;
         reports[key].achievement = newAchievement;
         reports[key].diffToday = newDiffToday;
-        reports[key].totalDiff = updatedTotalDiff;
+        reports[key].totalDiff = updatedTotalDiff; // Yahi balance hai
 
-        localStorage.setItem('telehealthPersistentStore', JSON.stringify(reports));
+        localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
         loadTelehealthData();
     }
 }
