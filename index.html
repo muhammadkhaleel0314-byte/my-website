@@ -18,6 +18,7 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -2020,9 +2021,10 @@ function loadTelehealthData() {
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:4px; border-radius:4px;"></td>
                 <td style="padding: 8px; border: 1px solid #334155; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0 ? '+' + diffToday : diffToday}</td>
                 <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0 ? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0 ? '+' + totalDiff : totalDiff}</td>
-                <td style="padding: 8px; border: 1px solid #334155;">
-                    <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Update</button>
-                    <button onclick="deleteTelehealthRow('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 6px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:2px;">X</button>
+                <td style="padding: 8px; border: 1px solid #334155; white-space: nowrap;">
+                    <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold;">Update</button>
+                    <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold; margin-left:2px;" title="Add Row in this Branch">+</button>
+                    <button onclick="deleteTelehealthRow('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 6px; border-radius:4px; cursor:pointer; font-size:10px; margin-left:2px;">X</button>
                 </td>
             </tr>`;
             tbody.innerHTML += row;
@@ -2039,7 +2041,9 @@ function loadTelehealthData() {
             <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
             <td style="padding: 8px; border: 1px solid #475569; color: #38bdf8;">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
-            <td style="border: 1px solid #475569;"></td>
+            <td style="border: 1px solid #475569; text-align: center;">
+                <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:10px;" title="Add Row">+</button>
+            </td>
         </tr>`;
         tbody.innerHTML += branchSubTotalRow;
     }
@@ -2050,13 +2054,13 @@ function loadTelehealthData() {
     document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// **نئی Row ایڈ کرنے کا فنکشن**
-function addNewTelehealthRow() {
+// Specific Branch ke andar nayi row add karne ka function
+function addBranchRow(branchName) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     let newKey = 'row_' + Date.now();
     reports[newKey] = {
-        staff: "Staff Name",
-        branch: "Branch Name",
+        staff: "Staff",
+        branch: branchName,
         target: 10,
         achievement: 0,
         diffToday: -10,
@@ -2066,7 +2070,11 @@ function addNewTelehealthRow() {
     loadTelehealthData();
 }
 
-// **Row ڈیلیٹ کرنے کا فنکشن**
+// General Add Row Button Function
+function addNewTelehealthRow() {
+    addBranchRow("Dalelpur");
+}
+
 function deleteTelehealthRow(key) {
     let reports = JSON.parse(localStorage.getItem('telehealthPersistentStore')) || {};
     if(reports[key]) {
@@ -2106,6 +2114,7 @@ function updateInlineRow(key) {
     }
 }
 
+// Excel Upload Handler
 function handleExcelUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -2154,6 +2163,7 @@ function handleExcelUpload(event) {
     reader.readAsArrayBuffer(file);
 }
 
+// Excel Download Handler
 function downloadTelehealthExcel() {
     let table = document.getElementById("telehealthTable");
     let csv = [];
@@ -2174,7 +2184,7 @@ function downloadTelehealthExcel() {
     document.body.removeChild(downloadLink);
 }
 
-// **Table کو JPG یا PNG Image میں ڈاؤن لوڈ کرنے کا فنکشن**
+// Download Table as Image (Snapshot in PNG and JPG format)
 function downloadTelehealthImage(format = 'jpg') {
     let reportElement = document.getElementById("telehealthTable"); 
     if(window.html2canvas) {
