@@ -2067,14 +2067,15 @@ function updateInlineRow(key) {
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
         
-        // 1. Naya Diff Today
+        // 1. Naya Diff Today (Achievement - Target)
         let nayaDiffToday = newAchievement - newTarget;
         
         // 2. Purana Data
         let puranaDiffToday = Number(reports[key].diffToday) || 0;
         let puranaTotalDiff = Number(reports[key].totalDiff) || 0;
         
-        // 3. Formula: nayaTotalDiff = puranaTotalDiff - puranaDiffToday + nayaDiffToday
+        // 3. Updated Formula for Cumulative Total Difference (Handling +/- signs automatically)
+        // Purane total se purana diff hata kar naya diff properly signs ke sath add/subtract hoga
         let nayaTotalDiff = puranaTotalDiff - puranaDiffToday + nayaDiffToday;
 
         reports[key].staff = newStaff;
@@ -2089,7 +2090,6 @@ function updateInlineRow(key) {
         if(typeof playSound === 'function') playSound();
     }
 }
-
 // Specific Branch row addition
 function addBranchRow(branchName) {
     let today = new Date().toISOString().slice(0, 10);
