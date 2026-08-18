@@ -2171,18 +2171,40 @@ function downloadTelehealthExcel() {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
-
-// Image Download Feature (PNG & JPEG with auto html2canvas loader check)
+// Image Download Feature (PNG & JPEG without Action Column & Text Cut Fix)
 function downloadTelehealthImage(format = 'png') {
     let reportElement = document.getElementById("telehealthTable"); 
     
     function triggerDownload() {
-        html2canvas(reportElement).then(canvas => {
+        // Table ki original copy ya clone bana kar action column ko hide kar rahe hain taake image mein na aaye
+        let clonedTable = reportElement.cloneNode(true);
+        
+        // Har row se last column (Action column) remove kar rahe hain
+        let rows = clonedTable.querySelectorAll('tr');
+        rows.forEach(row => {
+            let lastCell = row.lastElementChild;
+            if (lastCell) lastCell.remove();
+        });
+
+        // Temporary container mein table rakh kar render karwana taake styling disturb na ho
+        let tempContainer = document.createElement('div');
+        tempContainer.style.background = '#0f172a'; // Theme matching background
+        tempContainer.style.padding = '20px';
+        tempContainer.style.borderRadius = '10px';
+        tempContainer.style.width = 'max-content';
+        tempContainer.appendChild(clonedTable);
+        document.body.appendChild(tempContainer);
+
+        html2canvas(tempContainer, {
+            scale: 2, // High resolution ke liye
+            useCORS: true,
+            backgroundColor: '#0f172a'
+        }).then(canvas => {
             let link = document.createElement('a');
             let dataUrl, fileName;
             
             if (format.toLowerCase() === 'jpg' || format.toLowerCase() === 'jpeg') {
-                dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                dataUrl = canvas.toDataURL('image/jpeg', 0.95);
                 fileName = 'Telehealth_Report_Snapshot.jpg';
             } else {
                 dataUrl = canvas.toDataURL('image/png');
@@ -2192,19 +2214,23 @@ function downloadTelehealthImage(format = 'png') {
             link.download = fileName;
             link.href = dataUrl;
             link.click();
+            
+            // Temporary container ko cleanup kar dena
+            document.body.removeChild(tempContainer);
         });
     }
 
     if (window.html2canvas) {
         triggerDownload();
     } else {
-        // Auto-load html2canvas library if missing so it never errors out
+        // Auto-load html2canvas library if missing
         let script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
         script.onload = triggerDownload;
         document.head.appendChild(script);
     }
 }
+
  </script>
 </body>
 </html>
