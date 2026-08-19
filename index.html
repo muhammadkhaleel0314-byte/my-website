@@ -2079,16 +2079,16 @@ function loadTelehealthData() {
             let totalActive = Number(item.totalActive) || 0;
             let target = Number(item.target) || 0;
             let achievement = Number(item.achievement) || 0;
-            
+
             // Logic: Achievement - Target
             let diffToday = achievement - target;
-            let totalDiff = Number(item.totalDiff || 0);
+            let totalDiff = diffToday; // FIX: Running nahi, sirf aaj ka farq
 
             branchTotalActive += totalActive;
             branchTarget += target;
             branchAchievement += achievement;
             branchDiffToday += diffToday;
-            branchTotalDiff += totalDiff;
+            branchTotalDiff += totalDiff; // ab ye bhi same hoga
 
            let row = `<tr>
                 <td style="padding: 8px; border: 1px solid #334155;">${index++}</td>
@@ -2097,8 +2097,8 @@ function loadTelehealthData() {
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="totalActive_${key}" value="${totalActive}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
                 <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0 ? '+' + diffToday : diffToday}</td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0 ? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0 ? '+' + totalDiff : totalDiff}</td>
+                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${diffToday >= 0? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0? '+' + diffToday : diffToday}</td>
+                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0? '+' + totalDiff : totalDiff}</td>
                 <td style="padding: 8px; border: 1px solid #334155; white-space: nowrap;">
                     <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold;">Update</button>
                     <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold; margin-left:2px;" title="Add Row">+</button>
@@ -2114,12 +2114,14 @@ function loadTelehealthData() {
         grandDiffToday += branchDiffToday;
         grandTotalDiff += branchTotalDiff;
 
-    	let branchSubTotalRow = `<tr style="background: rgba(51, 65, 85, 0.5); font-weight: bold; color: #f8fafc;">
+        // FIX: Branch Total Diff = Achievement - Target
+        let branchFinalDiff = branchAchievement - branchTarget;
+        let branchSubTotalRow = `<tr style="background: rgba(51, 65, 85, 0.5); font-weight: bold; color: #f8fafc;">
             <td colspan="4" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
-            <td style="padding: 8px; border: 1px solid #475569; color: ${branchTotalDiff >= 0 ? '#38bdf8' : '#ef4444'};">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0? '+' + branchDiffToday : branchDiffToday}</td>
+            <td style="padding: 8px; border: 1px solid #475569; color: ${branchFinalDiff >= 0? '#38bdf8' : '#ef4444'};">${branchFinalDiff >= 0? '+' + branchFinalDiff : branchFinalDiff}</td>
             <td style="border: 1px solid #475569; text-align: center;">
                 <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:10px;" title="Add Row">+</button>
             </td>
@@ -2127,14 +2129,17 @@ function loadTelehealthData() {
         tbody.innerHTML += branchSubTotalRow;
     }
 
+    // FIX: Grand Total Diff = GrandAchievement - GrandTarget
+    let grandFinalDiff = grandAchievement - grandTarget;
+
     if(document.getElementById('teleSumTotalActive')) document.getElementById('teleSumTotalActive').innerText = grandTotalActive;
     if(document.getElementById('teleSumTarget')) document.getElementById('teleSumTarget').innerText = grandTarget;
     if(document.getElementById('teleSumAchievement')) document.getElementById('teleSumAchievement').innerText = grandAchievement;
-    if(document.getElementById('teleSumDiffToday')) document.getElementById('teleSumDiffToday').innerText = grandDiffToday;
-    if(document.getElementById('teleSumTotalDiff')) document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
+    if(document.getElementById('teleSumDiffToday')) document.getElementById('teleSumDiffToday').innerText = grandDiffToday >= 0? '+' + grandDiffToday : grandDiffToday;
+    if(document.getElementById('teleSumTotalDiff')) document.getElementById('teleSumTotalDiff').innerText = grandFinalDiff >= 0? '+' + grandFinalDiff : grandFinalDiff;
 }
 
-// **Running Balance / Cumulative Total Difference Formula Logic**
+// **Update Row Logic - Fixed**
 function updateInlineRow(key) {
     let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
@@ -2146,8 +2151,7 @@ function updateInlineRow(key) {
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
 
         let nayaDiffToday = newAchievement - newTarget;
-        let puranaTotalDiff = Number(reports[key].totalDiff) || 0;
-        let nayaTotalDiff = puranaTotalDiff + nayaDiffToday;
+        let nayaTotalDiff = nayaDiffToday; // FIX: Running balance khatam
 
         reports[key].staff = newStaff;
         reports[key].branch = newBranch;
@@ -2199,9 +2203,9 @@ function handleExcelUpload(event) {
                     let target = parseFloat(row[3]) || 0;
                     let achievement = parseFloat(row[4]) || 0;
                     let diffToday = parseFloat(row[5]) || (achievement - target);
-                    let totalDiff = parseFloat(row[6]) || diffToday;
+                    let totalDiff = diffToday; // FIX
 
-                    if (staff && branch && branch.toLowerCase() !== 'branch') {
+                    if (staff && branch && branch.toLowerCase()!== 'branch') {
                         const uniqueKey = `${branch}_${staff}`.replace(/\s+/g, '_') + '_' + i;
                         reports[uniqueKey] = {
                             staff, branch, totalActive, target, achievement, diffToday, totalDiff
@@ -2229,7 +2233,7 @@ function downloadTelehealthExcel() {
     let csv = [];
     for (let i = 0; i < table.rows.length; i++) {
         let row = [], cols = table.rows[i].querySelectorAll("td, th");
-        for (let j = 0; j < cols.length - 1; j++) 
+        for (let j = 0; j < cols.length - 1; j++)
             row.push('"' + cols[j].innerText + '"');
         csv.push(row.join(","));
     }
@@ -2246,8 +2250,8 @@ function downloadTelehealthExcel() {
 
 // Image Download Feature
 function downloadTelehealthImage(format = 'png') {
-    let reportElement = document.getElementById("telehealthTable"); 
-    
+    let reportElement = document.getElementById("telehealthTable");
+
     function triggerDownload() {
         let clonedTable = reportElement.cloneNode(true);
         let rows = clonedTable.querySelectorAll('tr');
@@ -2271,7 +2275,7 @@ function downloadTelehealthImage(format = 'png') {
         }).then(canvas => {
             let link = document.createElement('a');
             let dataUrl, fileName;
-            
+
             if (format.toLowerCase() === 'jpg' || format.toLowerCase() === 'jpeg') {
                 dataUrl = canvas.toDataURL('image/jpeg', 0.95);
                 fileName = 'Telehealth_Report_Snapshot.jpg';
@@ -2301,7 +2305,7 @@ function downloadTelehealthImage(format = 'png') {
 function addBranchRow(branchName) {
     let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     let uniqueKey = branchName.replace(/\s+/g, '_') + '_New_' + Date.now();
-    
+
     reports[uniqueKey] = {
         staff: "New Staff",
         branch: branchName,
