@@ -2026,21 +2026,75 @@ function checkUserAccess(tabId, btnElement) {
     window.open(url, '_blank');
     if(typeof playSound === 'function') playSound();
   }	
+<style>
+    /* Card/Container ko full width aur screen par adjust karne ke liye */
+    .telehealth-container {
+        max-width: 98% !important;
+        width: 100% !important;
+        margin: 0 auto;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    #telehealthTable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+</style>
+
+<div class="telehealth-container" style="background: #0f172a; color: #f8fafc; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+    <h3 id="currentDateHeader" style="text-align: center; margin-bottom: 20px; color: #38bdf8;">Telehealth Target Vs Achievement Report</h3>
+    
+    <div style="overflow-x: auto;">
+        <table id="telehealthTable" style="width: 100%; text-align: left; border: 1px solid #334155;">
+            <thead>
+                <tr style="background: #1e293b; color: #38bdf8;">
+                    <th style="padding: 10px; border: 1px solid #334155;">Sr #</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Staff / Role</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Branch Name</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Total Active</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Target</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Achievement</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Difference Today</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Total Difference</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="teleTableBody">
+                <!-- Rows dynamically load hongi -->
+            </tbody>
+            <tfoot>
+                <tr style="background: #1e293b; font-weight: bold; color: #f8fafc;">
+                    <td colspan="3" style="padding: 10px; border: 1px solid #475569; text-align: right;">OVERALL GRAND TOTAL:</td>
+                    <td id="teleSumTotalActive" style="padding: 10px; border: 1px solid #475569;">0</td>
+                    <td id="teleSumTarget" style="padding: 10px; border: 1px solid #475569;">0</td>
+                    <td id="teleSumAchievement" style="padding: 10px; border: 1px solid #475569;">0</td>
+                    <td id="teleSumDiffToday" style="padding: 10px; border: 1px solid #475569;">0</td>
+                    <td id="teleSumTotalDiff" style="padding: 10px; border: 1px solid #475569;">0</td>
+                    <td style="border: 1px solid #475569;"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<script>
 document.addEventListener("DOMContentLoaded", function() {
     const today = new Date().toISOString().slice(0, 10);
     const dateHeader = document.getElementById('currentDateHeader');
-    if(dateHeader) dateHeader.innerText = "Till " + today;
+    if(dateHeader) dateHeader.innerText = "Telehealth Target Vs Achievement Report - Till " + today;
     loadTelehealthData();
 });
 
+// Permanent LocalStorage Key use ki hai taake data kabhi wipe na ho
+const STORAGE_KEY = 'telehealthStore_permanent';
+
 function loadTelehealthData() {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
+    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     let tbody = document.getElementById('teleTableBody');
     if(!tbody) return;
     tbody.innerHTML = "";
 
-    let grandTarget = 0, grandAchievement = 0, grandDiffToday = 0, grandTotalDiff = 0;
+    let grandTotalActive = 0, grandTarget = 0, grandAchievement = 0, grandDiffToday = 0, grandTotalDiff = 0;
     let index = 1;
 
     let branches = {};
@@ -2053,16 +2107,17 @@ function loadTelehealthData() {
 
     for (let branchName in branches) {
         let branchRows = branches[branchName];
-        let branchTarget = 0, branchAchievement = 0, branchDiffToday = 0, branchTotalDiff = 0;
+        let branchTotalActive = 0, branchTarget = 0, branchAchievement = 0, branchDiffToday = 0, branchTotalDiff = 0;
 
         branchRows.forEach(({ key, item }) => {
+            let totalActive = Number(item.totalActive) || 0;
             let target = Number(item.target) || 0;
             let achievement = Number(item.achievement) || 0;
             
-            // Logic: Achievement - Target
             let diffToday = achievement - target;
             let totalDiff = Number(item.totalDiff || 0);
 
+            branchTotalActive += totalActive;
             branchTarget += target;
             branchAchievement += achievement;
             branchDiffToday += diffToday;
@@ -2070,10 +2125,11 @@ function loadTelehealthData() {
 
            let row = `<tr>
                 <td style="padding: 8px; border: 1px solid #334155;">${index++}</td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="staff_${key}" value="${item.staff || 'Staff'}" style="width:150px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; padding:0 8px; border-radius:4px; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="branch_${key}" value="${item.branch}" style="width:130px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; padding:0 8px; border-radius:4px; font-weight: 600; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="staff_${key}" value="${item.staff || 'Staff'}" style="width:150px; height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; padding:0 8px; border-radius:4px;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="branch_${key}" value="${item.branch}" style="width:130px; height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; padding:0 8px; border-radius:4px; font-weight: 600;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="totalActive_${key}" value="${totalActive}" style="width:70px; height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; border-radius:4px;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:70px; height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; border-radius:4px;"></td>
+                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:70px; height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; border-radius:4px;"></td>
                 <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0 ? '+' + diffToday : diffToday}</td>
                 <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0 ? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0 ? '+' + totalDiff : totalDiff}</td>
                 <td style="padding: 8px; border: 1px solid #334155; white-space: nowrap;">
@@ -2085,6 +2141,7 @@ function loadTelehealthData() {
             tbody.innerHTML += row;
         });
 
+        grandTotalActive += branchTotalActive;
         grandTarget += branchTarget;
         grandAchievement += branchAchievement;
         grandDiffToday += branchDiffToday;
@@ -2092,6 +2149,7 @@ function loadTelehealthData() {
 
         let branchSubTotalRow = `<tr style="background: rgba(51, 65, 85, 0.5); font-weight: bold; color: #f8fafc;">
             <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
+            <td style="padding: 8px; border: 1px solid #475569;">${branchTotalActive}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
             <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
@@ -2103,482 +2161,65 @@ function loadTelehealthData() {
         tbody.innerHTML += branchSubTotalRow;
     }
 
+    document.getElementById('teleSumTotalActive').innerText = grandTotalActive;
     document.getElementById('teleSumTarget').innerText = grandTarget;
     document.getElementById('teleSumAchievement').innerText = grandAchievement;
     document.getElementById('teleSumDiffToday').innerText = grandDiffToday;
     document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
 }
 
-// **Running Balance / Cumulative Total Difference Formula Logic**
 function updateInlineRow(key) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
+    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
     if(reports[key]) {
         let newStaff = document.getElementById(`staff_${key}`).value;
         let newBranch = document.getElementById(`branch_${key}`).value;
+        let newTotalActive = parseFloat(document.getElementById(`totalActive_${key}`).value) || 0;
         let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
         let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
 
-        // 1. Naya Diff Today
         let nayaDiffToday = newAchievement - newTarget;
-
-        // 2. Purana TotalDiff نکالیں
         let puranaTotalDiff = Number(reports[key].totalDiff) || 0;
-
-        // 3. **نیا لاجک: Running Sum**
-        // نیا TotalDiff = پرانا TotalDiff + آج کا نیا Diff
         let nayaTotalDiff = puranaTotalDiff + nayaDiffToday;
 
         reports[key].staff = newStaff;
         reports[key].branch = newBranch;
+        reports[key].totalActive = newTotalActive;
         reports[key].target = newTarget;
         reports[key].achievement = newAchievement;
-        reports[key].diffToday = nayaDiffToday; // Display کے لیے
-        reports[key].totalDiff = nayaTotalDiff; // Cumulative کے لیے
+        reports[key].diffToday = nayaDiffToday;
+        reports[key].totalDiff = nayaTotalDiff;
 
-        localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
         loadTelehealthData();
         if(typeof playSound === 'function') playSound();
     }
 }
 
-// Delete Row function
 function deleteTelehealthRow(key) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
+    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     if(reports[key]) {
         delete reports[key];
-        localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
         loadTelehealthData();
     }
 }
 
-// Excel Upload Handler
-function handleExcelUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-            let today = new Date().toISOString().slice(0, 10);
-            let reports = {};
-            let importedCount = 0;
-
-            for (let i = 1; i < jsonRows.length; i++) {
-                let row = jsonRows[i];
-                if (row.length >= 6) {
-                    let staff = String(row[0] || "").trim();
-                    let branch = String(row[1] || "").trim();
-                    let target = parseFloat(row[2]) || 0;
-                    let achievement = parseFloat(row[3]) || 0;
-                    let diffToday = parseFloat(row[4]) || (achievement - target);
-                    let totalDiff = parseFloat(row[5]) || diffToday;
-
-                    if (staff && branch && branch.toLowerCase() !== 'branch') {
-                        const uniqueKey = `${branch}_${staff}`.replace(/\s+/g, '_') + '_' + i;
-                        reports[uniqueKey] = {
-                            staff, branch, target, achievement, diffToday, totalDiff
-                        };
-                        importedCount++;
-                    }
-                }
-            }
-
-            localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
-            loadTelehealthData();
-            alert(`Excel file successfully loaded! ${importedCount} rows imported.`);
-            document.getElementById('excelUploadInput').value = "";
-        } catch (error) {
-            console.error(error);
-            alert("Error reading Excel file format.");
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-// Excel Download Handler
-function downloadTelehealthExcel() {
-    let table = document.getElementById("telehealthTable");
-    let csv = [];
-    for (let i = 0; i < table.rows.length; i++) {
-        let row = [], cols = table.rows[i].querySelectorAll("td, th");
-        for (let j = 0; j < cols.length - 1; j++) 
-            row.push('"' + cols[j].innerText + '"');
-        csv.push(row.join(","));
-    }
-
-    let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-    let downloadLink = document.createElement("a");
-    downloadLink.download = "Telehealth_Progress_Report.csv";
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-}
-// Image Download Feature (PNG & JPEG without Action Column & Text Cut Fix)
-function downloadTelehealthImage(format = 'png') {
-    let reportElement = document.getElementById("telehealthTable"); 
-    
-    function triggerDownload() {
-        // Table ki original copy ya clone bana kar action column ko hide kar rahe hain taake image mein na aaye
-        let clonedTable = reportElement.cloneNode(true);
-        
-        // Har row se last column (Action column) remove kar rahe hain
-        let rows = clonedTable.querySelectorAll('tr');
-        rows.forEach(row => {
-            let lastCell = row.lastElementChild;
-            if (lastCell) lastCell.remove();
-        });
-
-        // Temporary container mein table rakh kar render karwana taake styling disturb na ho
-        let tempContainer = document.createElement('div');
-        tempContainer.style.background = '#0f172a'; // Theme matching background
-        tempContainer.style.padding = '20px';
-        tempContainer.style.borderRadius = '10px';
-        tempContainer.style.width = 'max-content';
-        tempContainer.appendChild(clonedTable);
-        document.body.appendChild(tempContainer);
-
-        html2canvas(tempContainer, {
-            scale: 2, // High resolution ke liye
-            useCORS: true,
-            backgroundColor: '#0f172a'
-        }).then(canvas => {
-            let link = document.createElement('a');
-            let dataUrl, fileName;
-            
-            if (format.toLowerCase() === 'jpg' || format.toLowerCase() === 'jpeg') {
-                dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-                fileName = 'Telehealth_Report_Snapshot.jpg';
-            } else {
-                dataUrl = canvas.toDataURL('image/png');
-                fileName = 'Telehealth_Report_Snapshot.png';
-            }
-
-            link.download = fileName;
-            link.href = dataUrl;
-            link.click();
-            
-            // Temporary container ko cleanup kar dena
-            document.body.removeChild(tempContainer);
-        });
-    }
-
-    if (window.html2canvas) {
-        triggerDownload();
-    } else {
-        // Auto-load html2canvas library if missing
-        let script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        script.onload = triggerDownload;
-        document.head.appendChild(script);
-    }
-}
-// Add Branch Row Function
 function addBranchRow(branchName) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-    
-    // Unique key generate karne ke liye timestamp use karein
+    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     let uniqueKey = branchName.replace(/\s+/g, '_') + '_New_' + Date.now();
     
     reports[uniqueKey] = {
         staff: "New Staff",
         branch: branchName,
+        totalActive: 0,
         target: 0,
         achievement: 0,
         diffToday: 0,
         totalDiff: 0
     };
 
-    localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
-    loadTelehealthData();
-    if(typeof playSound === 'function') playSound();
-}
-			document.addEventListener("DOMContentLoaded", function() {
-    const today = new Date().toISOString().slice(0, 10);
-    const dateHeader = document.getElementById('currentDateHeader');
-    if(dateHeader) dateHeader.innerText = "Till " + today;
-    loadTelehealthData();
-});
-
-function loadTelehealthData() {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-    let tbody = document.getElementById('teleTableBody');
-    if(!tbody) return;
-    tbody.innerHTML = "";
-
-    let grandTarget = 0, grandAchievement = 0, grandDiffToday = 0, grandTotalDiff = 0;
-    let index = 1;
-
-    let branches = {};
-    for (let key in reports) {
-        let item = reports[key];
-        let branchName = item.branch || "Other";
-        if(!branches[branchName]) branches[branchName] = [];
-        branches[branchName].push({ key, item });
-    }
-
-    for (let branchName in branches) {
-        let branchRows = branches[branchName];
-        let branchTarget = 0, branchAchievement = 0, branchDiffToday = 0, branchTotalDiff = 0;
-
-        branchRows.forEach(({ key, item }) => {
-            let target = Number(item.target) || 0;
-            let achievement = Number(item.achievement) || 0;
-            
-            // Logic: Achievement - Target
-            let diffToday = achievement - target;
-            let totalDiff = Number(item.totalDiff || 0);
-
-            branchTarget += target;
-            branchAchievement += achievement;
-            branchDiffToday += diffToday;
-            branchTotalDiff += totalDiff;
-
-           let row = `<tr>
-                <td style="padding: 8px; border: 1px solid #334155;">${index++}</td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="staff_${key}" value="${item.staff || 'Staff'}" style="width:150px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; padding:0 8px; border-radius:4px; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="text" id="branch_${key}" value="${item.branch}" style="width:130px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; padding:0 8px; border-radius:4px; font-weight: 600; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="target_${key}" value="${target}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155;"><input type="number" id="achievement_${key}" value="${achievement}" style="width:60px; height:32px; line-height:32px; box-sizing: border-box; background:#0f172a; color:#fff; border:1px solid #475569; text-align:center; padding:0; border-radius:4px; vertical-align:middle;"></td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${diffToday >= 0 ? '#38bdf8' : '#ef4444'};" id="diffToday_disp_${key}">${diffToday >= 0 ? '+' + diffToday : diffToday}</td>
-                <td style="padding: 8px; border: 1px solid #334155; font-weight: bold; color: ${totalDiff >= 0 ? '#38bdf8' : '#ef4444'};" id="totalDiff_${key}">${totalDiff >= 0 ? '+' + totalDiff : totalDiff}</td>
-                <td style="padding: 8px; border: 1px solid #334155; white-space: nowrap;">
-                    <button onclick="updateInlineRow('${key}')" style="background:#10b981; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold;">Update</button>
-                    <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:5px 7px; border-radius:4px; cursor:pointer; font-size:10px; font-weight:bold; margin-left:2px;" title="Add Row">+</button>
-                    <button onclick="deleteTelehealthRow('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 6px; border-radius:4px; cursor:pointer; font-size:10px; margin-left:2px;">X</button>
-                </td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
-
-        grandTarget += branchTarget;
-        grandAchievement += branchAchievement;
-        grandDiffToday += branchDiffToday;
-        grandTotalDiff += branchTotalDiff;
-
-        let branchSubTotalRow = `<tr style="background: rgba(51, 65, 85, 0.5); font-weight: bold; color: #f8fafc;">
-            <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
-            <td style="padding: 8px; border: 1px solid #475569; color: ${branchTotalDiff >= 0 ? '#38bdf8' : '#ef4444'};">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
-            <td style="border: 1px solid #475569; text-align: center;">
-                <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:10px;" title="Add Row">+</button>
-            </td>
-        </tr>`;
-        tbody.innerHTML += branchSubTotalRow;
-    }
-
-    document.getElementById('teleSumTarget').innerText = grandTarget;
-    document.getElementById('teleSumAchievement').innerText = grandAchievement;
-    document.getElementById('teleSumDiffToday').innerText = grandDiffToday;
-    document.getElementById('teleSumTotalDiff').innerText = grandTotalDiff;
-}
-
-// **Running Balance / Cumulative Total Difference Formula Logic**
-function updateInlineRow(key) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-
-    if(reports[key]) {
-        let newStaff = document.getElementById(`staff_${key}`).value;
-        let newBranch = document.getElementById(`branch_${key}`).value;
-        let newTarget = parseFloat(document.getElementById(`target_${key}`).value) || 0;
-        let newAchievement = parseFloat(document.getElementById(`achievement_${key}`).value) || 0;
-
-        // 1. Naya Diff Today
-        let nayaDiffToday = newAchievement - newTarget;
-
-        // 2. Purana TotalDiff نکالیں
-        let puranaTotalDiff = Number(reports[key].totalDiff) || 0;
-
-        // 3. **نیا لاجک: Running Sum**
-        // نیا TotalDiff = پرانا TotalDiff + آج کا نیا Diff
-        let nayaTotalDiff = puranaTotalDiff + nayaDiffToday;
-
-        reports[key].staff = newStaff;
-        reports[key].branch = newBranch;
-        reports[key].target = newTarget;
-        reports[key].achievement = newAchievement;
-        reports[key].diffToday = nayaDiffToday; // Display کے لیے
-        reports[key].totalDiff = nayaTotalDiff; // Cumulative کے لیے
-
-        localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
-        loadTelehealthData();
-        if(typeof playSound === 'function') playSound();
-    }
-}
-
-// Delete Row function
-function deleteTelehealthRow(key) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-    if(reports[key]) {
-        delete reports[key];
-        localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
-        loadTelehealthData();
-    }
-}
-
-// Excel Upload Handler
-function handleExcelUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-            let today = new Date().toISOString().slice(0, 10);
-            let reports = {};
-            let importedCount = 0;
-
-            for (let i = 1; i < jsonRows.length; i++) {
-                let row = jsonRows[i];
-                if (row.length >= 6) {
-                    let staff = String(row[0] || "").trim();
-                    let branch = String(row[1] || "").trim();
-                    let target = parseFloat(row[2]) || 0;
-                    let achievement = parseFloat(row[3]) || 0;
-                    let diffToday = parseFloat(row[4]) || (achievement - target);
-                    let totalDiff = parseFloat(row[5]) || diffToday;
-
-                    if (staff && branch && branch.toLowerCase() !== 'branch') {
-                        const uniqueKey = `${branch}_${staff}`.replace(/\s+/g, '_') + '_' + i;
-                        reports[uniqueKey] = {
-                            staff, branch, target, achievement, diffToday, totalDiff
-                        };
-                        importedCount++;
-                    }
-                }
-            }
-
-            localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
-            loadTelehealthData();
-            alert(`Excel file successfully loaded! ${importedCount} rows imported.`);
-            document.getElementById('excelUploadInput').value = "";
-        } catch (error) {
-            console.error(error);
-            alert("Error reading Excel file format.");
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-// Excel Download Handler
-function downloadTelehealthExcel() {
-    let table = document.getElementById("telehealthTable");
-    let csv = [];
-    for (let i = 0; i < table.rows.length; i++) {
-        let row = [], cols = table.rows[i].querySelectorAll("td, th");
-        for (let j = 0; j < cols.length - 1; j++) 
-            row.push('"' + cols[j].innerText + '"');
-        csv.push(row.join(","));
-    }
-
-    let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-    let downloadLink = document.createElement("a");
-    downloadLink.download = "Telehealth_Progress_Report.csv";
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-}
-// Image Download Feature (PNG & JPEG without Action Column & Text Cut Fix)
-function downloadTelehealthImage(format = 'png') {
-    let reportElement = document.getElementById("telehealthTable"); 
-    
-    function triggerDownload() {
-        // Table ki original copy ya clone bana kar action column ko hide kar rahe hain taake image mein na aaye
-        let clonedTable = reportElement.cloneNode(true);
-        
-        // Har row se last column (Action column) remove kar rahe hain
-        let rows = clonedTable.querySelectorAll('tr');
-        rows.forEach(row => {
-            let lastCell = row.lastElementChild;
-            if (lastCell) lastCell.remove();
-        });
-
-        // Temporary container mein table rakh kar render karwana taake styling disturb na ho
-        let tempContainer = document.createElement('div');
-        tempContainer.style.background = '#0f172a'; // Theme matching background
-        tempContainer.style.padding = '20px';
-        tempContainer.style.borderRadius = '10px';
-        tempContainer.style.width = 'max-content';
-        tempContainer.appendChild(clonedTable);
-        document.body.appendChild(tempContainer);
-
-        html2canvas(tempContainer, {
-            scale: 2, // High resolution ke liye
-            useCORS: true,
-            backgroundColor: '#0f172a'
-        }).then(canvas => {
-            let link = document.createElement('a');
-            let dataUrl, fileName;
-            
-            if (format.toLowerCase() === 'jpg' || format.toLowerCase() === 'jpeg') {
-                dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-                fileName = 'Telehealth_Report_Snapshot.jpg';
-            } else {
-                dataUrl = canvas.toDataURL('image/png');
-                fileName = 'Telehealth_Report_Snapshot.png';
-            }
-
-            link.download = fileName;
-            link.href = dataUrl;
-            link.click();
-            
-            // Temporary container ko cleanup kar dena
-            document.body.removeChild(tempContainer);
-        });
-    }
-
-    if (window.html2canvas) {
-        triggerDownload();
-    } else {
-        // Auto-load html2canvas library if missing
-        let script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        script.onload = triggerDownload;
-        document.head.appendChild(script);
-    }
-}
-// Add Branch Row Function
-function addBranchRow(branchName) {
-    let today = new Date().toISOString().slice(0, 10);
-    let reports = JSON.parse(localStorage.getItem('telehealthStore_' + today)) || {};
-    
-    // Unique key generate karne ke liye timestamp use karein
-    let uniqueKey = branchName.replace(/\s+/g, '_') + '_New_' + Date.now();
-    
-    reports[uniqueKey] = {
-        staff: "New Staff",
-        branch: branchName,
-        target: 0,
-        achievement: 0,
-        diffToday: 0,
-        totalDiff: 0
-    };
-
-    localStorage.setItem('telehealthStore_' + today, JSON.stringify(reports));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
     loadTelehealthData();
     if(typeof playSound === 'function') playSound();
 }
