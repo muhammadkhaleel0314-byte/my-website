@@ -650,110 +650,441 @@
 </div>
 		<!-- Telehealth Report Tab -->
 <div id="telehealth-tab" class="tab-content">
+
     <div class="card" style="text-align: left; max-width: 100%; width: 100%;">
-        <h3 style="text-align: center; color: var(--primary); margin-bottom: 5px;">Telehealth Target Vs Achievement Report</h3>
-        <p id="currentDateHeader" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;"></p>
 
-        <!-- Excel Upload Section -->
-        <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center;">
-            <label style="font-size: 12px; color: var(--primary); font-weight: bold; display: block; margin-bottom: 6px;">📂 Upload Excel File (Format Set karne ke liye)</label>
-            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" style="font-size: 11px; color: #fff;">
+        <!-- Title -->
+        <h3 style="
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 5px;
+        ">
+            Telehealth Target Vs Achievement Report
+        </h3>
+
+        <!-- Date -->
+        <p id="currentDateHeader" style="
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        "></p>
+
+
+        <!-- ==============================
+             EXCEL UPLOAD
+        =============================== -->
+
+        <div style="
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px dashed var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+        ">
+
+            <label style="
+                font-size: 12px;
+                color: var(--primary);
+                font-weight: bold;
+                display: block;
+                margin-bottom: 6px;
+            ">
+                📂 Upload Excel File
+            </label>
+
+            <input
+                type="file"
+                id="excelUploadInput"
+                accept=".xlsx, .xls, .csv"
+                onchange="handleExcelUpload(event)"
+                style="
+                    font-size: 11px;
+                    color: #fff;
+                "
+            >
+
         </div>
 
-        <!-- Action Buttons Section (Excel, Add Row, Download Images) -->
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 20px;">
-            <button class="action-btn" style="background: #2563eb; width: auto; padding: 10px 15px; margin-top: 0;" onclick="downloadTelehealthExcel()">📥 Download Excel (CSV)</button>
-            <button class="action-btn" style="background: #10b981; width: auto; padding: 10px 15px; margin-top: 0;" onclick="addNewTelehealthRow()">➕ Add New Row</button>
-            <button class="action-btn" style="background: #8b5cf6; width: auto; padding: 10px 15px; margin-top: 0;" onclick="downloadTelehealthImage('png')">🖼️ Download PNG</button>
-            <button class="action-btn" style="background: #ec4899; width: auto; padding: 10px 15px; margin-top: 0;" onclick="downloadTelehealthImage('jpg')">📷 Download JPEG</button>
+
+        <!-- ==============================
+             ACTION BUTTONS
+        =============================== -->
+
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        ">
+
+            <!-- Download Excel -->
+            <button
+                class="action-btn"
+                style="
+                    background: #2563eb;
+                    width: auto;
+                    padding: 10px 15px;
+                    margin-top: 0;
+                "
+                onclick="downloadTelehealthExcel()"
+            >
+                📥 Download Excel (CSV)
+            </button>
+
+
+            <!-- Add New Row -->
+            <button
+                class="action-btn"
+                style="
+                    background: #10b981;
+                    width: auto;
+                    padding: 10px 15px;
+                    margin-top: 0;
+                "
+                onclick="addNewTelehealthRow()"
+            >
+                ➕ Add New Row
+            </button>
+
+
+            <!-- PNG -->
+            <button
+                class="action-btn"
+                style="
+                    background: #8b5cf6;
+                    width: auto;
+                    padding: 10px 15px;
+                    margin-top: 0;
+                "
+                onclick="downloadTelehealthImage('png')"
+            >
+                🖼️ Download PNG
+            </button>
+
+
+            <!-- JPEG -->
+            <button
+                class="action-btn"
+                style="
+                    background: #ec4899;
+                    width: auto;
+                    padding: 10px 15px;
+                    margin-top: 0;
+                "
+                onclick="downloadTelehealthImage('jpg')"
+            >
+                📷 Download JPEG
+            </button>
+
         </div>
 
-        <!-- Report Table Container -->
-        <div style="width: 100%; overflow-x: auto;">
-            <table id="telehealthTable" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; white-space: nowrap;">
+
+        <!-- ==============================
+             RESET COLUMN
+        =============================== -->
+
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 10px;
+            border: 1px solid #334155;
+        ">
+
+            <select
+                id="teleResetColumn"
+                style="
+                    background: #0f172a;
+                    color: #fff;
+                    border: 1px solid #475569;
+                    padding: 9px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    min-width: 190px;
+                "
+            >
+
+                <option value="">
+                    Select Column to Reset
+                </option>
+
+                <option value="totalActive">
+                    Total Active
+                </option>
+
+                <option value="target">
+                    Target
+                </option>
+
+                <option value="achievement">
+                    Achievement
+                </option>
+
+                <option value="totalDiff">
+                    Total Difference
+                </option>
+
+                <option value="all">
+                    Reset All Data
+                </option>
+
+            </select>
+
+
+            <button
+                onclick="resetTelehealthColumn()"
+                style="
+                    background: #ef4444;
+                    color: white;
+                    border: none;
+                    padding: 9px 15px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    font-size: 12px;
+                "
+            >
+                🔄 Reset Selected Column
+            </button>
+
+        </div>
+
+
+        <!-- ==============================
+             REPORT TABLE
+        =============================== -->
+
+        <div style="
+            width: 100%;
+            overflow-x: auto;
+        ">
+
+            <table
+                id="telehealthTable"
+                style="
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 12px;
+                    text-align: center;
+                    white-space: nowrap;
+                "
+            >
+
+                <!-- TABLE HEADER -->
+
                 <thead>
-                    <tr style="background: #334155; color: white;">
-                        <th style="padding: 10px; border: 1px solid #475569;">Sr #</th>
-                        <th style="padding: 10px; border: 1px solid #475569; text-align: left;">Staff / Role</th>
-                        <th style="padding: 10px; border: 1px solid #475569; text-align: left;">Branch Name</th>
-						<th style="padding: 10px; border: 1px solid #475569;">Total Active</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Target</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Achievement</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Difference Today</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Total Difference</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Action</th>
+
+                    <tr style="
+                        background: #334155;
+                        color: white;
+                    ">
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Sr #
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                            text-align: left;
+                        ">
+                            Staff / Role
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                            text-align: left;
+                        ">
+                            Branch Name
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Total Active
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Target
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Achievement
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Difference Today
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Total Difference
+                        </th>
+
+                        <th style="
+                            padding: 10px;
+                            border: 1px solid #475569;
+                        ">
+                            Action
+                        </th>
+
                     </tr>
+
                 </thead>
-                <tbody id="teleTableBody" style="background: rgba(15, 23, 42, 0.4);">
-                    <!-- Rows will load dynamically -->
+
+
+                <!-- TABLE BODY -->
+
+                <tbody
+                    id="teleTableBody"
+                    style="
+                        background: rgba(15, 23, 42, 0.4);
+                    "
+                >
+
+                    <!-- JavaScript rows will load here -->
+
                 </tbody>
-                <tfoot style="font-weight: bold; background: #1e293b; color: #38bdf8; font-size: 13 px;">
-    <tr>
-        <td colspan="3" style="padding: 12px; border: 1px solid #475569; text-align: right;">OVERALL GRAND TOTAL:</td>
-        <td id="teleSumTotalActive" style="padding: 12px; border: 1px solid #475569;">0</td>
-        <td id="teleSumTarget" style="padding: 12px; border: 1px solid #475569;">0</td>
-        <td id="teleSumAchievement" style="padding: 12px; border: 1px solid #475569;">0</td>
-        <td id="teleSumDiffToday" style="padding: 12px; border: 1px solid #475569;">0</td>
-        <td id="teleSumTotalDiff" style="padding: 12px; border: 1px solid #475569;">0</td>
-        <td style="border: 1px solid #475569;"></td>
-    </tr>
-</tfoot>
-            </table>
-        </div>
-    </div>
-</div>
-		  <!-- Telehealth Report Tab -->
-<div id="telehealth-tab" class="tab-content">
-    <div class="card" style="text-align: left; max-width: 100%; width: 100%;">
-        <h3 style="text-align: center; color: var(--primary); margin-bottom: 5px;">Telehealth Target Vs Achievement Report</h3>
-        <p id="currentDateHeader" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;"></p>
 
-        <!-- Excel Upload Section -->
-        <div style="background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center;">
-            <label style="font-size: 12px; color: var(--primary); font-weight: bold; display: block; margin-bottom: 6px;">📂 Upload Excel File (Format Set karne ke liye)</label>
-            <input type="file" id="excelUploadInput" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" style="font-size: 11px; color: #fff;">
-        </div>
 
-        <!-- Action Buttons Section (Excel, Add Row, Download Images) -->
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 20px;">
-            <button class="action-btn" style="background: #2563eb; width: auto; padding: 10px 15px; margin-top: 0;" onclick="downloadTelehealthExcel()">📥 Download Excel (CSV)</button>
-            <button class="action-btn" style="background: #10b981; width: auto; padding: 10px 15px; margin-top: 0;" onclick="addNewTelehealthRow()">➕ Add New Row</button>
-            <button class="action-btn" style="background: #8b5cf6; width: auto; padding: 10px 15px; margin-top: 0;" onclick="downloadTelehealthImage('png')">🖼️ Download PNG</button>
-            <button class="action-btn" style="background: #ec4899; width: auto; padding: 10px 15px; margin-top: 0;" onclick="downloadTelehealthImage('jpg')">📷 Download JPEG</button>
-        </div>
+                <!-- ==============================
+                     OVERALL GRAND TOTAL
+                =============================== -->
 
-        <!-- Report Table Container -->
-        <div style="width: 100%; overflow-x: auto;">
-            <table id="telehealthTable" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; white-space: nowrap;">
-                <thead>
-                    <tr style="background: #334155; color: white;">
-                        <th style="padding: 10px; border: 1px solid #475569;">Sr #</th>
-                        <th style="padding: 10px; border: 1px solid #475569; text-align: left;">Staff / Role</th>
-                        <th style="padding: 10px; border: 1px solid #475569; text-align: left;">Branch Name</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Target</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Achievement</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Difference Today</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Total Difference</th>
-                        <th style="padding: 10px; border: 1px solid #475569;">Action</th>
+                <tfoot style="
+                    font-weight: bold;
+                    background: #1e293b;
+                    color: #38bdf8;
+                    font-size: 13px;
+                ">
+
+                    <tr>
+
+                        <!--
+                            2 columns only
+                            پہلے Sr # اور Staff/Role
+                        -->
+
+                        <td
+                            colspan="2"
+                            style="
+                                padding: 12px;
+                                border: 1px solid #475569;
+                                text-align: right;
+                            "
+                        >
+                            OVERALL GRAND TOTAL:
+                        </td>
+
+
+                        <!-- Total Active -->
+
+                        <td
+                            id="teleSumTotalActive"
+                            style="
+                                padding: 12px;
+                                border: 1px solid #475569;
+                            "
+                        >
+                            0
+                        </td>
+
+
+                        <!-- Target -->
+
+                        <td
+                            id="teleSumTarget"
+                            style="
+                                padding: 12px;
+                                border: 1px solid #475569;
+                            "
+                        >
+                            0
+                        </td>
+
+
+                        <!-- Achievement -->
+
+                        <td
+                            id="teleSumAchievement"
+                            style="
+                                padding: 12px;
+                                border: 1px solid #475569;
+                            "
+                        >
+                            0
+                        </td>
+
+
+                        <!-- Difference Today -->
+
+                        <td
+                            id="teleSumDiffToday"
+                            style="
+                                padding: 12px;
+                                border: 1px solid #475569;
+                            "
+                        >
+                            0
+                        </td>
+
+
+                        <!-- Total Difference -->
+
+                        <td
+                            id="teleSumTotalDiff"
+                            style="
+                                padding: 12px;
+                                border: 1px solid #475569;
+                            "
+                        >
+                            0
+                        </td>
+
+
+                        <!-- Action / Empty -->
+
+                        <td style="
+                            border: 1px solid #475569;
+                        ">
+                        </td>
+
                     </tr>
-                </thead>
-                <tbody id="teleTableBody" style="background: rgba(15, 23, 42, 0.4);">
-                    <!-- Rows will load dynamically -->
-                </tbody>
-                <tfoot>
-                    <tr style="font-weight: bold; background: #1e293b; color: #38bdf8; font-size: 13px;">
-                        <td colspan="3" style="padding: 12px; border: 1px solid #475569; text-align: right;">OVERALL GRAND TOTAL:</td>
-                        <td id="teleSumTarget" style="padding: 12px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumAchievement" style="padding: 12px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumDiffToday" style="padding: 12px; border: 1px solid #475569;">0</td>
-                        <td id="teleSumTotalDiff" style="padding: 12px; border: 1px solid #475569;">0</td>
-                        <td style="border: 1px solid #475569;"></td>
-                    </tr>
+
                 </tfoot>
+
             </table>
+
         </div>
+
     </div>
+
 </div>
+		  
 		<script>
     const FIXED_FIRST_12 = "421011234567";
 
@@ -2042,7 +2373,6 @@ function checkUserAccess(tabId, btnElement) {
     
     window.open(url, '_blank');
     if(typeof playSound === 'function') playSound();
-  }	
 document.addEventListener("DOMContentLoaded", function() {
     const today = new Date().toISOString().slice(0, 10);
     const dateHeader = document.getElementById('currentDateHeader');
