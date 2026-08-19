@@ -2107,16 +2107,16 @@ function loadTelehealthData() {
         grandTotalDiff += branchTotalDiff;
 
         let branchSubTotalRow = `<tr style="background: rgba(51, 65, 85, 0.5); font-weight: bold; color: #f8fafc;">
-            <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchTotalActive}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
-            <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
-            <td style="padding: 8px; border: 1px solid #475569; color: ${branchTotalDiff >= 0 ? '#38bdf8' : '#ef4444'};">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
-            <td style="border: 1px solid #475569; text-align: center;">
-                <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:10px;" title="Add Row">+</button>
-            </td>
-        </tr>`;
+        <td colspan="3" style="padding: 8px; border: 1px solid #475569; text-align: right;">${branchName} Branch Total:</td>
+        <td style="padding: 8px; border: 1px solid #475569;">${branchTotalActive}</td>
+        <td style="padding: 8px; border: 1px solid #475569;">${branchTarget}</td>
+        <td style="padding: 8px; border: 1px solid #475569;">${branchAchievement}</td>
+        <td style="padding: 8px; border: 1px solid #475569;">${branchDiffToday >= 0 ? '+' + branchDiffToday : branchDiffToday}</td>
+        <td style="padding: 8px; border: 1px solid #475569; color: ${branchTotalDiff >= 0 ? '#38bdf8' : '#ef4444'};">${branchTotalDiff >= 0 ? '+' + branchTotalDiff : branchTotalDiff}</td>
+        <td style="border: 1px solid #475569; text-align: center;">
+            <button onclick="addBranchRow('${branchName}')" style="background:#3b82f6; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:10px;" title="Add Row">+</button>
+        </td>
+    </tr>`;
         tbody.innerHTML += branchSubTotalRow;
     }
 
