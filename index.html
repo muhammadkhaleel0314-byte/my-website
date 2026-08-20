@@ -455,7 +455,7 @@
       </a>
 
       <!-- Apni Chhat Mahfooz Chhat Card -->
-<a href="javascript:void(0);" onclick="verifyPortalAccess('https://script.google.com/macros/s/AKfycbweIshDRuwexAvy5UagafZ5W5yHp6Us-baDpHRcy7DDpSOmqlLt8HDCw10SEPku_dZFDw/exec', 'Apni Chhat Mahfooz Chhat')" class="u-card card-9">
+<a href="javascript:void(0);" onclick="verifyPortalAccess('https://script.google.com/macros/s/AKfycbzAf-VFJ5sGlMfE0HfO015_JpqzXkOuwl8H2F_HKC6KZJHngM3M1fRWNupWSHgodDXSoA/exec', 'Apni Chhat Mahfooz Chhat')" class="u-card card-9">
   <div>
     <div class="u-top">
       <div class="u-icon">✨</div>
@@ -701,7 +701,7 @@
 <tbody id="nanoTableBody" style="background:rgba(15,23,42,.4);"></tbody>
 <tfoot style="font-weight:bold;background:#1e293b;color:#38bdf8;font-size:13px;">
 <tr>
-<td colspan="3" style="padding:12px;border:1px solid #475569;text-align:right;">OVERALL GRAND TOTAL:</td>
+<td colspan="4" style="padding:12px;border:1px solid #475569;text-align:right;">OVERALL GRAND TOTAL:</td>
 <td id="nanoSumCloseLoan" style="padding:12px;border:1px solid #475569;">0</td>
 <td id="nanoSumTotalActive" style="padding:12px;border:1px solid #475569;">0</td>
 <td id="nanoSumTotalTarget" style="padding:12px;border:1px solid #475569;">0</td>
@@ -906,64 +906,138 @@
         const file = event.target.files[0];
         if (!file) return;
 
-        if(!GOOGLE_API_KEY){ alert("Key نہیں ملی۔ Page refresh کریں"); return; }
-
         const statusEl = document.getElementById('ocr-status');
         const previewEl = document.getElementById('cnic-preview');
+        const qrBox = document.getElementById('qrcode-box');
 
-        previewEl.src = URL.createObjectURL(file);
-        previewEl.style.display = 'block';
-        statusEl.innerText = "Status: Please Wait Just A Second ";
+        // Clear old QR/result immediately.
+        if (qrBox) qrBox.innerHTML = '';
+        if (previewEl) {
+            previewEl.src = URL.createObjectURL(file);
+            previewEl.style.display = 'block';
+        }
+
+        if (!GOOGLE_API_KEY) {
+            alert("Key نہیں ملی۔ Page refresh کریں");
+            if (statusEl) statusEl.innerText = "Status: API Key نہیں ملی۔";
+            return;
+        }
+
+        statusEl.innerText = "Status: تصویر CNIC ہے یا نہیں، چیک ہو رہی ہے... Please Wait...";
         statusEl.style.color = "var(--primary)";
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
+
         reader.onloadend = async function() {
             const base64Image = reader.result.split(',')[1];
+            const mimeType = file.type || 'image/jpeg';
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GOOGLE_API_KEY}`;
 
             const body = {
-              "contents": [{
-                "parts": [
-                  { "text": "اس پاکستانی CNIC کارڈ کی تصویر سے صرف 13 ہندسوں کا CNIC نمبر نکال کر دو۔ صرف نمبر دو، اور کچھ نہیں۔ اگر نہ ملے تو Not Found لکھو۔" },
-                  { "inline_data": { "mime_type": "image/jpeg", "data": base64Image } }
-                ]
-              }]
+                contents: [{
+                    parts: [
+                        {
+                            text: `آپ پاکستانی CNIC Image Verification System ہیں۔ اس تصویر کو بہت احتیاط سے inspect کرو۔
+
+سب سے پہلے یہ فیصلہ کرو کہ تصویر میں واقعی پاکستانی National Identity Card / CNIC / NICOP card موجود ہے یا نہیں۔
+
+CNIC صرف اسی وقت قبول کرو جب تصویر خود شناختی کارڈ کی ہو اور card کی حقیقی visual structure/layout نظر آ رہی ہو، مثلاً Pakistani identity-card style، portrait/photo area، identity fields، CNIC number area، اور card کے دوسرے شناختی حصے۔
+
+ان چیزوں کو CNIC نہ سمجھو:
+- عام سفید یا سادہ کاغذ
+- ویب page یا website کا screenshot
+- Word/PDF/document کا screenshot
+- receipt، form، letter یا book page
+- موبائل screen کی تصویر
+- کسی random تصویر میں لکھا ہوا 13 digit number
+- صرف CNIC number لکھا ہوا کاغذ
+- کوئی دوسری ID جس کا پاکستانی CNIC layout نہ ہو
+
+اگر card واضح طور پر پاکستانی CNIC/NICOP نہیں ہے تو NOT_CNIC دو، چاہے 13 digit number موجود ہو۔
+
+اگر CNIC card ہے لیکن تصویر دھندلی، بہت cropped، بہت چھوٹی، جزوی، یا card کی مکمل شناختی structure واضح نہیں ہے تو بھی NOT_CNIC دو۔
+
+صرف CNIC number مل جانا کافی نہیں ہے۔ تصویر میں اصل پاکستانی CNIC card کا واضح اور مکمل visual card structure ہونا لازمی ہے۔
+
+جواب EXACTLY صرف ان 3 lines میں دو:
+TYPE: CNIC یا NOT_CNIC
+CNIC: 13 digits یا NOT_FOUND
+CONFIDENCE: HIGH یا LOW
+
+کوئی اضافی explanation نہیں دینی۔`
+                        },
+                        {
+                            inline_data: {
+                                mime_type: mimeType,
+                                data: base64Image
+                            }
+                        }
+                    ]
+                }]
             };
 
             try {
-                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+
                 const data = await response.json();
-                
+
                 if (data.error) {
                     statusEl.innerText = `Status: API Error - ${data.error.message || 'Key چیک کریں'}`;
                     statusEl.style.color = "var(--btn-red)";
+                    if (qrBox) qrBox.innerHTML = '';
                     return;
                 }
 
-                if (!data.candidates || !data.candidates[0].content) {
-                    statusEl.innerText = "Status: ❌ ماڈل نے ڈیٹا بلاک کر دیا یا نہیں پڑھ سکا۔";
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    statusEl.innerText = "Status: ❌ تصویر verify نہیں ہو سکی۔";
                     statusEl.style.color = "var(--btn-red)";
+                    if (qrBox) qrBox.innerHTML = '';
+                    alert("براہ کرم پاکستانی CNIC کی صاف تصویر Upload کریں۔");
                     return;
                 }
 
-                let text = data.candidates[0].content.parts[0].text.trim();
-                let foundCNIC = text.replace(/\D/g, "");
+                const text = data.candidates[0].content.parts
+                    .map(p => p.text || '')
+                    .join(' ')
+                    .trim();
 
-                if(foundCNIC.length >= 13){
-                    foundCNIC = foundCNIC.slice(-13);
-                    statusEl.innerText = `Status: ✅ Found: ${foundCNIC}`;
-                    statusEl.style.color = "var(--btn-green)";
-                    generateQRFromCNIC(foundCNIC);
-                } else {
-                    statusEl.innerText = "Status: ❌ CNIC نمبر نہیں ملا۔ صاف تصویر لگائیں";
+                console.log('CNIC verification response:', text);
+
+                const typeMatch = text.match(/TYPE\s*:\s*(CNIC|NOT_CNIC)/i);
+                const cnicMatch = text.match(/CNIC\s*:\s*([0-9]{13})/i);
+                const confidenceMatch = text.match(/CONFIDENCE\s*:\s*(HIGH|LOW)/i);
+
+                const isCNIC = !!typeMatch && typeMatch[1].toUpperCase() === 'CNIC';
+                const foundCNIC = cnicMatch ? cnicMatch[1] : '';
+                const highConfidence = !!confidenceMatch && confidenceMatch[1].toUpperCase() === 'HIGH';
+
+                // QR is generated ONLY when the image is classified as a CNIC,
+                // a valid 13-digit CNIC was read, and confidence is HIGH.
+                if (!isCNIC || !/^\d{13}$/.test(foundCNIC) || !highConfidence) {
+                    if (qrBox) qrBox.innerHTML = '';
+                    statusEl.innerText = "Status: ❌ براہ کرم پاکستانی CNIC کی تصویر Upload کریں۔";
                     statusEl.style.color = "var(--btn-red)";
+                    alert("براہ کرم پاکستانی CNIC کی تصویر Upload کریں۔\n\nعام page، screenshot یا دوسری تصویر قبول نہیں ہوگی۔");
+                    return;
                 }
-            } catch(error){
+
+                statusEl.innerText = `Status: ✅ CNIC Found: ${foundCNIC}`;
+                statusEl.style.color = "var(--btn-green)";
+
+                generateQRFromCNIC(foundCNIC);
+
+            } catch (error) {
+                console.error('CNIC verification error:', error);
+                if (qrBox) qrBox.innerHTML = '';
                 statusEl.innerText = "Status: Network Error یا غلط Key";
-                console.error(error);
+                statusEl.style.color = "var(--btn-red)";
             }
-        }
+        };
     }
     function toggleResetKey() {
     const resetBtn = document.getElementById('reset-btn-container');
@@ -2072,16 +2146,73 @@ function checkUserAccess(tabId, btnElement) {
 const NANO_STORAGE_KEY = 'nanoStore_permanent';
 const TELEHEALTH_STORAGE_KEY = 'telehealthStore_permanent';
 
+// ============================================================
+// DATA-SAFE STORAGE
+// Nano & Telehealth data is kept in separate LocalStorage keys.
+// This backup layer NEVER deletes existing report data.
+// ============================================================
+const NANO_BACKUP_KEY = 'nanoStore_backup_safe';
+const TELEHEALTH_BACKUP_KEY = 'telehealthStore_backup_safe';
+
 function reportNum(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
+
+function safeReadStorage(key, backupKey){
+    try{
+        const raw = localStorage.getItem(key);
+        if(raw !== null && raw !== ''){
+            const parsed = JSON.parse(raw);
+            if(parsed && typeof parsed === 'object' && !Array.isArray(parsed)){
+                // Keep a safety copy of the last valid data.
+                localStorage.setItem(backupKey, JSON.stringify(parsed));
+                return parsed;
+            }
+        }
+    }catch(e){
+        console.warn('Storage read error:', key, e);
+    }
+
+    // If the main key is missing/corrupt, restore the last safe copy.
+    try{
+        const backup = localStorage.getItem(backupKey);
+        if(backup){
+            const parsedBackup = JSON.parse(backup);
+            if(parsedBackup && typeof parsedBackup === 'object' && !Array.isArray(parsedBackup)){
+                localStorage.setItem(key, JSON.stringify(parsedBackup));
+                return parsedBackup;
+            }
+        }
+    }catch(e){
+        console.warn('Backup restore error:', backupKey, e);
+    }
+
+    return {};
+}
+
+function safeWriteStorage(key, backupKey, data){
+    try{
+        // Write the backup FIRST so existing data is recoverable.
+        localStorage.setItem(backupKey, JSON.stringify(data));
+        localStorage.setItem(key, JSON.stringify(data));
+    }catch(e){
+        console.error('Storage save error:', key, e);
+        alert('Data save نہیں ہو سکا۔ موجودہ data محفوظ رکھنے کے لیے page کو refresh نہ کریں۔');
+    }
+}
 function reportDiff(v){ v=reportNum(v); return v>=0 ? '+'+v : String(v); }
 function reportEsc(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function reportEscA(v){ return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
-function nanoReports(){ try{return JSON.parse(localStorage.getItem(NANO_STORAGE_KEY))||{};}catch(e){return {};} }
-function saveNanoReports(r){ localStorage.setItem(NANO_STORAGE_KEY,JSON.stringify(r)); }
+function nanoReports(){ return safeReadStorage(NANO_STORAGE_KEY,NANO_BACKUP_KEY); }
+function saveNanoReports(r){ safeWriteStorage(NANO_STORAGE_KEY,NANO_BACKUP_KEY,r); }
 
-function telehealthReports(){ try{return JSON.parse(localStorage.getItem(TELEHEALTH_STORAGE_KEY))||{};}catch(e){return {};} }
-function saveTelehealthReports(r){ localStorage.setItem(TELEHEALTH_STORAGE_KEY,JSON.stringify(r)); }
+function telehealthReports(){ return safeReadStorage(TELEHEALTH_STORAGE_KEY,TELEHEALTH_BACKUP_KEY); }
+function saveTelehealthReports(r){ safeWriteStorage(TELEHEALTH_STORAGE_KEY,TELEHEALTH_BACKUP_KEY,r); }
+
+// Create a backup immediately, without changing or clearing existing data.
+(function protectExistingReportData(){
+    safeReadStorage(NANO_STORAGE_KEY,NANO_BACKUP_KEY);
+    safeReadStorage(TELEHEALTH_STORAGE_KEY,TELEHEALTH_BACKUP_KEY);
+})();
 
 function calcReport(x){
     x.previousActive=reportNum(x.previousActive);
