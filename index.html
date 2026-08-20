@@ -21,7 +21,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
-	#telehealth-tab.tab-content.active {
+	#telehealth-tab.tab-content.active, #nano-tab.tab-content.active {
     max-width: 100% !important;
     width: 100% !important;
     padding: 0 10px !important;
@@ -32,7 +32,7 @@
     max-width: 100% !important;
 }
 
-#telehealthTable {
+#telehealthTable, #nanoTable {
     width: 100% !important;
     margin: 0 auto !important;
 } 
@@ -138,7 +138,7 @@
 	     <button class="nav-sub-btn" onclick="checkUserAccess('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="checkUserAccess('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
 		<button class="nav-sub-btn" onclick="checkUserAccess('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
-			<button class="nav-sub-btn" onclick="checkUserAccess('telehealth-tab', this)"><i class="fa-solid fa-chart-line"></i> Nano Report</button>
+			<button class="nav-sub-btn" onclick="checkUserAccess('nano-tab', this)"><i class="fa-solid fa-chart-line"></i> Nano Report</button>
 			<button class="nav-sub-btn" onclick="checkUserAccess('telehealth-tab', this)"><i class="fa-solid fa-chart-line"></i> Telehealth Report</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
@@ -648,15 +648,84 @@
         <div id="adj-preview-status" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
     </div>
 </div>
+<!-- Nano Report Tab -->
+<div id="nano-tab" class="tab-content">
+<div class="card" style="text-align:left;max-width:100%;width:100%;">
+<h3 style="text-align:center;color:var(--primary);margin-bottom:5px;">Nano Target Vs Achievement Report</h3>
+<p id="nanoCurrentDateHeader" style="text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:20px;"></p>
+
+<div style="background:rgba(15,23,42,.8);padding:12px;border-radius:12px;border:1px dashed var(--primary);margin-bottom:15px;text-align:center;">
+<label style="font-size:12px;color:var(--primary);font-weight:bold;display:block;margin-bottom:6px;">📂 Upload Excel File (Format Set karne ke liye)</label>
+<input type="file" id="nanoExcelUploadInput" accept=".xlsx,.xls,.csv" onchange="handleNanoExcelUpload(event)" style="font-size:11px;color:#fff;">
+</div>
+
+<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;">
+<button class="action-btn" style="background:#2563eb;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadNanoExcel()">📥 Download Excel</button>
+<button class="action-btn" style="background:#10b981;width:auto;padding:10px 15px;margin-top:0;" onclick="addNewNanoRow()">➕ Add New Row</button>
+<button class="action-btn" style="background:#f59e0b;width:auto;padding:10px 15px;margin-top:0;" onclick="saveNanoTodayAsPrevious()">↻ Save Today as Previous Day</button>
+<button class="action-btn" style="background:#8b5cf6;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadNanoImage('png')">🖼️ Download PNG</button>
+<button class="action-btn" style="background:#ec4899;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadNanoImage('jpg')">📷 Download JPEG</button>
+</div>
+
+<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;">
+<select id="nanoResetColumn" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:9px;border-radius:5px;">
+<option value="">Select Column to Reset</option>
+<option value="previousActive">Previous Active</option>
+<option value="previousTarget">Previous Target</option>
+<option value="previousAchievement">Previous Achievement</option>
+<option value="previousDifference">Previous Difference</option>
+<option value="todayActive">Today Active</option>
+<option value="todayTarget">Today Target</option>
+<option value="todayAchievement">Today Achievement</option>
+<option value="previousCloseLoan">Previous Close Loan</option>
+<option value="todayCloseLoan">Today Close Loan</option>
+<option value="all">Reset All</option>
+</select>
+<button onclick="resetNanoColumn()" style="background:#ef4444;color:white;border:none;padding:9px 15px;border-radius:5px;cursor:pointer;font-weight:bold;">🔄 Reset Selected</button>
+</div>
+
+<div style="width:100%;overflow-x:auto;">
+<table id="nanoTable" style="width:100%;border-collapse:collapse;font-size:12px;text-align:center;white-space:nowrap;">
+<thead><tr style="background:#334155;color:white;">
+<th style="padding:10px;border:1px solid #475569;">Sr #</th>
+<th style="padding:10px;border:1px solid #475569;text-align:left;">Staff / Role</th>
+<th style="padding:10px;border:1px solid #475569;text-align:left;">Branch Name</th>
+<th style="padding:10px;border:1px solid #475569;">Close Loan<br><span style="font-size:10px;">Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;">Total Active<br><span style="font-size:10px;">Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;">Target<br><span style="font-size:10px;">Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;">Achievement<br><span style="font-size:10px;">Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;font-size:16px;">Difference Today</th>
+<th style="padding:10px;border:1px solid #475569;font-size:16px;">Total Difference</th>
+<th style="padding:10px;border:1px solid #475569;">Action</th>
+</tr></thead>
+<tbody id="nanoTableBody" style="background:rgba(15,23,42,.4);"></tbody>
+<tfoot style="font-weight:bold;background:#1e293b;color:#38bdf8;font-size:13px;">
+<tr>
+<td colspan="4" style="padding:12px;border:1px solid #475569;text-align:right;">OVERALL GRAND TOTAL:</td>
+<td id="nanoSumCloseLoan" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="nanoSumTotalActive" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="nanoSumTotalTarget" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="nanoSumTotalAchievement" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="nanoSumDiffToday" style="padding:12px;border:1px solid #475569;font-size:16px;">0</td>
+<td id="nanoSumTotalDiff" style="padding:12px;border:1px solid #475569;font-size:16px;">0</td>
+<td style="border:1px solid #475569;"></td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
 <!-- Telehealth Report Tab -->
 <div id="telehealth-tab" class="tab-content">
 <div class="card" style="text-align:left;max-width:100%;width:100%;">
 <h3 style="text-align:center;color:var(--primary);margin-bottom:5px;">Telehealth Target Vs Achievement Report</h3>
-<p id="currentDateHeader" style="text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:20px;"></p>
+<p id="telehealthCurrentDateHeader" style="text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:20px;"></p>
+
 <div style="background:rgba(15,23,42,.8);padding:12px;border-radius:12px;border:1px dashed var(--primary);margin-bottom:15px;text-align:center;">
 <label style="font-size:12px;color:var(--primary);font-weight:bold;display:block;margin-bottom:6px;">📂 Upload Excel File (Format Set karne ke liye)</label>
-<input type="file" id="excelUploadInput" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(event)" style="font-size:11px;color:#fff;">
+<input type="file" id="telehealthExcelUploadInput" accept=".xlsx,.xls,.csv" onchange="handleTelehealthExcelUpload(event)" style="font-size:11px;color:#fff;">
 </div>
+
 <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;">
 <button class="action-btn" style="background:#2563eb;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadTelehealthExcel()">📥 Download Excel</button>
 <button class="action-btn" style="background:#10b981;width:auto;padding:10px 15px;margin-top:0;" onclick="addNewTelehealthRow()">➕ Add New Row</button>
@@ -664,21 +733,51 @@
 <button class="action-btn" style="background:#8b5cf6;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadTelehealthImage('png')">🖼️ Download PNG</button>
 <button class="action-btn" style="background:#ec4899;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadTelehealthImage('jpg')">📷 Download JPEG</button>
 </div>
+
 <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;">
-<select id="teleResetColumn" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:9px;border-radius:5px;">
-<option value="">Select Column to Reset</option><option value="previousActive">Previous Active</option><option value="previousAchievement">Previous Achievement</option><option value="previousDifference">Previous Difference</option><option value="todayActive">Today Active</option><option value="todayAchievement">Today Achievement</option><option value="target">Target</option><option value="all">Reset All</option>
+<select id="telehealthResetColumn" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:9px;border-radius:5px;">
+<option value="">Select Column to Reset</option>
+<option value="previousActive">Previous Active</option>
+<option value="previousTarget">Previous Target</option>
+<option value="previousAchievement">Previous Achievement</option>
+<option value="previousDifference">Previous Difference</option>
+<option value="todayActive">Today Active</option>
+<option value="todayTarget">Today Target</option>
+<option value="todayAchievement">Today Achievement</option>
+<option value="all">Reset All</option>
 </select>
 <button onclick="resetTelehealthColumn()" style="background:#ef4444;color:white;border:none;padding:9px 15px;border-radius:5px;cursor:pointer;font-weight:bold;">🔄 Reset Selected</button>
 </div>
+
 <div style="width:100%;overflow-x:auto;">
 <table id="telehealthTable" style="width:100%;border-collapse:collapse;font-size:12px;text-align:center;white-space:nowrap;">
 <thead><tr style="background:#334155;color:white;">
-<th style="padding:10px;border:1px solid #475569;">Sr #</th><th style="padding:10px;border:1px solid #475569;text-align:left;">Staff / Role</th><th style="padding:10px;border:1px solid #475569;text-align:left;">Branch Name</th><th style="padding:10px;border:1px solid #475569;">Total Active</th><th style="padding:10px;border:1px solid #475569;">Target</th><th style="padding:10px;border:1px solid #475569;">Achievement</th><th style="padding:10px;border:1px solid #475569;">Difference Today</th><th style="padding:10px;border:1px solid #475569;">Total Difference</th><th style="padding:10px;border:1px solid #475569;">Action</th>
+<th style="padding:10px;border:1px solid #475569;">Sr #</th>
+<th style="padding:10px;border:1px solid #475569;text-align:left;">Staff / Role</th>
+<th style="padding:10px;border:1px solid #475569;text-align:left;">Branch Name</th>
+<th style="padding:10px;border:1px solid #475569;">Total Active<br><span style="font-size:10px;">Previous | Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;">Target<br><span style="font-size:10px;">Previous | Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;">Achievement<br><span style="font-size:10px;">Previous | Today | Total</span></th>
+<th style="padding:10px;border:1px solid #475569;font-size:16px;">Difference Today</th>
+<th style="padding:10px;border:1px solid #475569;font-size:16px;">Total Difference</th>
+<th style="padding:10px;border:1px solid #475569;">Action</th>
 </tr></thead>
-<tbody id="teleTableBody" style="background:rgba(15,23,42,.4);"></tbody>
-<tfoot style="font-weight:bold;background:#1e293b;color:#38bdf8;font-size:13px;"><tr>
-<td colspan="3" style="padding:12px;border:1px solid #475569;text-align:right;">OVERALL GRAND TOTAL:</td><td id="teleSumTotalActive" style="padding:12px;border:1px solid #475569;">0</td><td id="teleSumTarget" style="padding:12px;border:1px solid #475569;">0</td><td id="teleSumAchievement" style="padding:12px;border:1px solid #475569;">0</td><td id="teleSumDiffToday" style="padding:12px;border:1px solid #475569;">0</td><td id="teleSumTotalDiff" style="padding:12px;border:1px solid #475569;">0</td><td style="border:1px solid #475569;"></td>
-</tr></tfoot></table></div></div></div>
+<tbody id="telehealthTableBody" style="background:rgba(15,23,42,.4);"></tbody>
+<tfoot style="font-weight:bold;background:#1e293b;color:#38bdf8;font-size:13px;">
+<tr>
+<td colspan="3" style="padding:12px;border:1px solid #475569;text-align:right;">OVERALL GRAND TOTAL:</td>
+<td id="telehealthSumTotalActive" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="telehealthSumTotalTarget" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="telehealthSumTotalAchievement" style="padding:12px;border:1px solid #475569;">0</td>
+<td id="telehealthSumDiffToday" style="padding:12px;border:1px solid #475569;font-size:16px;">0</td>
+<td id="telehealthSumTotalDiff" style="padding:12px;border:1px solid #475569;font-size:16px;">0</td>
+<td style="border:1px solid #475569;"></td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
 
 		<script>
     const FIXED_FIRST_12 = "421011234567";
@@ -1966,53 +2065,793 @@ function checkUserAccess(tabId, btnElement) {
     window.open(url, '_blank'); if (typeof playSound === 'function') playSound();
 }
 
-// ================= TELEHEALTH =================
-const TELEHEALTH_STORAGE_KEY='telehealthStore_permanent';
-function teleNum(v){const n=Number(v);return Number.isFinite(n)?n:0;}
-function teleDiff(v){v=teleNum(v);return v>=0?'+'+v:String(v);}
-function teleReports(){try{return JSON.parse(localStorage.getItem(TELEHEALTH_STORAGE_KEY))||{};}catch(e){return {};}}
-function saveTeleReports(r){localStorage.setItem(TELEHEALTH_STORAGE_KEY,JSON.stringify(r));}
-function calcTele(item){
-    item.previousActive=teleNum(item.previousActive); item.previousAchievement=teleNum(item.previousAchievement); item.previousDifference=teleNum(item.previousDifference);
-    item.todayActive=teleNum(item.todayActive); item.todayAchievement=teleNum(item.todayAchievement); item.target=teleNum(item.target);
-    item.totalActive=item.previousActive+item.todayActive;
-    item.achievement=item.previousAchievement+item.todayAchievement;
-    item.diffToday=item.todayAchievement-item.target;
-    item.totalDiff=item.previousDifference+item.diffToday;
-    return item;
+
+// ================= NANO + TELEHEALTH REPORTS =================
+// Only report logic is handled here. Login / Firebase / other tabs remain unchanged.
+
+const NANO_STORAGE_KEY = 'nanoStore_permanent';
+const TELEHEALTH_STORAGE_KEY = 'telehealthStore_permanent';
+
+function reportNum(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
+function reportDiff(v){ v=reportNum(v); return v>=0 ? '+'+v : String(v); }
+function reportEsc(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function reportEscA(v){ return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function nanoReports(){ try{return JSON.parse(localStorage.getItem(NANO_STORAGE_KEY))||{};}catch(e){return {};} }
+function saveNanoReports(r){ localStorage.setItem(NANO_STORAGE_KEY,JSON.stringify(r)); }
+
+function telehealthReports(){ try{return JSON.parse(localStorage.getItem(TELEHEALTH_STORAGE_KEY))||{};}catch(e){return {};} }
+function saveTelehealthReports(r){ localStorage.setItem(TELEHEALTH_STORAGE_KEY,JSON.stringify(r)); }
+
+function calcReport(x){
+    x.previousActive=reportNum(x.previousActive);
+    x.previousTarget=reportNum(x.previousTarget);
+    x.previousAchievement=reportNum(x.previousAchievement);
+    x.previousDifference=reportNum(x.previousDifference);
+    x.todayActive=reportNum(x.todayActive);
+    x.todayTarget=reportNum(x.todayTarget);
+    x.todayAchievement=reportNum(x.todayAchievement);
+    x.previousCloseLoan=reportNum(x.previousCloseLoan);
+    x.todayCloseLoan=reportNum(x.todayCloseLoan);
+
+    x.totalCloseLoan=x.previousCloseLoan+x.todayCloseLoan;
+
+    x.totalActive=x.previousActive+x.todayActive;
+    x.totalTarget=x.previousTarget+x.todayTarget;
+    x.achievement=x.previousAchievement+x.todayAchievement;
+
+    x.diffToday=x.todayAchievement-x.todayTarget;
+    x.totalDiff=x.previousDifference+x.diffToday;
+
+    // Backward compatibility with the previous version
+    x.target=x.todayTarget;
+
+    return x;
 }
-function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function escA(v){return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 
-function loadTelehealthData(){
- const reports=teleReports(),tbody=document.getElementById('teleTableBody'); if(!tbody)return; tbody.innerHTML=''; const branches={};
- for(const key in reports){const x=reports[key]; if(x.previousActive===undefined)x.previousActive=0;if(x.previousAchievement===undefined)x.previousAchievement=0;if(x.previousDifference===undefined)x.previousDifference=0;if(x.todayActive===undefined)x.todayActive=teleNum(x.totalActive);if(x.todayAchievement===undefined)x.todayAchievement=teleNum(x.achievement);if(x.target===undefined)x.target=0;calcTele(x);const b=x.branch||'Other';if(!branches[b])branches[b]=[];branches[b].push({key,item:x});}
- saveTeleReports(reports);let ga=0,gt=0,gach=0,gd=0,gtd=0,sr=1;
- for(const branch in branches){let ba=0,bt=0,bach=0,bd=0,btd=0;
-  branches[branch].forEach(({key,item:x})=>{calcTele(x);ba+=x.totalActive;bt+=x.target;bach+=x.achievement;bd+=x.diffToday;btd+=x.totalDiff;ga+=x.totalActive;gt+=x.target;gach+=x.achievement;gd+=x.diffToday;gtd+=x.totalDiff;
-   tbody.innerHTML+=`<tr><td style="padding:8px;border:1px solid #334155;">${sr++}</td><td style="padding:8px;border:1px solid #334155;text-align:left;"><input type="text" id="staff_${key}" value="${esc(x.staff||'Staff')}" onchange="telehealthSaveText('${escA(key)}')" style="width:150px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;padding:0 8px;border-radius:4px;"></td><td style="padding:8px;border:1px solid #334155;text-align:left;"><input type="text" id="branch_${key}" value="${esc(x.branch||'')}" onchange="telehealthSaveText('${escA(key)}')" style="width:130px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;padding:0 8px;border-radius:4px;"></td><td style="padding:8px;border:1px solid #334155;"><div style="font-size:10px;color:#94a3b8;">Today</div><input type="number" id="totalActive_${key}" value="${x.todayActive}" oninput="telehealthActiveChanged('${escA(key)}')" style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;"><div style="font-size:11px;color:#38bdf8;">Total: <span id="totalActiveDisp_${key}">${x.totalActive}</span></div></td><td style="padding:8px;border:1px solid #334155;"><input type="number" id="target_${key}" value="${x.target}" oninput="telehealthTargetChanged('${escA(key)}')" style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;"></td><td style="padding:8px;border:1px solid #334155;"><div style="font-size:10px;color:#94a3b8;">Today</div><input type="number" id="achievement_${key}" value="${x.todayAchievement}" oninput="telehealthAchievementChanged('${escA(key)}')" style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;"><div style="font-size:11px;color:#38bdf8;">Total: <span id="achievementDisp_${key}">${x.achievement}</span></div></td><td id="diffToday_disp_${key}" style="padding:8px;border:1px solid #334155;font-weight:bold;color:${x.diffToday>=0?'#38bdf8':'#ef4444'};">${teleDiff(x.diffToday)}</td><td id="totalDiff_${key}" style="padding:8px;border:1px solid #334155;font-weight:bold;color:${x.totalDiff>=0?'#38bdf8':'#ef4444'};">${teleDiff(x.totalDiff)}</td><td style="padding:8px;border:1px solid #334155;white-space:nowrap;"><button onclick="addBranchRow('${escA(branch)}')" style="background:#3b82f6;color:#fff;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;">+</button><button onclick="deleteTelehealthRow('${escA(key)}')" style="background:#ef4444;color:#fff;border:none;padding:5px 7px;border-radius:4px;cursor:pointer;margin-left:3px;">X</button></td></tr>`;});
-  tbody.innerHTML+=`<tr style="background:rgba(51,65,85,.5);font-weight:bold;color:#f8fafc;"><td colspan="3" style="padding:8px;border:1px solid #475569;text-align:right;">${esc(branch)} Branch Total:</td><td style="padding:8px;border:1px solid #475569;">${ba}</td><td style="padding:8px;border:1px solid #475569;">${bt}</td><td style="padding:8px;border:1px solid #475569;">${bach}</td><td style="padding:8px;border:1px solid #475569;">${teleDiff(bd)}</td><td style="padding:8px;border:1px solid #475569;">${teleDiff(btd)}</td><td style="border:1px solid #475569;text-align:center;"><button onclick="addBranchRow('${escA(branch)}')" style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">+</button></td></tr>`;
- }
- setTele('teleSumTotalActive',ga);setTele('teleSumTarget',gt);setTele('teleSumAchievement',gach);setTele('teleSumDiffToday',teleDiff(gd));setTele('teleSumTotalDiff',teleDiff(gtd));
+function normalizeReportData(reports){
+    for(const k in reports){
+        const x=reports[k];
+
+        if(x.previousActive===undefined) x.previousActive=0;
+        if(x.previousTarget===undefined) x.previousTarget=0;
+        if(x.previousAchievement===undefined) x.previousAchievement=0;
+        if(x.previousDifference===undefined) x.previousDifference=0;
+
+        if(x.todayActive===undefined) x.todayActive=reportNum(x.totalActive);
+        if(x.todayTarget===undefined) x.todayTarget=reportNum(x.target);
+        if(x.todayAchievement===undefined) x.todayAchievement=reportNum(x.achievement);
+        // Close Loan uses the same Previous + Today + Total system.
+        if(x.previousCloseLoan===undefined) x.previousCloseLoan=0;
+        if(x.todayCloseLoan===undefined){
+            x.todayCloseLoan=reportNum(x.closeLoan);
+        }
+
+        calcReport(x);
+    }
+    return reports;
 }
-function setTele(id,v){const e=document.getElementById(id);if(e)e.innerText=v;}
-function updateTeleRow(key){const r=teleReports();if(!r[key])return;calcTele(r[key]);const x=r[key];const a=document.getElementById(`totalActiveDisp_${key}`),ach=document.getElementById(`achievementDisp_${key}`),d=document.getElementById(`diffToday_disp_${key}`),td=document.getElementById(`totalDiff_${key}`);if(a)a.innerText=x.totalActive;if(ach)ach.innerText=x.achievement;if(d){d.innerText=teleDiff(x.diffToday);d.style.color=x.diffToday>=0?'#38bdf8':'#ef4444';}if(td){td.innerText=teleDiff(x.totalDiff);td.style.color=x.totalDiff>=0?'#38bdf8':'#ef4444';}saveTeleReports(r);updateTeleGrand();}
-function updateTeleGrand(){const r=teleReports();let a=0,t=0,ach=0,d=0,td=0;for(const k in r){calcTele(r[k]);a+=r[k].totalActive;t+=r[k].target;ach+=r[k].achievement;d+=r[k].diffToday;td+=r[k].totalDiff;}saveTeleReports(r);setTele('teleSumTotalActive',a);setTele('teleSumTarget',t);setTele('teleSumAchievement',ach);setTele('teleSumDiffToday',teleDiff(d));setTele('teleSumTotalDiff',teleDiff(td));}
-function telehealthActiveChanged(key){const r=teleReports();if(!r[key])return;r[key].todayActive=teleNum(document.getElementById(`totalActive_${key}`).value);calcTele(r[key]);saveTeleReports(r);updateTeleRow(key);}
-function telehealthTargetChanged(key){const r=teleReports();if(!r[key])return;r[key].target=teleNum(document.getElementById(`target_${key}`).value);calcTele(r[key]);saveTeleReports(r);updateTeleRow(key);}
-function telehealthAchievementChanged(key){const r=teleReports();if(!r[key])return;r[key].todayAchievement=teleNum(document.getElementById(`achievement_${key}`).value);calcTele(r[key]);saveTeleReports(r);updateTeleRow(key);}
-function telehealthSaveText(key){const r=teleReports();if(!r[key])return;const s=document.getElementById(`staff_${key}`),b=document.getElementById(`branch_${key}`);if(s)r[key].staff=s.value;if(b)r[key].branch=b.value;saveTeleReports(r);}
-function deleteTelehealthRow(key){const r=teleReports();if(!r[key])return;if(!confirm('Are you sure you want to delete this row?'))return;delete r[key];saveTeleReports(r);loadTelehealthData();}
-function addBranchRow(branch){const r=teleReports(),key=String(branch).replace(/\s+/g,'_')+'_New_'+Date.now();r[key]={staff:'New Staff',branch:branch,previousActive:0,previousAchievement:0,previousDifference:0,todayActive:0,target:0,todayAchievement:0,totalActive:0,achievement:0,diffToday:0,totalDiff:0};saveTeleReports(r);loadTelehealthData();}
-function addNewTelehealthRow(){addBranchRow('New Branch');}
-function saveTelehealthTodayAsPrevious(){if(!confirm('Aaj ka data Previous Day mein save karke Today values reset karni hain?'))return;const r=teleReports();for(const k in r){calcTele(r[k]);r[k].previousActive=r[k].totalActive;r[k].previousAchievement=r[k].achievement;r[k].previousDifference=r[k].totalDiff;r[k].todayActive=0;r[k].todayAchievement=0;r[k].target=0;calcTele(r[k]);}saveTeleReports(r);loadTelehealthData();}
-function resetTelehealthColumn(){const s=document.getElementById('teleResetColumn');if(!s||!s.value){alert('Please select a column to reset.');return;}if(!confirm('Are you sure you want to reset '+s.value+'?'))return;const r=teleReports();for(const k in r){if(s.value==='previousActive')r[k].previousActive=0;if(s.value==='previousAchievement')r[k].previousAchievement=0;if(s.value==='previousDifference')r[k].previousDifference=0;if(s.value==='todayActive')r[k].todayActive=0;if(s.value==='todayAchievement')r[k].todayAchievement=0;if(s.value==='target')r[k].target=0;if(s.value==='all'){r[k].previousActive=0;r[k].previousAchievement=0;r[k].previousDifference=0;r[k].todayActive=0;r[k].todayAchievement=0;r[k].target=0;}calcTele(r[k]);}saveTeleReports(r);loadTelehealthData();s.value='';}
 
-function handleExcelUpload(event){const file=event.target.files[0];if(!file)return;const rd=new FileReader();rd.onload=function(e){try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(!rows.length)throw new Error('Excel file is empty.');const h=rows[0].map(v=>String(v).trim().toLowerCase()),find=(...n)=>{for(const x of n){const i=h.indexOf(x.toLowerCase());if(i>=0)return i;}return -1;};const is=find('staff / role','staff','staff/role'),ib=find('branch name','branch'),ipa=find('previous active','prev active'),ita=find('today active','active'),it=find('target'),ipach=find('previous achievement','prev achievement'),itaach=find('today achievement','today ach','achievement'),ipd=find('previous difference','prev difference');if(is<0||ib<0)throw new Error('Staff / Role and Branch Name columns are required.');const r={};let count=0;for(let i=1;i<rows.length;i++){const row=rows[i],staff=String(row[is]??'').trim(),branch=String(row[ib]??'').trim();if(!staff||!branch||branch.toLowerCase()==='branch')continue;const key=branch.replace(/\s+/g,'_')+'_'+staff.replace(/\s+/g,'_')+'_'+i;r[key]={staff,branch,previousActive:ipa>=0?teleNum(row[ipa]):0,previousAchievement:ipach>=0?teleNum(row[ipach]):0,previousDifference:ipd>=0?teleNum(row[ipd]):0,todayActive:ita>=0?teleNum(row[ita]):0,target:it>=0?teleNum(row[it]):0,todayAchievement:itaach>=0?teleNum(row[itaach]):0,totalActive:0,achievement:0,diffToday:0,totalDiff:0};calcTele(r[key]);count++;}saveTeleReports(r);loadTelehealthData();alert('Excel file successfully loaded! '+count+' rows imported.');event.target.value='';}catch(err){console.error(err);alert('Error reading Excel file format: '+err.message);}};rd.readAsArrayBuffer(file);}
+function renderReport(config){
+    const reports=normalizeReportData(config.getReports());
+    const tbody=document.getElementById(config.bodyId);
+    if(!tbody)return;
 
-function downloadTelehealthExcel(){const r=teleReports(),data=[];let a=0,t=0,ach=0,d=0,td=0,sr=1;for(const k in r){const x=calcTele(r[k]);data.push({'Sr #':sr++,'Staff / Role':x.staff||'Staff','Branch Name':x.branch||'','Total Active':x.totalActive,'Target':x.target,'Achievement':x.achievement,'Difference Today':x.diffToday,'Total Difference':x.totalDiff,'Previous Active':x.previousActive,'Today Active':x.todayActive,'Previous Achievement':x.previousAchievement,'Today Achievement':x.todayAchievement,'Previous Difference':x.previousDifference});a+=x.totalActive;t+=x.target;ach+=x.achievement;d+=x.diffToday;td+=x.totalDiff;}data.push({'Sr #':'','Staff / Role':'OVERALL GRAND TOTAL:','Branch Name':'','Total Active':a,'Target':t,'Achievement':ach,'Difference Today':d,'Total Difference':td,'Previous Active':'','Today Active':'','Previous Achievement':'','Today Achievement':'','Previous Difference':''});const ws=XLSX.utils.json_to_sheet(data);ws['!cols']=[{wch:7},{wch:22},{wch:18},{wch:14},{wch:10},{wch:14},{wch:17},{wch:17},{wch:17},{wch:14},{wch:21},{wch:18},{wch:20}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Telehealth Report');XLSX.writeFile(wb,'Telehealth_Target_vs_Achievement.xlsx');}
-function downloadTelehealthImage(format='png'){const el=document.getElementById('telehealthTable');if(!el)return;const run=()=>{const c=el.cloneNode(true);c.querySelectorAll('tr').forEach(r=>{if(r.lastElementChild)r.lastElementChild.remove();});const box=document.createElement('div');box.style.background='#0f172a';box.style.padding='20px';box.style.width='max-content';box.appendChild(c);document.body.appendChild(box);html2canvas(box,{scale:2,useCORS:true,backgroundColor:'#0f172a'}).then(canvas=>{const a=document.createElement('a');a.download=format==='jpg'?'Telehealth_Report.jpg':'Telehealth_Report.png';a.href=format==='jpg'?canvas.toDataURL('image/jpeg',.95):canvas.toDataURL('image/png');a.click();document.body.removeChild(box);});};if(window.html2canvas)run();else{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';sc.onload=run;document.head.appendChild(sc);}}
-document.addEventListener('DOMContentLoaded',function(){const d=document.getElementById('currentDateHeader');if(d)d.innerText='Till '+new Date().toISOString().slice(0,10);loadTelehealthData();});
+    tbody.innerHTML='';
+    const branches={};
+
+    for(const key in reports){
+        const x=reports[key];
+        const branch=x.branch||'Other';
+        if(!branches[branch])branches[branch]=[];
+        branches[branch].push({key,item:x});
+    }
+
+    config.saveReports(reports);
+
+    let grandCloseLoan=0,grandActive=0,grandTarget=0,grandAchievement=0,grandDiffToday=0,grandTotalDiff=0,sr=1;
+
+    for(const branch in branches){
+        let branchCloseLoan=0,ba=0,bt=0,bach=0,bd=0,btd=0;
+
+        branches[branch].forEach(({key,item:x})=>{
+            calcReport(x);
+
+            branchCloseLoan+=x.totalCloseLoan;
+            ba+=x.totalActive;
+            bt+=x.totalTarget;
+            bach+=x.achievement;
+            bd+=x.diffToday;
+            btd+=x.totalDiff;
+
+            grandCloseLoan+=x.totalCloseLoan;
+            grandActive+=x.totalActive;
+            grandTarget+=x.totalTarget;
+            grandAchievement+=x.achievement;
+            grandDiffToday+=x.diffToday;
+            grandTotalDiff+=x.totalDiff;
+
+            const diffColor=x.diffToday>=0?'#38bdf8':'#ef4444';
+            const totalDiffColor=x.totalDiff>=0?'#38bdf8':'#ef4444';
+
+            tbody.innerHTML+=`
+<tr>
+<td style="padding:8px;border:1px solid #334155;">${sr++}</td>
+
+<td style="padding:8px;border:1px solid #334155;text-align:left;">
+<input type="text" id="${config.prefix}Staff_${reportEscA(key)}" value="${reportEsc(x.staff||'Staff')}"
+onchange="${config.prefix}SaveText('${reportEscA(key)}')"
+style="width:150px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;padding:0 8px;border-radius:4px;">
+</td>
+
+<td style="padding:8px;border:1px solid #334155;text-align:left;">
+<input type="text" id="${config.prefix}Branch_${reportEscA(key)}" value="${reportEsc(x.branch||'')}"
+onchange="${config.prefix}SaveText('${reportEscA(key)}')"
+style="width:130px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;padding:0 8px;border-radius:4px;">
+</td>
+
+${config.isNano ? `<td style="padding:7px;border:1px solid #334155;min-width:145px;">
+<div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
+<input type="number" id="nanoCloseLoan_${reportEscA(key)}" value="${x.todayCloseLoan}" oninput="nanoCloseLoanChanged('${reportEscA(key)}')" style="width:65px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;">
+<div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="nanoTotalCloseLoanDisp_${reportEscA(key)}">${x.totalCloseLoan}</span></div>
+</td>` : ''}
+
+<td style="padding:7px;border:1px solid #334155;min-width:155px;">
+${config.isNano ? '' : `<div style="font-size:10px;color:#94a3b8;">Previous</div><div style="font-size:12px;">${x.previousActive}</div>`}
+<div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
+<input type="number" id="${config.prefix}TodayActive_${reportEscA(key)}" value="${x.todayActive}"
+oninput="${config.prefix}ActiveChanged('${reportEscA(key)}')"
+style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;">
+<div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="${config.prefix}TotalActiveDisp_${reportEscA(key)}">${x.totalActive}</span></div>
+</td>
+
+<td style="padding:7px;border:1px solid #334155;min-width:155px;">
+${config.isNano ? '' : `<div style="font-size:10px;color:#94a3b8;">Previous</div><div style="font-size:12px;">${x.previousTarget}</div>`}
+<div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
+<input type="number" id="${config.prefix}TodayTarget_${reportEscA(key)}" value="${x.todayTarget}"
+oninput="${config.prefix}TargetChanged('${reportEscA(key)}')"
+style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;">
+<div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="${config.prefix}TotalTargetDisp_${reportEscA(key)}">${x.totalTarget}</span></div>
+</td>
+
+<td style="padding:7px;border:1px solid #334155;min-width:155px;">
+${config.isNano ? '' : `<div style="font-size:10px;color:#94a3b8;">Previous</div><div style="font-size:12px;">${x.previousAchievement}</div>`}
+<div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
+<input type="number" id="${config.prefix}TodayAchievement_${reportEscA(key)}" value="${x.todayAchievement}"
+oninput="${config.prefix}AchievementChanged('${reportEscA(key)}')"
+style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;">
+<div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="${config.prefix}TotalAchievementDisp_${reportEscA(key)}">${x.achievement}</span></div>
+</td>
+
+<td id="${config.prefix}DiffToday_${reportEscA(key)}"
+style="padding:8px;border:1px solid #334155;font-weight:bold;font-size:16px;color:${diffColor};">
+${reportDiff(x.diffToday)}
+</td>
+
+<td id="${config.prefix}TotalDiff_${reportEscA(key)}"
+style="padding:8px;border:1px solid #334155;font-weight:bold;font-size:16px;color:${totalDiffColor};">
+${reportDiff(x.totalDiff)}
+</td>
+
+<td style="padding:8px;border:1px solid #334155;white-space:nowrap;">
+<button onclick="${config.prefix}AddBranch('${reportEscA(branch)}')" style="background:#3b82f6;color:#fff;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;">+</button>
+<button onclick="${config.prefix}Delete('${reportEscA(key)}')" style="background:#ef4444;color:#fff;border:none;padding:5px 7px;border-radius:4px;cursor:pointer;margin-left:3px;">X</button>
+</td>
+</tr>`;
+        });
+
+        tbody.innerHTML+=`
+<tr style="background:rgba(51,65,85,.5);font-weight:bold;color:#f8fafc;">
+<td colspan="3" style="padding:8px;border:1px solid #475569;text-align:right;">${reportEsc(branch)} Branch Total:</td>
+${config.isNano ? `<td style="padding:8px;border:1px solid #475569;">${branchCloseLoan}</td>` : ``}
+<td style="padding:8px;border:1px solid #475569;">${ba}</td>
+<td style="padding:8px;border:1px solid #475569;">${bt}</td>
+<td style="padding:8px;border:1px solid #475569;">${bach}</td>
+<td style="padding:8px;border:1px solid #475569;font-size:16px;">${reportDiff(bd)}</td>
+<td style="padding:8px;border:1px solid #475569;font-size:16px;">${reportDiff(btd)}</td>
+<td style="border:1px solid #475569;text-align:center;">
+<button onclick="${config.prefix}AddBranch('${reportEscA(branch)}')" style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">+</button>
+</td>
+</tr>`;
+    }
+
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
+    set(config.sumCloseLoanId,grandCloseLoan);
+    set(config.sumActiveId,grandActive);
+    set(config.sumTargetId,grandTarget);
+    set(config.sumAchievementId,grandAchievement);
+    set(config.sumDiffId,reportDiff(grandDiffToday));
+    set(config.sumTotalDiffId,reportDiff(grandTotalDiff));
+}
+
+function updateReportRow(config,key){
+    const reports=config.getReports();
+    if(!reports[key])return;
+
+    calcReport(reports[key]);
+    const x=reports[key];
+
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
+    if(config.isNano){
+        set(`nanoTotalCloseLoanDisp_${key}`,x.totalCloseLoan);
+    }
+
+    set(`${config.prefix}TotalActiveDisp_${key}`,x.totalActive);
+    set(`${config.prefix}TotalTargetDisp_${key}`,x.totalTarget);
+    set(`${config.prefix}TotalAchievementDisp_${key}`,x.achievement);
+    set(`${config.prefix}DiffToday_${key}`,reportDiff(x.diffToday));
+    set(`${config.prefix}TotalDiff_${key}`,reportDiff(x.totalDiff));
+
+    const d=document.getElementById(`${config.prefix}DiffToday_${key}`);
+    const td=document.getElementById(`${config.prefix}TotalDiff_${key}`);
+    if(d)d.style.color=x.diffToday>=0?'#38bdf8':'#ef4444';
+    if(td)td.style.color=x.totalDiff>=0?'#38bdf8':'#ef4444';
+
+    config.saveReports(reports);
+    updateReportGrand(config);
+}
+
+function updateReportGrand(config){
+    const reports=normalizeReportData(config.getReports());
+    let close=0,a=0,t=0,ach=0,d=0,td=0;
+
+    for(const k in reports){
+        calcReport(reports[k]);
+        close+=reports[k].totalCloseLoan;
+        a+=reports[k].totalActive;
+        t+=reports[k].totalTarget;
+        ach+=reports[k].achievement;
+        d+=reports[k].diffToday;
+        td+=reports[k].totalDiff;
+    }
+
+    config.saveReports(reports);
+
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
+    if(config.isNano) set(config.sumCloseLoanId,close);
+    set(config.sumActiveId,a);
+    set(config.sumTargetId,t);
+    set(config.sumAchievementId,ach);
+    set(config.sumDiffId,reportDiff(d));
+    set(config.sumTotalDiffId,reportDiff(td));
+}
+
+function saveReportText(config,key){
+    const r=config.getReports();
+    if(!r[key])return;
+    const s=document.getElementById(`${config.prefix}Staff_${key}`);
+    const b=document.getElementById(`${config.prefix}Branch_${key}`);
+    if(s)r[key].staff=s.value;
+    if(b)r[key].branch=b.value;
+    config.saveReports(r);
+}
+
+function reportDelete(config,key){
+    const r=config.getReports();
+    if(!r[key])return;
+    if(!confirm('Are you sure you want to delete this row?'))return;
+    delete r[key];
+    config.saveReports(r);
+    config.load();
+}
+
+function reportAddBranch(config,branch){
+    const r=config.getReports();
+    const key=String(branch).replace(/\s+/g,'_')+'_New_'+Date.now();
+    r[key]={
+        staff:'New Staff',
+        branch:branch,
+        previousActive:0,
+        previousTarget:0,
+        previousAchievement:0,
+        previousDifference:0,
+        previousCloseLoan:0,
+        todayCloseLoan:0,
+        totalCloseLoan:0,
+        closeLoan:0,
+        todayActive:0,
+        todayTarget:0,
+        todayAchievement:0,
+        totalActive:0,
+        totalTarget:0,
+        achievement:0,
+        diffToday:0,
+        totalDiff:0
+    };
+    config.saveReports(r);
+    config.load();
+}
+
+function reportAddNewRow(config){ reportAddBranch(config,'New Branch'); }
+
+function reportSaveTodayAsPrevious(config){
+    if(!confirm('Aaj ka data Previous Day mein save karke Today values reset karni hain?'))return;
+
+    const r=config.getReports();
+
+    for(const k in r){
+        calcReport(r[k]);
+
+        // Current cumulative totals become Previous Day baseline.
+        r[k].previousActive=r[k].totalActive;
+        r[k].previousTarget=r[k].totalTarget;
+        r[k].previousAchievement=r[k].achievement;
+        r[k].previousDifference=r[k].totalDiff;
+
+        if(config.isNano){
+            r[k].previousCloseLoan=r[k].totalCloseLoan;
+        }
+
+        r[k].todayActive=0;
+        r[k].todayTarget=0;
+        r[k].todayAchievement=0;
+        if(config.isNano) r[k].todayCloseLoan=0;
+
+        calcReport(r[k]);
+    }
+
+    config.saveReports(r);
+    config.load();
+}
+
+function reportResetColumn(config){
+    const s=document.getElementById(config.resetId);
+    if(!s||!s.value){
+        alert('Please select a column to reset.');
+        return;
+    }
+
+    if(!confirm('Are you sure you want to reset '+s.value+'?'))return;
+
+    const r=config.getReports();
+
+    for(const k in r){
+        if(s.value==='previousActive')r[k].previousActive=0;
+        if(s.value==='previousTarget')r[k].previousTarget=0;
+        if(s.value==='previousAchievement')r[k].previousAchievement=0;
+        if(s.value==='previousDifference')r[k].previousDifference=0;
+        if(s.value==='todayActive')r[k].todayActive=0;
+        if(s.value==='todayTarget')r[k].todayTarget=0;
+        if(s.value==='todayAchievement')r[k].todayAchievement=0;
+        if(s.value==='previousCloseLoan' && config.isNano)r[k].previousCloseLoan=0;
+        if(s.value==='todayCloseLoan' && config.isNano)r[k].todayCloseLoan=0;
+
+        if(s.value==='all'){
+            r[k].previousActive=0;
+            r[k].previousTarget=0;
+            r[k].previousAchievement=0;
+            r[k].previousDifference=0;
+            r[k].todayActive=0;
+            r[k].todayTarget=0;
+            r[k].todayAchievement=0;
+            if(config.isNano){
+                r[k].previousCloseLoan=0;
+                r[k].todayCloseLoan=0;
+            }
+        }
+
+        calcReport(r[k]);
+    }
+
+    config.saveReports(r);
+    config.load();
+    s.value='';
+}
+
+function downloadReportExcel(config){
+    const reports=normalizeReportData(config.getReports());
+    const rows=[];
+    let close=0,a=0,t=0,ach=0,d=0,td=0,sr=1;
+
+    for(const k in reports){
+        const x=calcReport(reports[k]);
+
+        rows.push({
+            'Sr #':sr++,
+            'Staff / Role':x.staff||'Staff',
+            'Branch Name':x.branch||'',
+            ...(config.isNano ? {'Previous Close Loan':x.previousCloseLoan,'Today Close Loan':x.todayCloseLoan,'Total Close Loan':x.totalCloseLoan} : {}),
+            'Previous Active':x.previousActive,
+            'Today Active':x.todayActive,
+            'Total Active':x.totalActive,
+            'Previous Target':x.previousTarget,
+            'Today Target':x.todayTarget,
+            'Total Target':x.totalTarget,
+            'Previous Achievement':x.previousAchievement,
+            'Today Achievement':x.todayAchievement,
+            'Total Achievement':x.achievement,
+            'Difference Today':x.diffToday,
+            'Previous Difference':x.previousDifference,
+            'Total Difference':x.totalDiff
+        });
+
+        close+=x.closeLoan;
+        a+=x.totalActive;
+        t+=x.totalTarget;
+        ach+=x.achievement;
+        d+=x.diffToday;
+        td+=x.totalDiff;
+    }
+
+    rows.push({
+        'Sr #':'',
+        'Staff / Role':'OVERALL GRAND TOTAL:',
+        'Branch Name':'',
+        ...(config.isNano ? {'Previous Close Loan':'','Today Close Loan':'','Total Close Loan':close} : {}),
+        'Previous Active':'',
+        'Today Active':'',
+        'Total Active':a,
+        'Previous Target':'',
+        'Today Target':'',
+        'Total Target':t,
+        'Previous Achievement':'',
+        'Today Achievement':'',
+        'Total Achievement':ach,
+        'Difference Today':d,
+        'Previous Difference':'',
+        'Total Difference':td
+    });
+
+    const ws=XLSX.utils.json_to_sheet(rows);
+
+    ws['!cols']=config.isNano ? [
+        {wch:7},{wch:22},{wch:18},{wch:18},{wch:16},{wch:14},{wch:14},
+        {wch:16},{wch:14},{wch:14},{wch:21},{wch:18},{wch:18},
+        {wch:18},{wch:20},{wch:18}
+    ] : [
+        {wch:7},{wch:22},{wch:18},
+        {wch:16},{wch:14},{wch:14},
+        {wch:16},{wch:14},{wch:14},
+        {wch:21},{wch:18},{wch:18},
+        {wch:18},{wch:20},{wch:18}
+    ];
+
+    ws['!freeze']={xSplit:0,ySplit:1};
+    ws['!autofilter']={ref:`A1:${config.isNano?'R':'O'}${rows.length-1}`};
+
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,config.title+' Report');
+
+    XLSX.writeFile(
+        wb,
+        config.title.replace(/\s+/g,'_')+'_Staff_Wise_Report.xlsx'
+    );
+}
+
+function downloadReportImage(config,format='png'){
+    const el=document.getElementById(config.tableId);
+    if(!el)return;
+
+    const run=()=>{
+        const box=document.createElement('div');
+
+        box.style.background='#0f172a';
+        box.style.padding='20px';
+        box.style.width='max-content';
+        box.style.color='#fff';
+        box.style.fontFamily='Segoe UI, sans-serif';
+
+        const heading=document.createElement('div');
+        heading.innerText=config.title+' Staff Wise Report';
+        heading.style.textAlign='center';
+        heading.style.fontSize='24px';
+        heading.style.fontWeight='700';
+        heading.style.marginBottom='15px';
+        heading.style.color='#38bdf8';
+
+        const date=document.createElement('div');
+        date.innerText='Till '+new Date().toISOString().slice(0,10);
+        date.style.textAlign='center';
+        date.style.fontSize='14px';
+        date.style.marginBottom='15px';
+        date.style.color='#94a3b8';
+
+        const clone=el.cloneNode(true);
+
+        clone.querySelectorAll('tr').forEach(row=>{
+            if(row.lastElementChild)row.lastElementChild.remove();
+        });
+
+        box.appendChild(heading);
+        box.appendChild(date);
+        box.appendChild(clone);
+        document.body.appendChild(box);
+
+        html2canvas(box,{
+            scale:2,
+            useCORS:true,
+            backgroundColor:'#0f172a'
+        }).then(canvas=>{
+            const a=document.createElement('a');
+            const ext=format==='jpg'?'jpg':'png';
+
+            a.download=config.title.replace(/\s+/g,'_')+'_Staff_Wise_Report.'+ext;
+            a.href=format==='jpg'
+                ?canvas.toDataURL('image/jpeg',.95)
+                :canvas.toDataURL('image/png');
+
+            a.click();
+            document.body.removeChild(box);
+        });
+    };
+
+    if(window.html2canvas)run();
+    else{
+        const sc=document.createElement('script');
+        sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        sc.onload=run;
+        document.head.appendChild(sc);
+    }
+}
+
+
+// ================= NANO WRAPPERS =================
+
+const NANO_CONFIG={
+    prefix:'nano',
+    title:'Nano',
+    isNano:true,
+    bodyId:'nanoTableBody',
+    tableId:'nanoTable',
+    resetId:'nanoResetColumn',
+    sumCloseLoanId:'nanoSumCloseLoan',
+    sumActiveId:'nanoSumTotalActive',
+    sumTargetId:'nanoSumTotalTarget',
+    sumAchievementId:'nanoSumTotalAchievement',
+    sumDiffId:'nanoSumDiffToday',
+    sumTotalDiffId:'nanoSumTotalDiff',
+    getReports:nanoReports,
+    saveReports:saveNanoReports,
+    load:loadNanoData
+};
+
+function loadNanoData(){renderReport(NANO_CONFIG);}
+function nanoActiveChanged(key){const r=nanoReports();if(!r[key])return;r[key].todayActive=reportNum(document.getElementById(`nanoTodayActive_${key}`).value);calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
+function nanoTargetChanged(key){const r=nanoReports();if(!r[key])return;r[key].todayTarget=reportNum(document.getElementById(`nanoTodayTarget_${key}`).value);calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
+function nanoAchievementChanged(key){const r=nanoReports();if(!r[key])return;r[key].todayAchievement=reportNum(document.getElementById(`nanoTodayAchievement_${key}`).value);calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
+
+function nanoCloseLoanChanged(key){
+    const r=nanoReports();
+    if(!r[key])return;
+    const el=document.getElementById(`nanoCloseLoan_${key}`);
+    r[key].todayCloseLoan=el?reportNum(el.value):0;
+    calcReport(r[key]);
+
+    const total=document.getElementById(`nanoTotalCloseLoanDisp_${key}`);
+    if(total) total.innerText=r[key].totalCloseLoan;
+
+    saveNanoReports(r);
+    updateReportGrand(NANO_CONFIG);
+}
+function nanoSaveText(key){saveReportText(NANO_CONFIG,key);}
+function nanoDelete(key){reportDelete(NANO_CONFIG,key);}
+function nanoAddBranch(branch){reportAddBranch(NANO_CONFIG,branch);}
+function addNewNanoRow(){reportAddNewRow(NANO_CONFIG);}
+function saveNanoTodayAsPrevious(){reportSaveTodayAsPrevious(NANO_CONFIG);}
+function resetNanoColumn(){reportResetColumn(NANO_CONFIG);}
+function downloadNanoExcel(){downloadReportExcel(NANO_CONFIG);}
+function downloadNanoImage(format='png'){downloadReportImage(NANO_CONFIG,format);}
+
+function handleNanoExcelUpload(event){
+    const file=event.target.files[0];
+    if(!file)return;
+
+    const rd=new FileReader();
+
+    rd.onload=function(e){
+        try{
+            const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+            const ws=wb.Sheets[wb.SheetNames[0]];
+            const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+
+            if(!rows.length)throw new Error('Excel file is empty.');
+
+            const h=rows[0].map(v=>String(v).trim().toLowerCase());
+            const find=(...names)=>{
+                for(const n of names){
+                    const i=h.indexOf(n.toLowerCase());
+                    if(i>=0)return i;
+                }
+                return -1;
+            };
+
+            const is=find('staff / role','staff','staff/role');
+            const ib=find('branch name','branch');
+            const ipa=find('previous active','prev active');
+            const ita=find('today active','active');
+            const ipt=find('previous target','prev target');
+            const itt=find('today target','target');
+            const ipach=find('previous achievement','prev achievement');
+            const itaach=find('today achievement','today ach','achievement');
+            const ipd=find('previous difference','prev difference');
+            const ipcl=find('previous close loan','prev close loan');
+            const itcl=find('today close loan','close loan','today close');
+
+            if(is<0||ib<0)throw new Error('Staff / Role and Branch Name columns are required.');
+
+            const r={};
+
+            for(let i=1;i<rows.length;i++){
+                const row=rows[i];
+                const staff=String(row[is]??'').trim();
+                const branch=String(row[ib]??'').trim();
+
+                if(!staff||!branch||branch.toLowerCase()==='branch')continue;
+
+                const key=branch.replace(/\s+/g,'_')+'_'+staff.replace(/\s+/g,'_')+'_'+i;
+
+                r[key]={
+                    staff,
+                    branch,
+                    previousActive:ipa>=0?reportNum(row[ipa]):0,
+                    previousTarget:ipt>=0?reportNum(row[ipt]):0,
+                    previousAchievement:ipach>=0?reportNum(row[ipach]):0,
+                    previousDifference:ipd>=0?reportNum(row[ipd]):0,
+                    previousCloseLoan:ipcl>=0?reportNum(row[ipcl]):0,
+                    todayCloseLoan:itcl>=0?reportNum(row[itcl]):0,
+                    todayActive:ita>=0?reportNum(row[ita]):0,
+                    todayTarget:itt>=0?reportNum(row[itt]):0,
+                    todayAchievement:itaach>=0?reportNum(row[itaach]):0
+                };
+
+                calcReport(r[key]);
+            }
+
+            saveNanoReports(r);
+            loadNanoData();
+            alert('Excel file successfully loaded!');
+            event.target.value='';
+        }catch(err){
+            console.error(err);
+            alert('Error reading Excel file format: '+err.message);
+        }
+    };
+
+    rd.readAsArrayBuffer(file);
+}
+
+
+// ================= TELEHEALTH WRAPPERS =================
+
+const TELEHEALTH_CONFIG={
+    prefix:'telehealth',
+    title:'Telehealth',
+    bodyId:'telehealthTableBody',
+    tableId:'telehealthTable',
+    resetId:'telehealthResetColumn',
+    sumActiveId:'telehealthSumTotalActive',
+    sumTargetId:'telehealthSumTotalTarget',
+    sumAchievementId:'telehealthSumTotalAchievement',
+    sumDiffId:'telehealthSumDiffToday',
+    sumTotalDiffId:'telehealthSumTotalDiff',
+    getReports:telehealthReports,
+    saveReports:saveTelehealthReports,
+    load:loadTelehealthData
+};
+
+function loadTelehealthData(){renderReport(TELEHEALTH_CONFIG);}
+function telehealthActiveChanged(key){const r=telehealthReports();if(!r[key])return;r[key].todayActive=reportNum(document.getElementById(`telehealthTodayActive_${key}`).value);calcReport(r[key]);saveTelehealthReports(r);updateReportRow(TELEHEALTH_CONFIG,key);}
+function telehealthTargetChanged(key){const r=telehealthReports();if(!r[key])return;r[key].todayTarget=reportNum(document.getElementById(`telehealthTodayTarget_${key}`).value);calcReport(r[key]);saveTelehealthReports(r);updateReportRow(TELEHEALTH_CONFIG,key);}
+function telehealthAchievementChanged(key){const r=telehealthReports();if(!r[key])return;r[key].todayAchievement=reportNum(document.getElementById(`telehealthTodayAchievement_${key}`).value);calcReport(r[key]);saveTelehealthReports(r);updateReportRow(TELEHEALTH_CONFIG,key);}
+function telehealthSaveText(key){saveReportText(TELEHEALTH_CONFIG,key);}
+function telehealthDelete(key){reportDelete(TELEHEALTH_CONFIG,key);}
+function telehealthAddBranch(branch){reportAddBranch(TELEHEALTH_CONFIG,branch);}
+function addNewTelehealthRow(){reportAddNewRow(TELEHEALTH_CONFIG);}
+function saveTelehealthTodayAsPrevious(){reportSaveTodayAsPrevious(TELEHEALTH_CONFIG);}
+function resetTelehealthColumn(){reportResetColumn(TELEHEALTH_CONFIG);}
+function downloadTelehealthExcel(){downloadReportExcel(TELEHEALTH_CONFIG);}
+function downloadTelehealthImage(format='png'){downloadReportImage(TELEHEALTH_CONFIG,format);}
+
+function handleTelehealthExcelUpload(event){
+    const file=event.target.files[0];
+    if(!file)return;
+
+    const rd=new FileReader();
+
+    rd.onload=function(e){
+        try{
+            const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+            const ws=wb.Sheets[wb.SheetNames[0]];
+            const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+
+            if(!rows.length)throw new Error('Excel file is empty.');
+
+            const h=rows[0].map(v=>String(v).trim().toLowerCase());
+            const find=(...names)=>{
+                for(const n of names){
+                    const i=h.indexOf(n.toLowerCase());
+                    if(i>=0)return i;
+                }
+                return -1;
+            };
+
+            const is=find('staff / role','staff','staff/role');
+            const ib=find('branch name','branch');
+            const ipa=find('previous active','prev active');
+            const ita=find('today active','active');
+            const ipt=find('previous target','prev target');
+            const itt=find('today target','target');
+            const ipach=find('previous achievement','prev achievement');
+            const itaach=find('today achievement','today ach','achievement');
+            const ipd=find('previous difference','prev difference');
+            const ipcl=find('previous close loan','prev close loan');
+            const itcl=find('today close loan','close loan','today close');
+
+            if(is<0||ib<0)throw new Error('Staff / Role and Branch Name columns are required.');
+
+            const r={};
+
+            for(let i=1;i<rows.length;i++){
+                const row=rows[i];
+                const staff=String(row[is]??'').trim();
+                const branch=String(row[ib]??'').trim();
+
+                if(!staff||!branch||branch.toLowerCase()==='branch')continue;
+
+                const key=branch.replace(/\s+/g,'_')+'_'+staff.replace(/\s+/g,'_')+'_'+i;
+
+                r[key]={
+                    staff,
+                    branch,
+                    previousActive:ipa>=0?reportNum(row[ipa]):0,
+                    previousTarget:ipt>=0?reportNum(row[ipt]):0,
+                    previousAchievement:ipach>=0?reportNum(row[ipach]):0,
+                    previousDifference:ipd>=0?reportNum(row[ipd]):0,
+                    previousCloseLoan:ipcl>=0?reportNum(row[ipcl]):0,
+                    todayCloseLoan:itcl>=0?reportNum(row[itcl]):0,
+                    todayActive:ita>=0?reportNum(row[ita]):0,
+                    todayTarget:itt>=0?reportNum(row[itt]):0,
+                    todayAchievement:itaach>=0?reportNum(row[itaach]):0
+                };
+
+                calcReport(r[key]);
+            }
+
+            saveTelehealthReports(r);
+            loadTelehealthData();
+            alert('Excel file successfully loaded!');
+            event.target.value='';
+        }catch(err){
+            console.error(err);
+            alert('Error reading Excel file format: '+err.message);
+        }
+    };
+
+    rd.readAsArrayBuffer(file);
+}
+
+
+// Move the existing report data to Nano the first time.
+// This keeps the report that was already created under the new Nano name.
+function migrateOldTelehealthToNano(){
+    try{
+        const nanoRaw=localStorage.getItem(NANO_STORAGE_KEY);
+        const oldRaw=localStorage.getItem(TELEHEALTH_STORAGE_KEY);
+
+        if((!nanoRaw || nanoRaw==='{}') && oldRaw){
+            const oldData=JSON.parse(oldRaw);
+            if(oldData && Object.keys(oldData).length){
+                localStorage.setItem(NANO_STORAGE_KEY,JSON.stringify(oldData));
+                localStorage.removeItem(TELEHEALTH_STORAGE_KEY);
+            }
+        }
+    }catch(e){
+        console.error('Nano migration error:',e);
+    }
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded',function(){
+    const n=document.getElementById('NanoCurrentDateHeader');
+    const t=document.getElementById('TelehealthCurrentDateHeader');
+    const today='Till '+new Date().toISOString().slice(0,10);
+    if(n)n.innerText=today;
+    if(t)t.innerText=today;
+
+    migrateOldTelehealthToNano();
+    loadNanoData();
+    loadTelehealthData();
+});
 </script>
 </body>
 </html>
