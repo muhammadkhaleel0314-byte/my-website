@@ -370,8 +370,8 @@
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 3. ACAG Batch -->
-      <a href="https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec" target="_blank" onclick="playSound()" class="u-card card-3">
+      <!-- 3. ACAG Batch - Secure One-Time Access -->
+      <a href="#" onclick="return openACAGBatch(event)" class="u-card card-3">
         <div>
           <div class="u-top">
             <div class="u-icon">📁</div>
@@ -383,6 +383,7 @@
         </div>
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
+
 
       <!-- 4. PMY Apply -->
       <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="u-card card-4">
@@ -454,19 +455,26 @@
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- Apni Chhat Mahfooz Chhat Card -->
-<a href="javascript:void(0);" onclick="verifyPortalAccess('https://script.google.com/macros/s/AKfycbzAf-VFJ5sGlMfE0HfO015_JpqzXkOuwl8H2F_HKC6KZJHngM3M1fRWNupWSHgodDXSoA/exec', 'Apni Chhat Mahfooz Chhat')" class="u-card card-9">
-  <div>
+     <!-- Apni Chhat Mahfooz Chhat Card -->
+<a href="javascript:void(0);"onclick="openApniChhat(event)" class="u-card card-9"> 
+	<div>
     <div class="u-top">
+
       <div class="u-icon">✨</div>
+
       <div>
         <div class="u-title">Apni Chhat Mahfooz Chhat</div>
-        <div class="u-desc">Authorized access only.</div>
+
+        <div class="u-desc"> Authorized access only.
+        </div>
       </div>
+
     </div>
   </div>
-  <div class="u-action"><span>Secure Portal</span> <span>→</span></div>
+
+  <div class="u-action"><span>Secure Portal</span><span>→</span></div>
 </a>
+
 		</div> <!-- unique-grid کا بند ہونا -->
 </div> <!-- unique-container کا بند ہونا -->
 </div> <!-- links-tab کا بند ہونا -->
@@ -2137,6 +2145,301 @@ function checkUserAccess(tabId, btnElement) {
         alert("❌ Access Denied: Aapke paas '" + portalName + "' ko access karne ki ijazat nahi hai!"); return;
     }
     window.open(url, '_blank'); if (typeof playSound === 'function') playSound();
+}
+ /* ==========================================
+     ACAG BATCH - SECURE ONE-TIME LINK
+     ========================================== */
+  const ACAG_BATCH_SECURE_URL =
+    "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec";
+
+  function getACAGDeviceId() {
+    let id = localStorage.getItem("acag_one_device_id");
+
+    if (!id) {
+      if (window.crypto && crypto.randomUUID) {
+        id = "ACAG-" + crypto.randomUUID();
+      } else {
+        id = "ACAG-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+      }
+      localStorage.setItem("acag_one_device_id", id);
+    }
+
+    return id;
+  }
+
+  function openACAGBatch(event) {
+    if (event) event.preventDefault();
+
+    const currentUser =
+      document.getElementById("display-user")
+        ? document.getElementById("display-user").innerText.trim()
+        : "";
+
+    if (
+      !currentUser ||
+      currentUser === "Guest" ||
+      !authorizedUsers.map(u => u.toLowerCase()).includes(currentUser.toLowerCase())
+    ) {
+      alert("❌ Access Denied: Aapke paas 'ACAG Batch' ko access karne ki ijazat nahi hai!");
+      return false;
+    }
+
+    if (typeof playSound === "function") playSound();
+
+    const deviceId = getACAGDeviceId();
+    const callbackName = "acagTokenCallback_" + Date.now();
+    const script = document.createElement("script");
+
+    window[callbackName] = function(result) {
+      try { script.remove(); } catch (e) {}
+      try { delete window[callbackName]; } catch (e) {}
+
+      if (!result || result.success !== true || !result.token) {
+        alert(
+          (result && result.message)
+            ? result.message
+            : "Unable to create secure ACAG Batch link."
+        );
+        return;
+      }
+
+      const secureUrl =
+        ACAG_BATCH_SECURE_URL +
+        "?token=" + encodeURIComponent(result.token);
+
+      const w = window.open(secureUrl, "_blank");
+
+      if (!w) {
+        alert("Please allow pop-ups for this website.");
+      }
+    };
+
+    script.onerror = function() {
+      try { script.remove(); } catch (e) {}
+      try { delete window[callbackName]; } catch (e) {}
+      alert("Unable to connect with ACAG Batch portal.");
+    };
+
+    script.src =
+      ACAG_BATCH_SECURE_URL +
+      "?action=createToken" +
+      "&deviceId=" + encodeURIComponent(deviceId) +
+      "&callback=" + encodeURIComponent(callbackName);
+
+    document.head.appendChild(script);
+
+    return false;
+  }
+/* ==========================================
+   APNI CHHAT MAHFOOZ CHHAT - SECURE ONE-TIME LINK
+   ========================================== */
+
+const APNI_CHHAT_SECURE_URL =
+  "https://script.google.com/macros/s/AKfycbx5_wE4DQ4Rcqh1QImxv6mzVCGmt6eY-VcZ7k3-gvkEaVkUqX4PKfiWPJ_ITVCkjHpPfA/exec";
+
+
+function getApniChhatDeviceId() {
+
+  let id =
+    localStorage.getItem("apni_chhat_one_device_id");
+
+  if (!id) {
+
+    if (
+      window.crypto &&
+      crypto.randomUUID
+    ) {
+
+      id =
+        "APNI-CHHAT-" +
+        crypto.randomUUID();
+
+    } else {
+
+      id =
+        "APNI-CHHAT-" +
+        Date.now() +
+        "-" +
+        Math.random()
+          .toString(36)
+          .slice(2);
+
+    }
+
+    localStorage.setItem(
+      "apni_chhat_one_device_id",
+      id
+    );
+
+  }
+
+  return id;
+}
+
+
+function openApniChhat(event) {
+
+  if (event)
+    event.preventDefault();
+
+
+  const currentUser =
+    document.getElementById("display-user")
+      ? document
+          .getElementById("display-user")
+          .innerText
+          .trim()
+      : "";
+
+
+  if (
+    !currentUser ||
+    currentUser === "Guest" ||
+    !authorizedUsers
+      .map(u => u.toLowerCase())
+      .includes(
+        currentUser.toLowerCase()
+      )
+  ) {
+
+    alert(
+      "❌ Access Denied: Aapke paas 'Apni Chhat Mahfooz Chhat' ko access karne ki ijazat nahi hai!"
+    );
+
+    return false;
+
+  }
+
+
+  if (
+    typeof playSound === "function"
+  ) {
+
+    playSound();
+
+  }
+
+
+  const deviceId =
+    getApniChhatDeviceId();
+
+
+  const callbackName =
+    "apniChhatTokenCallback_" +
+    Date.now();
+
+
+  const script =
+    document.createElement("script");
+
+
+  window[callbackName] =
+    function(result) {
+
+      try {
+
+        script.remove();
+
+      } catch (e) {}
+
+
+      try {
+
+        delete window[callbackName];
+
+      } catch (e) {}
+
+
+      if (
+        !result ||
+        result.success !== true ||
+        !result.token
+      ) {
+
+        alert(
+          (
+            result &&
+            result.message
+          )
+            ? result.message
+            : "Unable to create secure Apni Chhat link."
+        );
+
+        return;
+
+      }
+
+
+      const secureUrl =
+        APNI_CHHAT_SECURE_URL +
+        "?token=" +
+        encodeURIComponent(
+          result.token
+        );
+
+
+      const w =
+        window.open(
+          secureUrl,
+          "_blank"
+        );
+
+
+      if (!w) {
+
+        alert(
+          "Please allow pop-ups for this website."
+        );
+
+      }
+
+    };
+
+
+  script.onerror =
+    function() {
+
+      try {
+
+        script.remove();
+
+      } catch (e) {}
+
+
+      try {
+
+        delete window[callbackName];
+
+      } catch (e) {}
+
+
+      alert(
+        "Unable to connect with Apni Chhat Mahfooz Chhat portal."
+      );
+
+    };
+
+
+  script.src =
+    APNI_CHHAT_SECURE_URL +
+    "?action=createToken" +
+    "&deviceId=" +
+    encodeURIComponent(
+      deviceId
+    ) +
+    "&callback=" +
+    encodeURIComponent(
+      callbackName
+    );
+
+
+  document.head.appendChild(
+    script
+  );
+
+
+  return false;
+
 }
 
 
