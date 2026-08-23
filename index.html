@@ -806,6 +806,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let currentUser = null;
+			// Check karein agar pehle se koi user logged in hai localStorage mein
+const savedUser = localStorage.getItem('logged_user');
+if (savedUser) {
+    currentUser = savedUser;
+    
+    // Yahan live delete listener lagayein
+    db.ref('users/' + savedUser).on('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            alert("Aapka account admin ne delete kar diya hai.");
+            localStorage.removeItem('logged_user');
+            location.reload();
+        }
+    });
+}
     let resetTimerInterval = null;
 
     function playSound() {
