@@ -2230,218 +2230,232 @@ function checkUserAccess(tabId, btnElement) {
 
     return false;
   }
-/* ==========================================
-   APNI CHHAT MAHFOOZ CHHAT - SECURE ONE-TIME LINK
-   ========================================== */
+/* =========================================================
+   APNI CHHAT MEHFOOZ CHHAT
+   SECURE ONE-TIME LINK SYSTEM
+   ========================================================= */
 
 const APNI_CHHAT_SECURE_URL =
-  "https://script.google.com/macros/s/AKfycbxaoKAXanf0K_QJpFA2y1kBH7rek6QNFHqOmWOU4w5sUy4YdPfPqWMn9kaXb0_XwuWv_g/exec";
+"https://script.google.com/macros/s/AKfycbxaoKAXanf0K_QJpFA2y1kBH7rek6QNFHqOmWOU4w5sUy4YdPfPqWMn9kaXb0_XwuWv_g/exec";
 
+
+/* =========================================================
+   DEVICE ID
+   ========================================================= */
 
 function getApniChhatDeviceId() {
 
-  let id =
-    localStorage.getItem("apni_chhat_one_device_id");
+  try {
 
-  if (!id) {
+    let deviceId =
+      localStorage.getItem(
+        "apni_chhat_one_device_id"
+      );
+
+    if (deviceId) {
+      return deviceId;
+    }
+
 
     if (
       window.crypto &&
-      crypto.randomUUID
+      typeof window.crypto.randomUUID === "function"
     ) {
 
-      id =
-        "APNI-CHHAT-" +
-        crypto.randomUUID();
+      deviceId =
+        window.crypto.randomUUID();
 
     } else {
 
-      id =
-        "APNI-CHHAT-" +
+      deviceId =
+        "DEVICE-" +
         Date.now() +
         "-" +
         Math.random()
           .toString(36)
-          .slice(2);
+          .substring(2, 12);
 
     }
 
+
     localStorage.setItem(
       "apni_chhat_one_device_id",
-      id
+      deviceId
+    );
+
+
+    return deviceId;
+
+  } catch (error) {
+
+    return (
+      "DEVICE-" +
+      Date.now() +
+      "-" +
+      Math.random()
+        .toString(36)
+        .substring(2, 12)
     );
 
   }
 
-  return id;
 }
 
 
-function openApniChhat(event) {
+/* =========================================================
+   OPEN APNI CHHAT
+   ========================================================= */
 
-  if (event)
-    event.preventDefault();
+async function openApniChhat() {
 
+  try {
 
-  const currentUser =
-    document.getElementById("display-user")
-      ? document
-          .getElementById("display-user")
-          .innerText
-          .trim()
-      : "";
+    const deviceId =
+      getApniChhatDeviceId();
 
 
-  if (
-    !currentUser ||
-    currentUser === "Guest" ||
-    !authorizedUsers
-      .map(u => u.toLowerCase())
-      .includes(
-        currentUser.toLowerCase()
-      )
-  ) {
-
-    alert(
-      "❌ Access Denied: Aapke paas 'Apni Chhat Mahfooz Chhat' ko access karne ki ijazat nahi hai!"
-    );
-
-    return false;
-
-  }
-
-
-  if (
-    typeof playSound === "function"
-  ) {
-
-    playSound();
-
-  }
-
-
-  const deviceId =
-    getApniChhatDeviceId();
-
-
-  const callbackName =
-    "apniChhatTokenCallback_" +
-    Date.now();
-
-
-  const script =
-    document.createElement("script");
-
-
-  window[callbackName] =
-    function(result) {
-
-      try {
-
-        script.remove();
-
-      } catch (e) {}
-
-
-      try {
-
-        delete window[callbackName];
-
-      } catch (e) {}
-
-
-      if (
-        !result ||
-        result.success !== true ||
-        !result.token
-      ) {
-
-        alert(
-          (
-            result &&
-            result.message
-          )
-            ? result.message
-            : "Unable to create secure Apni Chhat link."
-        );
-
-        return;
-
-      }
-
-
-      const secureUrl =
-        APNI_CHHAT_SECURE_URL +
-        "?token=" +
-        encodeURIComponent(
-          result.token
-        );
-
-
-      const w =
-        window.open(
-          secureUrl,
-          "_blank"
-        );
-
-
-      if (!w) {
-
-        alert(
-          "Please allow pop-ups for this website."
-        );
-
-      }
-
-    };
-
-
-  script.onerror =
-    function() {
-
-      try {
-
-        script.remove();
-
-      } catch (e) {}
-
-
-      try {
-
-        delete window[callbackName];
-
-      } catch (e) {}
-
+    if (!deviceId) {
 
       alert(
-        "Unable to connect with Apni Chhat Mahfooz Chhat portal."
+        "Unable to create device ID."
       );
 
-    };
+      return;
+
+    }
 
 
-  script.src =
-    APNI_CHHAT_SECURE_URL +
-    "?action=createToken" +
-    "&deviceId=" +
-    encodeURIComponent(
-      deviceId
-    ) +
-    "&callback=" +
-    encodeURIComponent(
-      callbackName
+    /* -----------------------------------------
+       CREATE TOKEN URL
+       ----------------------------------------- */
+
+    const tokenURL =
+      APNI_CHHAT_SECURE_URL +
+      "?action=createToken" +
+      "&deviceId=" +
+      encodeURIComponent(deviceId);
+
+
+    /* -----------------------------------------
+       REQUEST TOKEN
+       ----------------------------------------- */
+
+    const response =
+      await fetch(
+        tokenURL,
+        {
+          method:"GET",
+          cache:"no-store"
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Server returned " +
+        response.status
+      );
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    /* -----------------------------------------
+       CHECK TOKEN
+       ----------------------------------------- */
+
+    if (
+      !result ||
+      result.success !== true ||
+      !result.token
+    ) {
+
+      throw new Error(
+        result &&
+        result.message
+          ? result.message
+          : "Token could not be created."
+      );
+
+    }
+
+
+    /* -----------------------------------------
+       FINAL ONE-TIME LINK
+       ----------------------------------------- */
+
+    const portalURL =
+      APNI_CHHAT_SECURE_URL +
+      "?portal=chhat" +
+      "&token=" +
+      encodeURIComponent(
+        result.token
+      );
+
+
+    /* -----------------------------------------
+       OPEN NEW TAB
+       ----------------------------------------- */
+
+    const newWindow =
+      window.open(
+        portalURL,
+        "_blank"
+      );
+
+
+    if (!newWindow) {
+
+      alert(
+        "Please allow pop-ups for this dashboard."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      newWindow.focus();
+
+    } catch (e) {}
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Apni Chhat Error:",
+      error
     );
 
 
-  document.head.appendChild(
-    script
-  );
+    alert(
+      "Unable to connect with Apni Chhat Mahfooz Chhat portal.\n\n" +
+      "Please try again."
+    );
 
-
-  return false;
+  }
 
 }
 
+
+/* =========================================================
+   OPTIONAL BUTTON FUNCTION
+   اگر HTML میں onclick="openApniChhat()" ہے
+   تو یہی function استعمال ہوگا۔
+   ========================================================= */
+
+function openApniChhatPortal() {
+
+  openApniChhat();
+
+}
 
 // ================= NANO + TELEHEALTH REPORTS =================
 // Only report logic is handled here. Login / Firebase / other tabs remain unchanged.
