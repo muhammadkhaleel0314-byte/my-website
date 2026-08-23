@@ -836,7 +836,26 @@
           if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
           if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
           currentUser = user;
-          localStorage.setItem('logged_user', user);
+    localStorage.setItem('logged_user', user);
+    
+    // Yeh raha live delete listener
+    db.ref('users/' + user).on('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            alert("Aapka account delete kar diya gaya hai.");
+            localStorage.removeItem('logged_user');
+            location.reload();
+        }
+    });
+
+    document.getElementById('display-user').innerText = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-container').style.display = 'flex';
+    errEl.innerText = "";
+    loadUserHistory(user);
+
+    document.getElementById('display-user').innerText = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-container').style.display = 'flex';
           document.getElementById('display-user').innerText = user;
           document.getElementById('login-screen').style.display = 'none';
           document.getElementById('app-container').style.display = 'flex';
