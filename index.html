@@ -2144,7 +2144,9 @@ function downloadAdjustedPDF() {
         margin: { top: 25, right: 10, bottom: 15, left: 10 }
     });
 
-    doc.save(`Branch_${selectedBranch}_Adjusted.pdf`);
+    // 📥 Yeh line update ki gayi hai taake original Excel/CSV file ka naam use ho
+    const finalName = uploadedFileName ? `${uploadedFileName}.pdf` : `Branch_${selectedBranch}_Adjusted.pdf`;
+    doc.save(finalName);
 }
 
 function checkUserAccess(tabId, btnElement) {
