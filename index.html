@@ -1952,47 +1952,46 @@ function downloadRangeExcelReport() {
 }
 let adjFileRows = [];
 let adjFileHeaders = [];
+let uploadedFileName = ""; // <-- Yeh variable original file ka naam save karne ke liye banayein
 
 function handleAdjFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Original file ka naam save kar lein (jaise: 'report.xlsx' se 'report' nikalna)
+    uploadedFileName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+
     const reader = new FileReader();
     const isCsv = file.name.endsWith('.csv');
-
+    
     reader.onload = function(e) {
         try {
             let workbook;
             if (isCsv) {
-                // CSV کے لیے ٹیکسٹ ڈیٹا استعمال کریں
                 const csvText = e.target.result;
                 workbook = XLSX.read(csvText, { type: 'string' });
             } else {
-                // Excel فائلوں (.xlsx, .xls) کے لیے Uint8Array استعمال کریں
                 const data = new Uint8Array(e.target.result);
                 workbook = XLSX.read(data, { type: 'array' });
             }
-
+            
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
             const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             
             if (jsonRows.length === 0) {
                 alert("فائل خالی ہے!");
                 return;
             }
-
-            adjFileHeaders = jsonRows[0].filter(Boolean); 
-            adjFileRows = XLSX.utils.sheet_to_json(worksheet); 
-
+            
+            adjFileHeaders = jsonRows[0].filter(Boolean);
+            adjFileRows = XLSX.utils.sheet_to_json(worksheet);
+            
             updateDropdowns();
-
             document.getElementById('adj-controls').style.display = 'flex';
-            document.getElementById('adj-preview-status').innerHTML = `<span style="color: var(--btn-green);">✅ فائل لوڈ ہو گئی! کل قطاریں: ${adjFileRows.length}</span>`;
-
+            document.getElementById('adj-preview-status').innerHTML = `<span style="color: var(--btn-green);">✅ فائل لوڈ ہو گئی! کل قطاریں: ${adjFileRows.length} </span>`;
+            
             populateAdjBranchList();
-
         } catch (error) {
             console.error(error);
             alert("فائل پڑھنے میں خرابی پیش آئی۔");
@@ -2005,7 +2004,6 @@ function handleAdjFileUpload(event) {
         reader.readAsArrayBuffer(file);
     }
 }
-
 function updateDropdowns() {
     // برانچ کالم ڈراپ ڈاؤن
     const colSelect = document.getElementById('adj-column-select');
