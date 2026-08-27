@@ -2235,16 +2235,7 @@ function checkUserAccess(tabId, btnElement) {
         ? document.getElementById("display-user").innerText.trim()
         : "";
 
-    if (
-      !currentUser ||
-      currentUser === "Guest" ||
-      !authorizedUsers.map(u => u.toLowerCase()).includes(currentUser.toLowerCase())
-    ) {
-      alert("❌ Access Denied: Aapke paas 'ACAG Batch' ko access karne ki ijazat nahi hai!");
-      return false;
-    }
 
-    if (typeof playSound === "function") playSound();
 
     const deviceId = getACAGDeviceId();
     const callbackName = "acagTokenCallback_" + Date.now();
