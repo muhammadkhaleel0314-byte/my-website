@@ -2205,13 +2205,7 @@ function checkUserAccess(tabId, btnElement) {
   "jani"
 ];
 
-  function verifyPortalAccess(url, portalName) {
-    let currentUser = document.getElementById("display-user") ? document.getElementById("display-user").innerText.trim() : "";
-    if (!currentUser || currentUser === "Guest" || !authorizedUsers.map(u => u.toLowerCase()).includes(currentUser.toLowerCase())) {
-        alert("❌ Access Denied: Aapke paas '" + portalName + "' ko access karne ki ijazat nahi hai!"); return;
-    }
-    window.open(url, '_blank'); if (typeof playSound === 'function') playSound();
-}
+  
   /* ==========================================
      ACAG BATCH - SECURE ONE-TIME LINK
      ========================================== */
