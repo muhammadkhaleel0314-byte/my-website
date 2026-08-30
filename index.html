@@ -146,6 +146,7 @@
 		<button class="nav-sub-btn" onclick="checkUserAccess('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
 			<button class="nav-sub-btn" onclick="checkUserAccess('nano-tab', this)"><i class="fa-solid fa-chart-line"></i> Nano Report</button>
 			<button class="nav-sub-btn" onclick="checkUserAccess('telehealth-tab', this)"><i class="fa-solid fa-chart-line"></i> Telehealth Report</button>
+			<button class="nav-sub-btn" onclick="checkUserAccess('mdp-tab', this)"><i class="fa-solid fa-table-columns"></i> MDP Report</button>
 		</div>
         <!-- سائیڈ بار میں ری سیٹ بٹن -->
         <!-- سائیڈ بار میں ری سیٹ بٹن (چھپا ہوا اور خفیہ آئیکن کے ساتھ) -->
@@ -819,6 +820,43 @@
 </div>
 </div>
 </div>
+<!-- ================= MDP REPORT TAB ================= -->
+<div id="mdp-tab" class="tab-content">
+  <div class="mdp-wrap">
+    <div class="mdp-title">📊 MDP MONTH-WISE COMPARISON REPORT</div>
+    <div class="mdp-upload">
+      <label style="font-size:12px;color:var(--primary);font-weight:bold;display:block;margin-bottom:7px;">📤 Upload MDP Excel</label>
+      <input type="file" id="mdp-file" accept=".xlsx,.xls" style="font-size:11px;color:#fff;max-width:100%;">
+      <div id="mdp-sheet-box" style="display:none;margin-top:10px;">
+        <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:5px;">Select Sheet</label>
+        <select id="mdp-sheet" class="mdp-select" style="max-width:350px;"></select>
+      </div>
+    </div>
+    <div id="mdp-status" class="mdp-status">Please upload your MDP Excel file.</div>
+    <div id="mdp-mapping" style="display:none;">
+      <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:10px;">🔧 Column Mapping</div>
+      <div class="mdp-map-grid">
+        <div class="mdp-map-box"><label>Area Column</label><select id="mdp-area-col" class="mdp-select"></select></div>
+        <div class="mdp-map-box"><label>Branch Name Column</label><select id="mdp-branch-col" class="mdp-select"></select></div>
+        <div class="mdp-map-box"><label>Month / Date Column</label><select id="mdp-date-col" class="mdp-select"></select></div>
+        <div class="mdp-map-box"><label>Amount Column</label><select id="mdp-amount-col" class="mdp-select"></select></div>
+        <div class="mdp-map-box"><label>Receipts Column</label><select id="mdp-receipts-col" class="mdp-select"></select></div>
+      </div>
+    </div>
+    <div id="mdp-report-area" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;">
+        <div><div style="font-size:16px;font-weight:700;color:var(--primary);">📋 MDP Month-wise Comparison</div><div id="mdp-months-found" style="font-size:11px;color:var(--text-muted);margin-top:4px;"></div></div>
+        <button class="action-btn" onclick="downloadMDPExcel()" style="width:auto;margin-top:0;background:#10b981;padding:10px 16px;">⬇️ Download MDP Comparison Excel</button>
+      </div>
+      <div class="mdp-table-wrap" id="mdp-table-wrap"></div>
+      <div class="mdp-help">
+        <div class="mdp-help-card"><b style="color:var(--primary);">📌 MDP Formula</b><br><b>MDP Per Box = Amount ÷ Due</b><br>Example: Amount 6,000 ÷ Due 1,000 = <b>6</b></div>
+        <div class="mdp-help-card"><b style="color:var(--primary);">📌 Not Given</b><br><b>Not Given = Receipts − Due</b><br>Example: Receipts 1,000 − Due 500 = <b>500</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 		<script>
     const FIXED_FIRST_12 = "421011234567";
@@ -3352,6 +3390,199 @@ document.addEventListener('DOMContentLoaded',function(){
     loadNanoData();
     loadTelehealthData();
 });
+			// ================= MDP MONTH-WISE COMPARISON =================
+const MDP_STORAGE_KEY = 'mdp_due_values_v1';
+let mdpWorkbook = null;
+let mdpRawRows = [];
+let mdpHeaders = [];
+let mdpAvailableMonths = [];
+let mdpFinalRows = [];
+let mdpFinalColumns = [];
+let mdpColumnMap = {area:null,branch:null,date:null,amount:null,receipts:null};
+
+function mdpNormalizeHeader(v){
+  return String(v ?? '').trim().toLowerCase().replace(/ /g,'_').replace(/-/g,'_');
+}
+function mdpFindColumn(headers,names){
+  const map={}; headers.forEach(h=>map[mdpNormalizeHeader(h)]=h);
+  for(const n of names){ if(map[n]!==undefined) return map[n]; }
+  return null;
+}
+function mdpNum(v){
+  if(v===null||v===undefined||v==='') return NaN;
+  if(typeof v==='number') return Number.isFinite(v)?v:NaN;
+  const n=Number(String(v).replace(/,/g,'').replace(/Rs\.?/ig,'').trim());
+  return Number.isFinite(n)?n:NaN;
+}
+function mdpExcelDate(v){
+  if(typeof v==='number' && Number.isFinite(v)){
+    const d=new Date(Date.UTC(1899,11,30)); d.setUTCDate(d.getUTCDate()+v); return d;
+  }
+  if(v instanceof Date && !isNaN(v)) return new Date(v.getTime());
+  const s=String(v??'').trim(); if(!s) return null;
+  // DD/MM/YYYY or DD-MM-YYYY (Pandas dayfirst=True equivalent)
+  let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+  if(m){ let day=+m[1], mon=+m[2]-1, yr=+m[3]; if(yr<100) yr+=2000; const d=new Date(yr,mon,day); if(d.getFullYear()===yr&&d.getMonth()===mon&&d.getDate()===day)return d; }
+  // YYYY-MM-DD
+  m=s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+  if(m){ const d=new Date(+m[1],+m[2]-1,+m[3]); if(!isNaN(d))return d; }
+  // Month labels such as Jul-25 / July 2025
+  m=s.match(/^([A-Za-z]{3,9})[\s\-\/]?(\d{2,4})$/);
+  if(m){ let yr=+m[2]; if(yr<100)yr+=2000; const mon=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(m[1].slice(0,3).toLowerCase()); if(mon>=0)return new Date(yr,mon,1); }
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+function mdpMonthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function mdpMonthLabel(key){ const [y,m]=key.split('-').map(Number); return new Date(y,m-1,1).toLocaleString('en-US',{month:'short'})+'-'+String(y).slice(-2); }
+function mdpLoadDue(){ try{return JSON.parse(localStorage.getItem(MDP_STORAGE_KEY)||'{}')||{};}catch(e){return {};} }
+function mdpSaveDue(obj){ localStorage.setItem(MDP_STORAGE_KEY,JSON.stringify(obj)); }
+function mdpDueKey(area,branch,label){return String(area)+'||'+String(branch)+'||'+String(label);}
+function mdpEsc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+function mdpFmt(v){ const n=Number(v)||0; return Math.abs(n-Math.round(n))<1e-9 ? String(Math.round(n)) : n.toFixed(2); }
+function mdpDiffClass(v){ const n=Number(v)||0; return n>0?'mdp-positive':n<0?'mdp-negative':''; }
+
+function mdpPopulateSelect(id,headers,selected){
+  const el=document.getElementById(id); if(!el)return;
+  el.innerHTML='';
+  const none=document.createElement('option'); none.value=''; none.textContent='None'; el.appendChild(none);
+  headers.forEach(h=>{const o=document.createElement('option');o.value=h;o.textContent=h;el.appendChild(o);});
+  if(selected && headers.includes(selected)) el.value=selected;
+}
+function mdpReadSheet(sheetName){
+  if(!mdpWorkbook)return;
+  const ws=mdpWorkbook.Sheets[sheetName];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
+  if(!rows.length){mdpRawRows=[];mdpHeaders=[];mdpShowStatus('Selected sheet is empty.');return;}
+  // Match pandas read_excel: first row is header.
+  mdpHeaders=(rows[0]||[]).map((h,i)=>String(h??'').trim()||('Column '+(i+1)));
+  mdpRawRows=rows.slice(1).filter(r=>r.some(v=>String(v??'').trim()!==''));
+  mdpAutoMap();
+}
+function mdpAutoMap(){
+  const a=mdpFindColumn(mdpHeaders,['area','area_name','region','zone']);
+  const b=mdpFindColumn(mdpHeaders,['branch_name','branchname','branch_title','branch']);
+  const d=mdpFindColumn(mdpHeaders,['date','mdp_date','recovery_date','transaction_date','disbursement_date']);
+  const am=mdpFindColumn(mdpHeaders,['amount','mdp_amount','total_amount','given_amount','paid_amount','recovery_amount']);
+  const r=mdpFindColumn(mdpHeaders,['receipts','receipt','receipt_count','receipt_no','slips','slip_count','total_receipts']);
+  mdpColumnMap={area:a,branch:b,date:d,amount:am,receipts:r};
+  mdpPopulateSelect('mdp-area-col',mdpHeaders,a); mdpPopulateSelect('mdp-branch-col',mdpHeaders,b); mdpPopulateSelect('mdp-date-col',mdpHeaders,d); mdpPopulateSelect('mdp-amount-col',mdpHeaders,am); mdpPopulateSelect('mdp-receipts-col',mdpHeaders,r);
+  document.getElementById('mdp-mapping').style.display='block';
+  ['mdp-area-col','mdp-branch-col','mdp-date-col','mdp-amount-col','mdp-receipts-col'].forEach(id=>{const el=document.getElementById(id);el.onchange=()=>{mdpColumnMap={area:document.getElementById('mdp-area-col').value||null,branch:document.getElementById('mdp-branch-col').value||null,date:document.getElementById('mdp-date-col').value||null,amount:document.getElementById('mdp-amount-col').value||null,receipts:document.getElementById('mdp-receipts-col').value||null};mdpBuildReport();};});
+  mdpBuildReport();
+}
+function mdpShowStatus(msg,type='info'){ const el=document.getElementById('mdp-status'); if(el){el.textContent=msg;el.style.color=type==='error'?'#ef4444':type==='success'?'#34d399':'#94a3b8';} }
+
+function mdpBuildReport(){
+  const missing=[]; Object.entries(mdpColumnMap).forEach(([k,v])=>{if(!v)missing.push({area:'Area',branch:'Branch Name',date:'Date / Month',amount:'Amount',receipts:'Receipts'}[k]);});
+  if(missing.length){ document.getElementById('mdp-report-area').style.display='none'; mdpShowStatus('یہ columns ضروری ہیں: '+missing.join(', '),'error'); return; }
+  const rows=[]; let invalid=0;
+  let allReceiptsNaN=true;
+  mdpRawRows.forEach(r=>{const dt=mdpExcelDate(r[mdpHeaders.indexOf(mdpColumnMap.date)]); if(!dt){invalid++;return;} const area=String(r[mdpHeaders.indexOf(mdpColumnMap.area)]??'').trim(); const branch=String(r[mdpHeaders.indexOf(mdpColumnMap.branch)]??'').trim(); const amount=mdpNum(r[mdpHeaders.indexOf(mdpColumnMap.amount)]); const rec=mdpNum(r[mdpHeaders.indexOf(mdpColumnMap.receipts)]); if(!Number.isNaN(rec))allReceiptsNaN=false; rows.push({area,branch,date:dt,month:mdpMonthKey(dt),amount:Number.isNaN(amount)?0:amount,rawReceipt:rec});});
+  if(!rows.length){document.getElementById('mdp-report-area').style.display='none';mdpShowStatus('کوئی valid date نہیں ملی۔','error');return;}
+  rows.forEach(x=>x.receipts=allReceiptsNaN?1:(Number.isNaN(x.rawReceipt)?0:x.rawReceipt));
+  mdpAvailableMonths=[...new Set(rows.map(x=>x.month))].sort();
+  const branches=[...new Map(rows.map(x=>{const key=x.area+'||'+x.branch;return [key,{area:x.area,branch:x.branch}];})).values()].sort((x,y)=>x.area.localeCompare(y.area)||x.branch.localeCompare(y.branch));
+  const reports={}; mdpAvailableMonths.forEach(m=>{reports[m]=new Map(); rows.filter(x=>x.month===m).forEach(x=>{const key=x.area+'||'+x.branch;const z=reports[m].get(key)||{amount:0,receipts:0};z.amount+=x.amount;z.receipts+=x.receipts;reports[m].set(key,z);});});
+  const dueStore=mdpLoadDue();
+  const displayRows=branches.map((br,i)=>{const row={sr:i+1,area:br.area,branch:br.branch,months:{}}; mdpAvailableMonths.forEach(m=>{const label=mdpMonthLabel(m),z=reports[m].get(br.area+'||'+br.branch)||{amount:0,receipts:0}; const due=Number(dueStore[mdpDueKey(br.area,br.branch,label)]||0); row.months[m]={label,amount:z.amount,receipts:z.receipts,due,mdp:due!==0?z.amount/due:0,notGiven:z.receipts-due};});return row;});
+  mdpFinalRows=displayRows; mdpFinalColumns=['Sr.','Area','Branch Name'];
+  mdpAvailableMonths.forEach((m,i)=>{const label=mdpMonthLabel(m);mdpFinalColumns.push(label+' | Amount',label+' | Receipts',label+' | Due',label+' | MDP Per Box',label+' | Not Given');});
+  for(let i=1;i<mdpAvailableMonths.length;i++){const p=mdpMonthLabel(mdpAvailableMonths[i-1]),c=mdpMonthLabel(mdpAvailableMonths[i]);mdpFinalColumns.push('Diff '+c+'-'+p+' | Amount','Diff '+c+'-'+p+' | Receipts','Diff '+c+'-'+p+' | Due','Diff '+c+'-'+p+' | MDP Per Box','Diff '+c+'-'+p+' | Not Given');}
+  mdpRenderTable(invalid);
+}
+
+function mdpRenderTable(invalid=0){
+  const months=mdpAvailableMonths; let html='<table><thead><tr><th rowspan="2">Sr.</th><th rowspan="2">Area</th><th rowspan="2">Branch Name</th>';
+  months.forEach(m=>{const l=mdpMonthLabel(m);html+=`<th class="mdp-group" colspan="5">${mdpEsc(l)}</th>`;});
+  for(let i=1;i<months.length;i++){const p=mdpMonthLabel(months[i-1]),c=mdpMonthLabel(months[i]);html+=`<th class="mdp-group" colspan="5">Diff ${mdpEsc(c)}-${mdpEsc(p)}</th>`;}
+  html+='</tr><tr>'; months.forEach(()=>{html+='<th>Amount</th><th>Receipts</th><th>Due</th><th>MDP Per Box</th><th>Not Given</th>';}); for(let i=1;i<months.length;i++)html+='<th>Amount</th><th>Receipts</th><th>Due</th><th>MDP Per Box</th><th>Not Given</th>'; html+='</tr></thead><tbody>';
+  mdpFinalRows.forEach((r,ri)=>{html+=`<tr><td>${r.sr}</td><td class="mdp-text">${mdpEsc(r.area)}</td><td class="mdp-text">${mdpEsc(r.branch)}</td>`;months.forEach(m=>{const x=r.months[m];html+=`<td>${mdpFmt(x.amount)}</td><td>${mdpFmt(x.receipts)}</td><td class="mdp-due-cell"><input class="mdp-due-input" type="number" min="0" step="1" inputmode="numeric" value="${Number(x.due)||0}" data-row="${ri}" data-month="${mdpEsc(m)}" onchange="mdpDueChanged(this)" oninput="mdpDueTyping(this)"></td><td>${mdpFmt(x.mdp)}</td><td class="${mdpDiffClass(x.notGiven)}">${mdpFmt(x.notGiven)}</td>`;});for(let i=1;i<months.length;i++){const a=r.months[months[i-1]],b=r.months[months[i]];const vals=[b.amount-a.amount,b.receipts-a.receipts,b.due-a.due,b.mdp-a.mdp,b.notGiven-a.notGiven];vals.forEach(v=>html+=`<td class="${mdpDiffClass(v)}">${mdpFmt(v)}</td>`);};html+='</tr>';});
+  const gt={}; months.forEach(m=>{let amount=0,receipts=0,due=0;mdpFinalRows.forEach(r=>{amount+=r.months[m].amount;receipts+=r.months[m].receipts;due+=r.months[m].due;});gt[m]={amount,receipts,due,mdp:due!==0?amount/due:0,notGiven:receipts-due};});
+  // Grand total for consecutive differences is calculated exactly as sum of row differences.
+  html+='<tr class="mdp-grand-total"><td></td><td></td><td>GRAND TOTAL</td>'; months.forEach(m=>{const g=gt[m];html+=`<td>${mdpFmt(g.amount)}</td><td>${mdpFmt(g.receipts)}</td><td>${mdpFmt(g.due)}</td><td>${mdpFmt(g.mdp)}</td><td>${mdpFmt(g.notGiven)}</td>`;});for(let i=1;i<months.length;i++){const p=gt[months[i-1]],c=gt[months[i]];html+=`<td>${mdpFmt(c.amount-p.amount)}</td><td>${mdpFmt(c.receipts-p.receipts)}</td><td>${mdpFmt(c.due-p.due)}</td><td>${mdpFmt(c.mdp-p.mdp)}</td><td>${mdpFmt(c.notGiven-p.notGiven)}</td>`;}html+='</tr></tbody></table>';
+  document.getElementById('mdp-table-wrap').innerHTML=html;document.getElementById('mdp-report-area').style.display='block';document.getElementById('mdp-months-found').textContent=months.length+' months found: '+months.map(mdpMonthLabel).join(', ')+(invalid?` • ${invalid} invalid date row(s) excluded.`:'');mdpShowStatus('MDP report ready. Due values auto-save and calculations update automatically.','success');
+}
+function mdpDueTyping(el){
+  // Due field: only one digit (0-9). Do NOT re-render while typing, so the cursor stays in the cell.
+  let v=String(el.value||"").replace(/\D/g,"");
+  if(v!=="") el.value=v;
+}
+
+function mdpDueChanged(el){
+  const ri=Number(el.dataset.row),m=el.dataset.month;
+  if(!mdpFinalRows[ri])return;
+  const v=Math.max(0,parseInt(el.value||"0",10)||0);
+  el.value=v;
+  const r=mdpFinalRows[ri];
+  r.months[m].due=v;
+  const store=mdpLoadDue();
+  store[mdpDueKey(r.area,r.branch,r.months[m].label)]=v;
+  mdpSaveDue(store);
+  mdpRenderTable();
+}
+
+function mdpBuildFlatRows(){
+  const rows=mdpFinalRows.map(r=>{const o={'Sr.':r.sr,'Area':r.area,'Branch Name':r.branch};mdpAvailableMonths.forEach(m=>{const x=r.months[m];o[x.label+' | Amount']=x.amount;o[x.label+' | Receipts']=x.receipts;o[x.label+' | Due']=x.due;o[x.label+' | MDP Per Box']=x.mdp;o[x.label+' | Not Given']=x.notGiven;});for(let i=1;i<mdpAvailableMonths.length;i++){const p=mdpMonthLabel(mdpAvailableMonths[i-1]),c=mdpMonthLabel(mdpAvailableMonths[i]),a=r.months[mdpAvailableMonths[i-1]],b=r.months[mdpAvailableMonths[i]];o['Diff '+c+'-'+p+' | Amount']=b.amount-a.amount;o['Diff '+c+'-'+p+' | Receipts']=b.receipts-a.receipts;o['Diff '+c+'-'+p+' | Due']=b.due-a.due;o['Diff '+c+'-'+p+' | MDP Per Box']=b.mdp-a.mdp;o['Diff '+c+'-'+p+' | Not Given']=b.notGiven-a.notGiven;}return o;});
+  const gt={'Sr.':'','Area':'','Branch Name':'GRAND TOTAL'};mdpAvailableMonths.forEach(m=>{let amount=0,receipts=0,due=0;mdpFinalRows.forEach(r=>{amount+=r.months[m].amount;receipts+=r.months[m].receipts;due+=r.months[m].due;});const l=mdpMonthLabel(m);gt[l+' | Amount']=amount;gt[l+' | Receipts']=receipts;gt[l+' | Due']=due;gt[l+' | MDP Per Box']=due?amount/due:0;gt[l+' | Not Given']=receipts-due;});for(let i=1;i<mdpAvailableMonths.length;i++){const p=mdpMonthLabel(mdpAvailableMonths[i-1]),c=mdpMonthLabel(mdpAvailableMonths[i]);gt['Diff '+c+'-'+p+' | Amount']=(gt[c+' | Amount']||0)-(gt[p+' | Amount']||0);gt['Diff '+c+'-'+p+' | Receipts']=(gt[c+' | Receipts']||0)-(gt[p+' | Receipts']||0);gt['Diff '+c+'-'+p+' | Due']=(gt[c+' | Due']||0)-(gt[p+' | Due']||0);gt['Diff '+c+'-'+p+' | MDP Per Box']=(gt[c+' | MDP Per Box']||0)-(gt[p+' | MDP Per Box']||0);gt['Diff '+c+'-'+p+' | Not Given']=(gt[c+' | Not Given']||0)-(gt[p+' | Not Given']||0);}rows.push(gt);return rows;
+}
+function downloadMDPExcel(){
+  if(!mdpFinalRows.length){alert('Please upload and prepare the MDP report first!');return;}
+  const rows=mdpBuildFlatRows();
+  const ws=XLSX.utils.json_to_sheet(rows,{header:mdpFinalColumns});
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'MDP Comparison');
+
+  const lastCol=XLSX.utils.encode_col(mdpFinalColumns.length-1);
+  const lastRow=rows.length;
+  ws['!freeze']={xSplit:3,ySplit:1};
+  ws['!autofilter']={ref:`A1:${lastCol}${lastRow}`};
+  ws['!cols']=mdpFinalColumns.map(h=>({wch:h==='Area'?20:h==='Branch Name'?22:Math.min(Math.max(String(h).length+3,12),22)}));
+  ws['!rows']=[{hpt:32}];
+
+  // Header styling: same dark heading as screen report
+  for(let c=0;c<mdpFinalColumns.length;c++){
+    const cell=ws[XLSX.utils.encode_cell({r:0,c})];
+    if(cell) cell.s={
+      font:{name:'Calibri',bold:true,color:'FFFFFF',sz:11},
+      fill:{patternType:'solid',fgColor:{rgb:'063B66'}},
+      alignment:{horizontal:'center',vertical:'center',wrapText:true},
+      border:{top:{style:'thin',color:{rgb:'CBD5E1'}},bottom:{style:'thin',color:{rgb:'CBD5E1'}},left:{style:'thin',color:{rgb:'CBD5E1'}},right:{style:'thin',color:{rgb:'CBD5E1'}}}
+    };
+  }
+
+  // Body styling + red/green difference cells + Grand Total
+  for(let r=1;r<lastRow;r++){
+    const isGrand=Array.from({length:mdpFinalColumns.length},(_,cc)=>String(ws[XLSX.utils.encode_cell({r,c:cc})]?.v||'').toUpperCase()).some(v=>v.includes('GRAND TOTAL'));
+    for(let c=0;c<mdpFinalColumns.length;c++){
+      const cell=ws[XLSX.utils.encode_cell({r,c})]; if(!cell) continue;
+      let style={
+        font:{bold:isGrand,color:isGrand?'FFFFFF':'111827'},
+        fill:{patternType:'solid',fgColor:{rgb:isGrand?'063B66':'FFFFFF'}},
+        alignment:{horizontal:c<3?'left':'center',vertical:'center'},
+        border:{top:{style:'thin',color:{rgb:'E2E8F0'}},bottom:{style:'thin',color:{rgb:'E2E8F0'}},left:{style:'thin',color:{rgb:'E2E8F0'}},right:{style:'thin',color:{rgb:'E2E8F0'}}}
+      };
+      const h=String(mdpFinalColumns[c]||'');
+      if(typeof cell.v==='number') cell.z=h.includes('MDP Per Box')?'0.00':'#,##0';
+      if(!isGrand && h.toLowerCase().includes('diff') && typeof cell.v==='number'){
+        style.font={bold:true,color:cell.v>0?'15803D':cell.v<0?'B91C1C':'374151'};
+        style.fill={patternType:'solid',fgColor:{rgb:cell.v>0?'DCFCE7':cell.v<0?'FEE2E2':'F3F4F6'}};
+      }
+      cell.s=style;
+    }
+  }
+
+  XLSX.writeFile(wb,'MDP_Month_Wise_Comparison.xlsx',{bookType:'xlsx',cellStyles:true});
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  const input=document.getElementById('mdp-file');
+  const sheet=document.getElementById('mdp-sheet');
+  if(input) input.addEventListener('change',function(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();reader.onload=function(ev){try{mdpWorkbook=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellDates:true});sheet.innerHTML='';mdpWorkbook.SheetNames.forEach((n,i)=>{const o=document.createElement('option');o.value=n;o.textContent=n;sheet.appendChild(o);});document.getElementById('mdp-sheet-box').style.display='block';sheet.onchange=()=>mdpReadSheet(sheet.value);mdpReadSheet(sheet.value);mdpShowStatus('Excel loaded successfully.','success');}catch(err){console.error(err);mdpShowStatus('Excel file read نہیں ہو سکی: '+err.message,'error');}};reader.readAsArrayBuffer(file);
+  });
+});
+
+
 </script>
 </body>
 </html>
