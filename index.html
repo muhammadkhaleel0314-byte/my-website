@@ -3168,8 +3168,73 @@ function addNewNanoRow(){reportAddNewRow(NANO_CONFIG);}
 function saveNanoTodayAsPrevious(){reportSaveTodayAsPrevious(NANO_CONFIG);}
 function resetNanoColumn(){reportResetColumn(NANO_CONFIG);}
 function downloadNanoExcel(){downloadReportExcel(NANO_CONFIG);}
-function downloadNanoImage(format='png'){downloadReportImage(NANO_CONFIG,format);}
+function downloadNanoImage(format='png'){
+    if(format==='jpg'){
+        downloadReportImageWhite(NANO_CONFIG);
+    }else{
+        downloadReportImage(NANO_CONFIG,format);
+    }
+}
+function downloadReportImageWhite(config){
+    const el=document.getElementById(config.tableId);
+    if(!el)return;
 
+    const box=document.createElement('div');
+
+    box.style.background='#ffffff';
+    box.style.padding='20px';
+    box.style.width='max-content';
+    box.style.color='#000000';
+    box.style.fontFamily='Segoe UI, sans-serif';
+
+    const heading=document.createElement('div');
+    heading.innerText=config.title+' Staff Wise Report';
+    heading.style.textAlign='center';
+    heading.style.fontSize='24px';
+    heading.style.fontWeight='700';
+    heading.style.marginBottom='15px';
+    heading.style.color='#000000';
+
+    const date=document.createElement('div');
+    date.innerText='Till '+new Date().toISOString().slice(0,10);
+    date.style.textAlign='center';
+    date.style.fontSize='14px';
+    date.style.marginBottom='15px';
+    date.style.color='#000000';
+
+    const clone=el.cloneNode(true);
+
+    clone.style.background='#ffffff';
+    clone.style.color='#000000';
+
+    clone.querySelectorAll('*').forEach(x=>{
+        x.style.backgroundColor='#ffffff';
+        x.style.color='#000000';
+    });
+
+    clone.querySelectorAll('tr').forEach(row=>{
+        if(row.lastElementChild)row.lastElementChild.remove();
+    });
+
+    box.appendChild(heading);
+    box.appendChild(date);
+    box.appendChild(clone);
+    document.body.appendChild(box);
+
+    html2canvas(box,{
+        scale:2,
+        useCORS:true,
+        backgroundColor:'#ffffff'
+    }).then(canvas=>{
+        const a=document.createElement('a');
+
+        a.download=config.title.replace(/\s+/g,'_')+'_Staff_Wise_Report.jpg';
+        a.href=canvas.toDataURL('image/jpeg',.95);
+
+        a.click();
+        document.body.removeChild(box);
+    });
+}
 function handleNanoExcelUpload(event){
     const file=event.target.files[0];
     if(!file)return;
