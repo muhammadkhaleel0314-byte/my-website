@@ -1014,143 +1014,131 @@ if (savedUser) {
     }
 
     // ===== CNIC OCR =====
-    async function handleCNICImageUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+   async function handleCNICImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-        const statusEl = document.getElementById('ocr-status');
-        const previewEl = document.getElementById('cnic-preview');
-        const qrBox = document.getElementById('qrcode-box');
+    const statusEl = document.getElementById('ocr-status');
+    const previewEl = document.getElementById('cnic-preview');
+    const qrBox = document.getElementById('qrcode-box');
 
-        // Clear old QR/result immediately.
-        if (qrBox) qrBox.innerHTML = '';
-        if (previewEl) {
-            previewEl.src = URL.createObjectURL(file);
-            previewEl.style.display = 'block';
-        }
-
-        if (!GOOGLE_API_KEY) {
-            alert("Key نہیں ملی۔ Page refresh کریں");
-            if (statusEl) statusEl.innerText = "Status: API Key نہیں ملی۔";
-            return;
-        }
-
-        statusEl.innerText = "Status: CNIC Is Verifing... Please Wait...";
-        statusEl.style.color = "var(--primary)";
-
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-
-        reader.onloadend = async function() {
-            const base64Image = reader.result.split(',')[1];
-            const mimeType = file.type || 'image/jpeg';
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GOOGLE_API_KEY}`;
-
-            const body = {
-                contents: [{
-                    parts: [
-                        {
-                            text: `آپ پاکستانی CNIC Image Verification System ہیں۔ اس تصویر کو بہت احتیاط سے inspect کرو۔
-
-سب سے پہلے یہ فیصلہ کرو کہ تصویر میں واقعی پاکستانی National Identity Card / CNIC / NICOP card موجود ہے یا نہیں۔
-
-CNIC صرف اسی وقت قبول کرو جب تصویر خود شناختی کارڈ کی ہو اور card کی حقیقی visual structure/layout نظر آ رہی ہو، مثلاً Pakistani identity-card style، portrait/photo area، identity fields، CNIC number area، اور card کے دوسرے شناختی حصے۔
-
-ان چیزوں کو CNIC نہ سمجھو:
-- عام سفید یا سادہ کاغذ
-- ویب page یا website کا screenshot
-- Word/PDF/document کا screenshot
-- receipt، form، letter یا book page
-- موبائل screen کی تصویر
-- کسی random تصویر میں لکھا ہوا 13 digit number
-- صرف CNIC number لکھا ہوا کاغذ
-- کوئی دوسری ID جس کا پاکستانی CNIC layout نہ ہو
-
-اگر card واضح طور پر پاکستانی CNIC/NICOP نہیں ہے تو NOT_CNIC دو، چاہے 13 digit number موجود ہو۔
-
-اگر CNIC card ہے لیکن تصویر دھندلی، بہت cropped، بہت چھوٹی، جزوی، یا card کی مکمل شناختی structure واضح نہیں ہے تو بھی NOT_CNIC دو۔
-
-صرف CNIC number مل جانا کافی نہیں ہے۔ تصویر میں اصل پاکستانی CNIC card کا واضح اور مکمل visual card structure ہونا لازمی ہے۔
-
-جواب EXACTLY صرف ان 3 lines میں دو:
-TYPE: CNIC یا NOT_CNIC
-CNIC: 13 digits یا NOT_FOUND
-CONFIDENCE: HIGH یا LOW
-
-کوئی اضافی explanation نہیں دینی۔`
-                        },
-                        {
-                            inline_data: {
-                                mime_type: mimeType,
-                                data: base64Image
-                            }
-                        }
-                    ]
-                }]
-            };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(body)
-                });
-
-                const data = await response.json();
-
-                if (data.error) {
-                    statusEl.innerText = `Status: API Error - ${data.error.message || 'Key چیک کریں'}`;
-                    statusEl.style.color = "var(--btn-red)";
-                    if (qrBox) qrBox.innerHTML = '';
-                    return;
-                }
-
-                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                    statusEl.innerText = "Status: ❌ CNIC Picture Is Not Verify۔";
-                    statusEl.style.color = "var(--btn-red)";
-                    if (qrBox) qrBox.innerHTML = '';
-                    alert("CNIC Ki Picture Uploade kro");
-                    return;
-                }
-
-                const text = data.candidates[0].content.parts
-                    .map(p => p.text || '')
-                    .join(' ')
-                    .trim();
-
-                console.log('CNIC verification response:', text);
-
-                const typeMatch = text.match(/TYPE\s*:\s*(CNIC|NOT_CNIC)/i);
-                const cnicMatch = text.match(/CNIC\s*:\s*([0-9]{13})/i);
-                const confidenceMatch = text.match(/CONFIDENCE\s*:\s*(HIGH|LOW)/i);
-
-                const isCNIC = !!typeMatch && typeMatch[1].toUpperCase() === 'CNIC';
-                const foundCNIC = cnicMatch ? cnicMatch[1] : '';
-                const highConfidence = !!confidenceMatch && confidenceMatch[1].toUpperCase() === 'HIGH';
-
-                // QR is generated ONLY when the image is classified as a CNIC,
-                // a valid 13-digit CNIC was read, and confidence is HIGH.
-                if (!isCNIC || !/^\d{13}$/.test(foundCNIC) || !highConfidence) {
-                    if (qrBox) qrBox.innerHTML = '';
-                    statusEl.innerText = "Status: ❌ Uplode CNIC Picture۔";
-                    statusEl.style.color = "var(--btn-red)";
-                    alert("براہ کرم پاکستانی CNIC کی تصویر Upload کریں۔\n\nعام page، screenshot یا دوسری تصویر قبول نہیں ہوگی۔");
-                    return;
-                }
-
-                statusEl.innerText = `Status: ✅ CNIC Found: ${foundCNIC}`;
-                statusEl.style.color = "var(--btn-green)";
-
-                generateQRFromCNIC(foundCNIC);
-
-            } catch (error) {
-                console.error('CNIC verification error:', error);
-                if (qrBox) qrBox.innerHTML = '';
-                statusEl.innerText = "Status: Network Error یا غلط Key";
-                statusEl.style.color = "var(--btn-red)";
-            }
-        };
+    // پرانا QR یا رزلٹ صاف کریں
+    if (qrBox) qrBox.innerHTML = '';
+    if (previewEl) {
+        previewEl.src = URL.createObjectURL(file);
+        previewEl.style.display = 'block';
     }
+
+    if (!GOOGLE_API_KEY) {
+        alert("API Key نہیں ملی۔ براہ کرم پیج ریفریش کریں۔");
+        if (statusEl) statusEl.innerText = "Status: API Key نہیں ملی۔";
+        return;
+    }
+
+    statusEl.innerText = "Status: CNIC Verify ہو رہا ہے، براہ کرم انتظار کریں...";
+    statusEl.style.color = "var(--primary)";
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onloadend = async function() {
+        const base64Image = reader.result.split(',')[1];
+        const mimeType = file.type || 'image/jpeg';
+        
+        // جیمنی ماڈل کا درست اور فعال ورژن استعمال کریں
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GOOGLE_API_KEY}`;
+
+        const body = {
+            contents: [{
+                parts: [
+                    {
+                        text: `آپ ایک پاکستانی CNIC OCR سسٹم ہیں۔ اس تصویر کو احتیاط سے چیک کریں۔ 
+اگر یہ کسی پاکستانی شناختی کارڈ (CNIC) کی تصویر ہے اور اس پر 13 ہندسوں کا CNIC نمبر واضح موجود ہے، تو درج ذیل فارمیٹ میں جواب دیں:
+
+TYPE: CNIC
+CNIC: [یہاں 13 ہندسوں کا نمبر لکھیں بغیر کسی ڈیش کے]
+CONFIDENCE: HIGH
+
+اگر یہ CNIC نہیں ہے، یا دھندلا ہے، یا کوئی اور تصویر ہے، تو صرف یہ لکھیں:
+TYPE: NOT_CNIC
+CNIC: NOT_FOUND
+CONFIDENCE: LOW`
+                    },
+                    {
+                        inline_data: {
+                            mime_type: mimeType,
+                            data: base64Image
+                        }
+                    }
+                ]
+            }]
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                statusEl.innerText = `Status: API Error - ${data.error.message || 'API Key چیک کریں'}`;
+                statusEl.style.color = "var(--btn-red)";
+                if (qrBox) qrBox.innerHTML = '';
+                return;
+            }
+
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                statusEl.innerText = "Status: ❌ تصویر کی تصدیق نہیں ہو سکی۔";
+                statusEl.style.color = "var(--btn-red)";
+                return;
+            }
+
+            const text = data.candidates[0].content.parts
+                .map(p => p.text || '')
+                .join(' ')
+                .trim();
+
+            console.log('Gemini OCR Response:', text);
+
+            const cnicMatch = text.match(/([0-9]{5}-[0-9]{7}-[0-9]{1})/);
+            let extractedNumber = "";
+
+            if (cnicMatch) {
+                extractedNumber = cnicMatch[1].replace(/-/g, '');
+            } else {
+                const digitsMatch = text.match(/([0-9]{13})/);
+                if (digitsMatch) {
+                    extractedNumber = digitsMatch[1];
+                }
+            }
+
+            const isCNIC = text.toUpperCase().includes('TYPE: CNIC') || extractedNumber.length === 13;
+
+            if (!isCNIC || extractedNumber.length !== 13) {
+                if (qrBox) qrBox.innerHTML = '';
+                statusEl.innerText = "Status: ❌ درست پاکستانی CNIC کی تصویر اپ لوڈ کریں۔";
+                statusEl.style.color = "var(--btn-red)";
+                alert("براہ کرم کسی واضح پاکستانی CNIC کی تصویر اپ لوڈ کریں۔");
+                return;
+            }
+
+            statusEl.innerText = `Status: ✅ CNIC کامیاب: ${extractedNumber}`;
+            statusEl.style.color = "var(--btn-green)";
+
+            generateQRFromCNIC(extractedNumber);
+
+        } catch (error) {
+            console.error('CNIC OCR error:', error);
+            if (qrBox) qrBox.innerHTML = '';
+            statusEl.innerText = "Status: نیٹ ورک کا مسئلہ یا غلط API Key";
+            statusEl.style.color = "var(--btn-red)";
+        }
+    };
+}
+
     function toggleResetKey() {
     const resetBtn = document.getElementById('reset-btn-container');
     if (resetBtn.style.display === 'none') {
