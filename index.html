@@ -530,6 +530,17 @@
       Real-time Firebase permissions for My Links + all portal tools. Select exactly which options each user is allowed to use.
     </p>
     <div id="user-access-status" style="font-size:12px;text-align:center;margin-bottom:12px;color:var(--text-muted);"></div>
+
+    <div style="background:rgba(15,23,42,.65);border:1px solid #334155;border-radius:14px;padding:14px;margin-bottom:15px;">
+      <div style="font-weight:700;color:#38bdf8;margin-bottom:10px;">➕ Create New User</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;">
+        <input id="new-access-username" type="text" placeholder="Username" autocomplete="off" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:10px;border-radius:8px;">
+        <input id="new-access-password" type="password" placeholder="Password" autocomplete="new-password" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:10px;border-radius:8px;">
+        <button class="action-btn" onclick="createUserFromAccessPanel()" style="margin-top:0;background:#10b981;padding:10px;">Create User</button>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">New users are created with all permissions OFF and appear here automatically in real time.</div>
+    </div>
+
     <div id="user-access-list" style="display:flex;flex-direction:column;gap:12px;"></div>
   </div>
 </div>
@@ -2419,6 +2430,37 @@ function checkUserAccess(tabId, btnElement) {
     }
     switchTab('user-access-tab',btn);
     loadAllUsersAccess();
+  }
+
+  async function createUserFromAccessPanel(){
+    if(!isAdminUser(getCurrentLoggedUser())){alert('You cannot use this option');return;}
+    const username=(document.getElementById('new-access-username')?.value||'').trim();
+    const password=(document.getElementById('new-access-password')?.value||'').trim();
+    if(!username || !password){alert('Please enter username and password');return;}
+    if(/[.#$\[\]]/.test(username)){alert('Username cannot contain . # $ [ or ]');return;}
+    if(isAdminUser(username)){alert('This username is reserved for admin.');return;}
+
+    try{
+      const ref=db.ref('users/'+username);
+      const snap=await ref.once('value');
+      if(snap.exists()){alert('User already exists.');return;}
+
+      const linkAccess={};
+      Object.keys(USER_ACCESS_OPTIONS).forEach(k=>linkAccess[k]=false);
+
+      await ref.set({
+        password: password,
+        boundDeviceId: '',
+        linkAccess: linkAccess
+      });
+
+      document.getElementById('new-access-username').value='';
+      document.getElementById('new-access-password').value='';
+      setUserAccessStatus('✅ User '+username+' created. It will appear automatically in the live list.','success');
+    }catch(err){
+      console.error(err);
+      setUserAccessStatus('❌ User creation failed: '+err.message,'error');
+    }
   }
 
   function loadAllUsersAccess(){
