@@ -94,7 +94,13 @@
     .timer-card h4 { color: var(--btn-red); margin-bottom: 10px; font-size: 16px; }
     .timer-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
     .countdown-number { font-size: 32px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
-  </style>
+  
+.access-denied {
+    opacity: .55 !important;
+    filter: grayscale(.35);
+}
+
+</style>
 </head> 
 <body>
 
@@ -137,8 +143,9 @@
       <div class="sidebar">
         <div style="width: 100%;">
           <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
-          <button class="nav-sub-btn" onclick="switchTab('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
+          <button class="nav-sub-btn" onclick="checkUserAccess('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
+          <button id="user-access-nav-btn" class="nav-sub-btn" style="display:none;" onclick="openUserAccessPanel(this)"><i class="fa-solid fa-user-shield"></i> User Access</button>
 	      <button class="nav-sub-btn" onclick="checkUserAccess('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
           <button class="nav-sub-btn" onclick="checkUserAccess('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
 	     <button class="nav-sub-btn" onclick="checkUserAccess('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
@@ -360,11 +367,14 @@
     color: #38bdf8;
 }
       .u-card:hover .u-action span:last-child { transform: translateX(4px); transition: transform 0.2s ease; }
+      #user-access-tab input[type="checkbox"]{width:18px;height:18px;accent-color:#38bdf8;cursor:pointer;}
+      #user-access-tab button{cursor:pointer;}
+
     </style>
 
     <div class="unique-grid">
       <!-- 1. PMY Verify -->
-      <a href="https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec" target="_blank" onclick="playSound()" class="u-card card-1">
+      <a href="#" onclick="return openMyLink(event,'pmyVerify','https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec')" class="u-card card-1">
         <div>
           <div class="u-top">
             <div class="u-icon">📊</div>
@@ -378,7 +388,7 @@
       </a>
 
       <!-- 2. BOP Account -->
-      <a href="https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec" target="_blank" onclick="playSound()" class="u-card card-2">
+      <a href="#" onclick="return openMyLink(event,'bopAccount','https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec')" class="u-card card-2">
         <div>
           <div class="u-top">
             <div class="u-icon">🏦</div>
@@ -407,7 +417,7 @@
 
 
       <!-- 4. PMY Apply -->
-      <a href="https://pmybals.pmyp.gov.pk/" target="_blank" onclick="playSound()" class="u-card card-4">
+      <a href="#" onclick="return openMyLink(event,'pmyApply','https://pmybals.pmyp.gov.pk/')" class="u-card card-4">
         <div>
           <div class="u-top">
             <div class="u-icon">📲</div>
@@ -421,7 +431,7 @@
       </a>
 
       <!-- 5. ACAG Apply -->
-      <a href="https://acag.punjab.gov.pk/" target="_blank" onclick="playSound()" class="u-card card-5">
+      <a href="#" onclick="return openMyLink(event,'acagApply','https://acag.punjab.gov.pk/')" class="u-card card-5">
         <div>
           <div class="u-top">
             <div class="u-icon">📝</div>
@@ -435,7 +445,7 @@
       </a>
 
       <!-- 6. QR Generator -->
-      <a href="https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/" target="_blank" onclick="playSound()" class="u-card card-6">
+      <a href="#" onclick="return openMyLink(event,'qrGenerator','https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/')" class="u-card card-6">
         <div>
           <div class="u-top">
             <div class="u-icon">🚀</div>
@@ -449,7 +459,7 @@
       </a>
 
       <!-- 7. New Service -->
-      <a href="https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec" target="_blank" onclick="playSound()" class="u-card card-7">
+      <a href="#" onclick="return openMyLink(event,'newService','https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec')" class="u-card card-7">
         <div>
           <div class="u-top">
             <div class="u-icon">🔗</div>
@@ -463,7 +473,7 @@
       </a>
 
       <!-- 8. Bop Verify List -->
-      <a href="https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec" target="_blank" onclick="playSound()" class="u-card card-8">
+      <a href="#" onclick="return openMyLink(event,'bopVerifyList','https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec')" class="u-card card-8">
         <div>
           <div class="u-top">
             <div class="u-icon">🌐</div>
@@ -496,7 +506,7 @@
   <div class="u-action"><span>Secure Portal</span><span>→</span></div>
 </a>
 <!-- 10. ACMC Account -->
-<a href="https://script.google.com/macros/s/AKfycbwiCjVs8jeT8GLrx8FmFo6COoOScrCfVAiHyCxB8E9LhPYLGsTvemWtYH_CXUloCZw3/exec" target="_blank" onclick="playSound()" class="u-card card-10">
+<a href="#" onclick="return openMyLink(event,'acmcAccount','https://script.google.com/macros/s/AKfycbwiCjVs8jeT8GLrx8FmFo6COoOScrCfVAiHyCxB8E9LhPYLGsTvemWtYH_CXUloCZw3/exec')" class="u-card card-10">
     <div>
         <div class="u-top">
             <div class="u-icon">👤</div>
@@ -512,6 +522,18 @@
 </div> <!-- unique-container کا بند ہونا -->
 </div> <!-- links-tab کا بند ہونا -->
 		 
+          <!-- User Access Control Tab -->
+<div id="user-access-tab" class="tab-content">
+  <div class="card" style="text-align:left;max-width:100%;width:100%;">
+    <h3 style="text-align:center;">👥 User Access Control</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;text-align:center;">
+      Real-time Firebase permissions for My Links + all portal tools. Select exactly which options each user is allowed to use.
+    </p>
+    <div id="user-access-status" style="font-size:12px;text-align:center;margin-bottom:12px;color:var(--text-muted);"></div>
+    <div id="user-access-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
           <!-- Merge & CSV Tools Tab (Combined Tool) -->
 <div id="merge-tools-tab" class="tab-content">
     <div class="card" style="text-align: left;">
@@ -915,6 +937,7 @@ if (savedUser) {
           if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
           if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
           currentUser = user;
+    window.currentUserPermissions = userData.linkAccess || {};
     localStorage.setItem('logged_user', user);
     
     // Yeh raha live delete listener
@@ -940,6 +963,7 @@ if (savedUser) {
           document.getElementById('app-container').style.display = 'flex';
           errEl.innerText = "";
           loadUserHistory(user);
+          initUserAccessSystem();
         } else { errEl.innerText = "Invalid Username or Password!"; }
       } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
     }
@@ -954,6 +978,7 @@ if (savedUser) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
         loadUserHistory(savedUser);
+        initUserAccessSystem();
       }
     };
 
@@ -1014,7 +1039,7 @@ if (savedUser) {
     }
 
     // ===== CNIC OCR =====
-   async function handleCNICImageUpload(event) {
+    async function handleCNICImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -1138,7 +1163,6 @@ CONFIDENCE: LOW`
         }
     };
 }
-
     function toggleResetKey() {
     const resetBtn = document.getElementById('reset-btn-container');
     if (resetBtn.style.display === 'none') {
@@ -2175,6 +2199,31 @@ function downloadAdjustedPDF() {
     doc.save(finalName);
 }
 
+
+/* =========================================================
+   FULL USER ACCESS CONTROL
+   My Links + OUTSIDE OPTIONS
+   ========================================================= */
+function hasPortalAccess(accessKey) {
+    const user = (currentUser || localStorage.getItem('logged_user') || '').trim();
+    if (!user) return false;
+
+    // Admin keeps full access.
+    if (user.toLowerCase() === 'khaleel') return true;
+
+    const permissions = window.currentUserPermissions || {};
+    return permissions[accessKey] === true;
+}
+
+function requirePortalAccess(accessKey, openCallback) {
+    if (!hasPortalAccess(accessKey)) {
+        alert("You cannot use this option");
+        return false;
+    }
+    if (typeof openCallback === 'function') openCallback();
+    return true;
+}
+
 function checkUserAccess(tabId, btnElement) {
     let currentUserElement = document.getElementById("display-user");
     let currentUser = currentUserElement ? currentUserElement.textContent.trim().toLowerCase() : "";
@@ -2253,8 +2302,199 @@ function checkUserAccess(tabId, btnElement) {
     return id;
   }
 
+  // ============================================================
+  // REAL-TIME PER-USER MY LINKS ACCESS CONTROL
+  // Firebase structure:
+  // users/<username>/linkAccess/<linkKey> = true/false
+  // ============================================================
+  const ADMIN_ACCESS_USERS = ['khaleel'];
+
+  // One common access list for BOTH My Links and sidebar/tools.
+  const USER_ACCESS_OPTIONS = {
+    // My Links
+    pmyVerify:     {label:'PMY Verify', icon:'📊'},
+    bopAccount:    {label:'BOP Account', icon:'🏦'},
+    acagBatch:     {label:'ACAG Batch', icon:'📁'},
+    pmyApply:      {label:'PMY Apply', icon:'📲'},
+    acagApply:     {label:'ACAG Apply', icon:'📝'},
+    qrGenerator:   {label:'QR Generator', icon:'🚀'},
+    newService:    {label:'New Service', icon:'🔗'},
+    bopVerifyList: {label:'Bop Verify List', icon:'🌐'},
+    apniChhat:     {label:'Apni Chhat Mahfooz Chhat', icon:'✨'},
+    acmcAccount:   {label:'ACMC Account', icon:'👤'},
+
+    // Outside My Links / Sidebar tools
+    qrTab:         {label:'CNIC OCR & QR', icon:'🔳'},
+    mergeTools:    {label:'Merge Tools / MUD File', icon:'📂'},
+    recoveryPdf:   {label:'Recovery PDF Report', icon:'📄'},
+    loanDisbursement:{label:'Loan Disbursement PDF', icon:'💰'},
+    recoveryRange: {label:'Recovery Range Wise', icon:'📈'},
+    excelPdf:      {label:'Excel to PDF Adjustment', icon:'🧾'},
+    nano:          {label:'Nano Report', icon:'📊'},
+    telehealth:    {label:'Telehealth Report', icon:'🩺'},
+    mdp:           {label:'MDP Report', icon:'📋'}
+  };
+
+  // Keep old name available for existing code.
+  const MY_LINKS_ACCESS = USER_ACCESS_OPTIONS;
+  const TAB_ACCESS_MAP = {
+    'qr-tab':'qrTab',
+    'merge-tools-tab':'mergeTools',
+    'recovery-tab':'recoveryPdf',
+    'loan-disbursement-tab':'loanDisbursement',
+    'recovery-range-tab':'recoveryRange',
+    'excel-pdf-adj-tab':'excelPdf',
+    'nano-tab':'nano',
+    'telehealth-tab':'telehealth',
+    'mdp-tab':'mdp'
+  };
+
+  let currentUserAccess = {};
+  let userAccessListener = null;
+  let allUsersAccessListener = null;
+
+  function getCurrentLoggedUser(){
+    const el=document.getElementById('display-user');
+    const fromEl=el ? el.innerText.trim() : '';
+    return (fromEl && fromEl.toLowerCase()!=='guest') ? fromEl : (localStorage.getItem('logged_user')||'').trim();
+  }
+
+  function isAdminUser(username){
+    return ADMIN_ACCESS_USERS.includes(String(username||'').trim().toLowerCase());
+  }
+
+  function setUserAccessStatus(msg,type='info'){
+    const el=document.getElementById('user-access-status');
+    if(el){el.textContent=msg;el.style.color=type==='error'?'#ef4444':type==='success'?'#34d399':'#94a3b8';}
+  }
+
+  function getUserLinkAccess(linkKey){
+    const user=getCurrentLoggedUser().toLowerCase();
+    if(isAdminUser(user)) return true;
+    return currentUserAccess && currentUserAccess[linkKey] === true;
+  }
+
+  function openMyLink(event,linkKey,url){
+    if(event) event.preventDefault();
+    playSound();
+    if(!getUserLinkAccess(linkKey)){
+      alert('You cannot use this option');
+      return false;
+    }
+    const w=window.open(url,'_blank');
+    if(!w) alert('Please allow pop-ups for this website.');
+    return false;
+  }
+
+  function applyLinkAccessToCards(){
+    Object.keys(USER_ACCESS_OPTIONS).forEach(key=>{
+      const cards=document.querySelectorAll(`[onclick*="'${key}'"]`);
+      cards.forEach(card=>{
+        const allowed=getUserLinkAccess(key);
+        card.style.opacity=allowed?'1':'0.55';
+        card.style.filter=allowed?'none':'grayscale(.35)';
+        const action=card.querySelector('.u-action span:first-child');
+        if(action) action.textContent=allowed?'Open Portal':'🔒 No Access';
+        card.title=allowed?'Open '+USER_ACCESS_OPTIONS[key].label:'You cannot use this option';
+      });
+    });
+  }
+
+  function listenCurrentUserAccess(username){
+    if(userAccessListener){try{userAccessListener.off();}catch(e){} userAccessListener=null;}
+    currentUserAccess={};
+    if(!username)return;
+    userAccessListener=db.ref('users/'+username+'/linkAccess');
+    userAccessListener.on('value',snap=>{
+      currentUserAccess=snap.val()||{};
+      applyLinkAccessToCards();
+    });
+  }
+
+  function openUserAccessPanel(btn){
+    const user=getCurrentLoggedUser();
+    if(!isAdminUser(user)){
+      alert('You cannot use this option');
+      return;
+    }
+    switchTab('user-access-tab',btn);
+    loadAllUsersAccess();
+  }
+
+  function loadAllUsersAccess(){
+    if(!isAdminUser(getCurrentLoggedUser()))return;
+    const list=document.getElementById('user-access-list');
+    if(!list)return;
+    setUserAccessStatus('Loading users from Firebase...');
+    if(allUsersAccessListener){try{allUsersAccessListener.off();}catch(e){}}
+    allUsersAccessListener=db.ref('users');
+    allUsersAccessListener.on('value',snap=>{
+      const users=snap.val()||{};
+      list.innerHTML='';
+      const names=Object.keys(users).sort((a,b)=>a.localeCompare(b));
+      if(!names.length){list.innerHTML='<div style="text-align:center;color:var(--text-muted);padding:20px;">No users found.</div>';return;}
+      names.forEach(username=>{
+        const data=users[username]||{};
+        const access=data.linkAccess||{};
+        const row=document.createElement('div');
+        row.style.cssText='background:rgba(15,23,42,.65);border:1px solid #334155;border-radius:14px;padding:15px;';
+        let html=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">`+
+          `<div><b style="color:#fff;font-size:15px;">${mdpEsc(username)}</b><div style="font-size:11px;color:#94a3b8;margin-top:3px;">${data.boundDeviceId?'Device linked':'No device linked'}</div></div>`+
+          `<span style="font-size:11px;color:#38bdf8;">${isAdminUser(username)?'ADMIN':'USER'}</span></div>`;
+        html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;">';
+        Object.keys(USER_ACCESS_OPTIONS).forEach(key=>{
+          const checked=isAdminUser(username)?true:access[key]===true;
+          html+=`<label style="display:flex;align-items:center;gap:8px;background:rgba(30,41,59,.7);border:1px solid #334155;border-radius:8px;padding:9px;font-size:12px;color:#e2e8f0;cursor:pointer;">`+
+            `<input type="checkbox" data-access-user="${mdpEsc(username)}" data-access-key="${key}" ${checked?'checked':''} ${isAdminUser(username)?'disabled':''}>`+
+            `<span>${USER_ACCESS_OPTIONS[key].icon} ${USER_ACCESS_OPTIONS[key].label}</span></label>`;
+        });
+        html+='</div>';
+        if(!isAdminUser(username)){
+          html+=`<button class="action-btn" style="margin-top:12px;background:#10b981;padding:9px;" onclick="saveUserLinkAccess('${reportEscA(username)}')">💾 Save ${mdpEsc(username)} Access</button>`;
+        }
+        row.innerHTML=html;list.appendChild(row);
+      });
+      setUserAccessStatus('Live access list connected to Firebase. Changes appear after Save.','success');
+    });
+  }
+
+  function saveUserLinkAccess(username){
+    if(!isAdminUser(getCurrentLoggedUser())){alert('You cannot use this option');return;}
+    const checks=document.querySelectorAll(`[data-access-user="${CSS.escape(username)}"]`);
+    const access={};
+    Object.keys(USER_ACCESS_OPTIONS).forEach(k=>access[k]=false);
+    checks.forEach(ch=>{access[ch.dataset.accessKey]=ch.checked;});
+    db.ref('users/'+username+'/linkAccess').set(access)
+      .then(()=>setUserAccessStatus('✅ Access saved for '+username+' in real time.','success'))
+      .catch(err=>{console.error(err);setUserAccessStatus('❌ Access save failed: '+err.message,'error');});
+  }
+
+  // This is used by ALL sidebar options, not only My Links.
+  function checkUserAccess(tabId, btnElement) {
+    const key=TAB_ACCESS_MAP[tabId];
+    if(!key || !getUserLinkAccess(key)){
+      alert('You cannot use this option');
+      return false;
+    }
+    switchTab(tabId, btnElement);
+    return true;
+  }
+
+  function initUserAccessSystem(){
+    const user=getCurrentLoggedUser();
+    const adminBtn=document.getElementById('user-access-nav-btn');
+    if(adminBtn)adminBtn.style.display=isAdminUser(user)?'flex':'none';
+    listenCurrentUserAccess(user);
+    applyLinkAccessToCards();
+  }
+
   function openACAGBatch(event) {
     if (event) event.preventDefault();
+    playSound();
+    if(!getUserLinkAccess('acagBatch')){
+      alert('You cannot use this option');
+      return false;
+    }
 
     const currentUser =
       document.getElementById("display-user")
@@ -2387,6 +2627,11 @@ function getApniChhatDeviceId() {
 async function openApniChhat() {
 
   try {
+    if(!getUserLinkAccess('apniChhat')){
+      alert('You cannot use this option');
+      return false;
+    }
+    playSound();
 
     const deviceId =
       getApniChhatDeviceId();
