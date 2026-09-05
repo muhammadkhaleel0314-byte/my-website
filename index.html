@@ -904,16 +904,51 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let currentUser = null;
+    let currentSessionId = localStorage.getItem('active_session_id') || null;
+
+    // Generate a fresh session ID every time a successful login happens.
+    function generateSessionId(){
+      return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2,12);
+    }
+
+    // Keep every open tab/device synchronized. If the same account logs in
+    // somewhere else, Firebase changes activeSessionId and this session logs out.
+    function startSessionGuard(username, sessionId){
+      if(!username || !sessionId) return;
+      db.ref('users/' + username + '/activeSessionId').on('value', snap => {
+        const serverSessionId = snap.val();
+        if(serverSessionId && serverSessionId !== sessionId){
+          localStorage.removeItem('logged_user');
+          localStorage.removeItem('active_session_id');
+          currentUser = null;
+          currentSessionId = null;
+          alert('Your account was logged in on another device. This session has been logged out.');
+          location.reload();
+        }
+      });
+    }
 			// Check karein agar pehle se koi user logged in hai localStorage mein
 const savedUser = localStorage.getItem('logged_user');
 if (savedUser) {
     currentUser = savedUser;
-    
-    // Yahan live delete listener lagayein
+
+    // Live account/session guard for already-open sessions.
     db.ref('users/' + savedUser).on('value', (snapshot) => {
         if (!snapshot.exists()) {
             alert("Aapka account admin ne delete kar diya hai.");
             localStorage.removeItem('logged_user');
+            localStorage.removeItem('active_session_id');
+            location.reload();
+            return;
+        }
+
+        const data = snapshot.val() || {};
+        const mySession = localStorage.getItem('active_session_id');
+        if (mySession && data.activeSessionId && data.activeSessionId !== mySession) {
+            localStorage.removeItem('logged_user');
+            localStorage.removeItem('active_session_id');
+            currentUser = null;
+            alert('Your account was logged in on another device. This session has been logged out.');
             location.reload();
         }
     });
@@ -947,7 +982,17 @@ if (savedUser) {
           const thisDeviceId = getDeviceId();
           if (userData.boundDeviceId && userData.boundDeviceId !== thisDeviceId) { errEl.innerText = "⛔ Account registered to another device!"; return; }
           if (!userData.boundDeviceId) { await db.ref(`users/${user}/boundDeviceId`).set(thisDeviceId); }
+
+          // ONE ACTIVE LOGIN PER USER:
+          // Every successful login gets a new session ID. Any older browser/device
+          // watching this account will immediately detect the change and logout.
+          const newSessionId = generateSessionId();
+          await db.ref(`users/${user}/activeSessionId`).set(newSessionId);
+          currentSessionId = newSessionId;
+          localStorage.setItem('active_session_id', newSessionId);
+
           currentUser = user;
+          startSessionGuard(user, newSessionId);
     window.currentUserPermissions = userData.linkAccess || {};
     localStorage.setItem('logged_user', user);
     
@@ -979,7 +1024,7 @@ if (savedUser) {
       } catch (e) { console.error(e); errEl.innerText = "Database connection error!"; }
     }
 
-    function handleLogout() { localStorage.removeItem('logged_user'); location.reload(); }
+    function handleLogout() { localStorage.removeItem('logged_user'); localStorage.removeItem('active_session_id'); location.reload(); }
 
     window.onload = function() {
       const savedUser = localStorage.getItem('logged_user');
@@ -989,6 +1034,8 @@ if (savedUser) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
         loadUserHistory(savedUser);
+        const savedSession = localStorage.getItem('active_session_id');
+        if(savedSession) startSessionGuard(savedUser, savedSession);
         initUserAccessSystem();
       }
     };
