@@ -528,6 +528,9 @@
             <div class="panel-label">Live Weather</div>
             <div class="weather-location" id="weather-location">Detecting your location...</div>
           </div>
+          <button class="weather-refresh" onclick="showCurrentLocationOnMap()" title="Show my exact GPS location on map">
+            <i class="fa-solid fa-location-crosshairs"></i> Map
+          </button>
           <button class="weather-refresh" onclick="loadDashboardWeather(true)">
             <i class="fa-solid fa-rotate"></i> Refresh
           </button>
@@ -4471,49 +4474,34 @@ async function loadDashboardWeather(force = false) {
 
   if (!locationEl) return;
 
-  try {
-    const cached = JSON.parse(localStorage.getItem('dashboard_weather_location') || 'null');
-    let position;
+  const cached = JSON.parse(localStorage.getItem('dashboard_weather_location') || 'null');
 
-    if (cached && !force) {
-      position = cached;
-    } else {
+  try {
+    let position = cached;
+
+    // Cached coordinates are used immediately for speed.
+    if (!position || force) {
       position = await new Promise((resolve, reject) => {
         if (!navigator.geolocation) return reject(new Error('Geolocation unavailable'));
         navigator.geolocation.getCurrentPosition(
-          p => resolve({lat:p.coords.latitude, lon:p.coords.longitude}),
+          p => resolve({
+            lat: p.coords.latitude,
+            lon: p.coords.longitude,
+            accuracy: p.coords.accuracy
+          }),
           reject,
-          {enableHighAccuracy:false, timeout:8000, maximumAge:600000}
+          // Fast GPS: don't wait for high accuracy.
+          {enableHighAccuracy:false, timeout:3500, maximumAge:300000}
         );
       });
       localStorage.setItem('dashboard_weather_location', JSON.stringify(position));
     }
 
-    const lat = position.lat ?? position.coords.latitude;
-    const lon = position.lon ?? position.coords.longitude;
+    const lat = Number(position.lat);
+    const lon = Number(position.lon);
 
+    // Weather is requested FIRST so the dashboard doesn't wait for city lookup.
     const data = await fetchWeather(lat, lon);
-
-    // Convert GPS coordinates into a readable city/area name.
-    try {
-      const geoResp = await fetch(
-        'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' +
-        encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon) +
-        '&zoom=10&addressdetails=1',
-        {cache:'no-store', headers:{'Accept':'application/json'}}
-      );
-      if (geoResp.ok) {
-        const geo = await geoResp.json();
-        const a = geo.address || {};
-        data._placeName =
-          a.city || a.town || a.village || a.municipality ||
-          a.county || 'Your Current Location';
-      }
-    } catch (geoErr) {
-      console.warn('Location name lookup:', geoErr);
-      data._placeName = 'Your Current Location';
-    }
-
     const c = data.current;
     const [description, icon] = weatherDescription(c.weather_code);
 
@@ -4525,24 +4513,75 @@ async function loadDashboardWeather(force = false) {
     feelsEl.textContent = Math.round(c.apparent_temperature) + ' °C';
     windEl.textContent = Math.round(c.wind_speed_10m) + ' km/h';
     humidityEl.textContent = Math.round(c.relative_humidity_2m) + '%';
-
-    const tz = data.timezone || 'local';
-    locationEl.textContent = (data._placeName || 'Your Current Location');
     updatedEl.textContent = new Date().toLocaleTimeString([], {
       hour:'2-digit', minute:'2-digit'
     });
+
+    locationEl.textContent = '📍 Current Location';
+
+    // Map/reverse-geocode is deliberately AFTER weather, so it can't delay it.
+    fetch(
+      'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' +
+      encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon) +
+      '&zoom=10&addressdetails=1',
+      {cache:'no-store'}
+    ).then(r => r.ok ? r.json() : null)
+     .then(geo => {
+       if (!geo) return;
+       const a = geo.address || {};
+       const place = a.city || a.town || a.village || a.municipality ||
+                     a.county || 'Current Location';
+       locationEl.textContent = '📍 ' + place;
+     })
+     .catch(() => {});
+
   } catch (err) {
     console.warn('Dashboard weather:', err);
-    locationEl.textContent = 'Location permission required';
+
+    if (cached && !force) {
+      // If cached location exists but weather failed, retry once using fresh GPS.
+      localStorage.removeItem('dashboard_weather_location');
+      return loadDashboardWeather(true);
+    }
+
+    locationEl.textContent = '📍 Location not available';
     tempEl.classList.remove('weather-loading');
     tempEl.innerHTML = '--<span class="weather-unit">°C</span>';
     conditionEl.textContent = 'Allow location access to show live weather';
-    iconEl.textContent = '🌍';
+    iconEl.textContent = '📍';
     feelsEl.textContent = '-- °C';
     windEl.textContent = '-- km/h';
     humidityEl.textContent = '--%';
     updatedEl.textContent = 'Waiting';
   }
+}
+
+function showCurrentLocationOnMap() {
+  if (!navigator.geolocation) {
+    alert('اس device میں GPS/Location available نہیں ہے۔');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      const lat = p.coords.latitude;
+      const lon = p.coords.longitude;
+      localStorage.setItem('dashboard_weather_location',
+        JSON.stringify({lat, lon, accuracy:p.coords.accuracy}));
+
+      // Open the exact GPS point in a map.
+      window.open(
+        'https://www.openstreetmap.org/?mlat=' + encodeURIComponent(lat) +
+        '&mlon=' + encodeURIComponent(lon) +
+        '#map=16/' + encodeURIComponent(lat) + '/' + encodeURIComponent(lon),
+        '_blank'
+      );
+
+      loadDashboardWeather(true);
+    },
+    () => alert('Location permission allow کریں، پھر دوبارہ کوشش کریں۔'),
+    {enableHighAccuracy:true, timeout:7000, maximumAge:60000}
+  );
 }
 
 function updateDashboardQRCount() {
