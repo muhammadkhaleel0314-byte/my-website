@@ -953,7 +953,15 @@ if (savedUser) {
         }
     });
 }
-    let resetTimerInterval = null;
+    
+let activeSessionListenerRef = null;
+function makeSessionId(){ return 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,12); }
+function forceAutoLogout(msg){ try{ if(activeSessionListenerRef) activeSessionListenerRef.off(); }catch(e){} localStorage.removeItem('logged_user'); localStorage.removeItem('active_session_id'); currentUser=null; window.currentUserPermissions={}; if(msg) alert(msg); window.location.replace(window.location.href.split('#')[0]); }
+function startSingleSessionMonitor(username, sessionId){ if(!username||!sessionId)return; try{if(activeSessionListenerRef)activeSessionListenerRef.off();}catch(e){} activeSessionListenerRef=db.ref('users/'+username+'/activeSessionId'); activeSessionListenerRef.on('value',snap=>{ const serverId=snap.val(); if(serverId && String(serverId)!==String(sessionId) && localStorage.getItem('logged_user')===username){ forceAutoLogout('⚠️ Your account was logged in on another device.\nThis session has been logged out automatically.'); }}); }
+async function createAndStoreNewSession(username){ const id=makeSessionId(); await db.ref('users/'+username+'/activeSessionId').set(id); localStorage.setItem('active_session_id',id); startSingleSessionMonitor(username,id); return id; }
+function startExistingSessionMonitor(username){ if(!username)return; db.ref('users/'+username+'/activeSessionId').once('value').then(snap=>{const id=snap.val(); if(id){localStorage.setItem('active_session_id',id); startSingleSessionMonitor(username,id);}}).catch(console.error); }
+
+let resetTimerInterval = null;
 
     function playSound() {
         var sound = document.getElementById("click-sound");
@@ -1027,6 +1035,8 @@ if (savedUser) {
     function handleLogout() { localStorage.removeItem('logged_user'); localStorage.removeItem('active_session_id'); location.reload(); }
 
     window.onload = function() {
+      const existingLoggedUser = localStorage.getItem('logged_user');
+      if (existingLoggedUser) startExistingSessionMonitor(existingLoggedUser);
       const savedUser = localStorage.getItem('logged_user');
       if (savedUser) {
         currentUser = savedUser;
