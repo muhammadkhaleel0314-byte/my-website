@@ -100,6 +100,344 @@
     filter: grayscale(.35);
 }
 
+
+/* =========================================================
+   PROFESSIONAL DASHBOARD UI
+   Dashboard visual layer only — existing portal logic untouched.
+   ========================================================= */
+#dashboard-tab {
+  max-width: 1180px !important;
+  width: 100% !important;
+}
+
+.dashboard-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  min-height: calc(100vh - 105px);
+  padding: 24px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(56,189,248,.16), transparent 28%),
+    radial-gradient(circle at 90% 15%, rgba(139,92,246,.14), transparent 30%),
+    linear-gradient(145deg, #08111f 0%, #0f172a 48%, #111827 100%);
+  border: 1px solid rgba(148,163,184,.16);
+  box-shadow: 0 24px 70px rgba(0,0,0,.38);
+}
+
+.dashboard-shell::before {
+  content: "";
+  position: absolute;
+  width: 430px;
+  height: 430px;
+  border-radius: 50%;
+  right: -190px;
+  top: -180px;
+  background: radial-gradient(circle, rgba(56,189,248,.18), transparent 68%);
+  pointer-events: none;
+}
+
+.dashboard-topbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.dashboard-title-wrap h2 {
+  color: #f8fafc;
+  font-size: clamp(24px, 3vw, 34px);
+  margin: 0 0 5px;
+  letter-spacing: -.6px;
+}
+
+.dashboard-title-wrap p {
+  color: #94a3b8;
+  font-size: 13px;
+  margin: 0;
+}
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(16,185,129,.10);
+  border: 1px solid rgba(16,185,129,.28);
+  color: #6ee7b7;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 12px rgba(52,211,153,.9);
+  animation: dashboardPulse 1.6s infinite;
+}
+
+@keyframes dashboardPulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(.68); opacity: .55; }
+}
+
+.dashboard-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.65fr 1fr 1fr;
+  gap: 16px;
+}
+
+.dashboard-panel {
+  position: relative;
+  overflow: hidden;
+  background: rgba(15,23,42,.72);
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 19px;
+  padding: 18px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 38px rgba(0,0,0,.24);
+}
+
+.dashboard-panel:hover {
+  border-color: rgba(56,189,248,.25);
+  transform: translateY(-2px);
+  transition: .25s ease;
+}
+
+.weather-panel {
+  min-height: 245px;
+  grid-row: span 2;
+  background:
+    radial-gradient(circle at 85% 25%, rgba(56,189,248,.18), transparent 30%),
+    linear-gradient(145deg, rgba(14,165,233,.11), rgba(30,41,59,.72));
+}
+
+.weather-head,
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.panel-label {
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  font-weight: 800;
+}
+
+.weather-location {
+  color: #e2e8f0;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 26px;
+}
+
+.weather-temp {
+  font-size: clamp(48px, 7vw, 76px);
+  line-height: .9;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -3px;
+}
+
+.weather-unit {
+  font-size: 18px;
+  color: #94a3b8;
+  vertical-align: top;
+  margin-left: 3px;
+}
+
+.weather-condition {
+  color: #cbd5e1;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.weather-icon {
+  width: 94px;
+  height: 94px;
+  display: grid;
+  place-items: center;
+  font-size: 64px;
+  animation: weatherFloat 3.2s ease-in-out infinite;
+  filter: drop-shadow(0 12px 20px rgba(56,189,248,.20));
+}
+
+@keyframes weatherFloat {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-9px) rotate(2deg); }
+}
+
+.weather-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.weather-meta div {
+  background: rgba(2,6,23,.30);
+  border: 1px solid rgba(148,163,184,.10);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.weather-meta small {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.weather-meta b {
+  color: #e2e8f0;
+  font-size: 12px;
+}
+
+.metric-value {
+  color: #f8fafc;
+  font-size: 27px;
+  font-weight: 800;
+  margin-top: 12px;
+}
+
+.metric-caption {
+  color: #64748b;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.metric-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(56,189,248,.10);
+  color: #38bdf8;
+  font-size: 17px;
+}
+
+.dashboard-clock {
+  font-size: 23px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-top: 10px;
+  letter-spacing: .4px;
+}
+
+.dashboard-date {
+  color: #94a3b8;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+.dashboard-history-panel {
+  grid-column: 1 / -1;
+}
+
+.dashboard-history-panel .history-list {
+  max-height: 300px;
+  margin-top: 12px;
+}
+
+.dashboard-history-panel .history-card-item {
+  background: rgba(2,6,23,.32);
+  border-color: rgba(148,163,184,.10);
+}
+
+.weather-refresh {
+  border: 1px solid rgba(56,189,248,.22);
+  background: rgba(56,189,248,.08);
+  color: #7dd3fc;
+  border-radius: 9px;
+  padding: 6px 9px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.weather-refresh:hover {
+  background: rgba(56,189,248,.15);
+}
+
+.weather-loading {
+  animation: dashboardBlink 1.2s infinite;
+}
+
+@keyframes dashboardBlink {
+  50% { opacity: .45; }
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr 1fr; }
+  .weather-panel { grid-column: 1 / -1; grid-row: auto; }
+}
+
+@media (max-width: 600px) {
+  .dashboard-shell { padding: 15px; border-radius: 18px; }
+  .dashboard-topbar { align-items: flex-start; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-panel, .weather-panel { grid-column: auto; }
+  .weather-main { margin-top: 20px; }
+}
+
+
+/* Final dashboard polish */
+.dashboard-shell {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(14,165,233,.22), transparent 27%),
+    radial-gradient(circle at 92% 8%, rgba(168,85,247,.18), transparent 28%),
+    radial-gradient(circle at 55% 100%, rgba(16,185,129,.10), transparent 32%),
+    linear-gradient(135deg, #06101e 0%, #0b1729 45%, #111827 100%) !important;
+  box-shadow: 0 28px 90px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.dashboard-panel {
+  background: linear-gradient(145deg, rgba(30,41,59,.78), rgba(15,23,42,.72)) !important;
+  border-color: rgba(148,163,184,.17) !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.weather-panel {
+  background:
+    radial-gradient(circle at 78% 22%, rgba(56,189,248,.22), transparent 32%),
+    linear-gradient(145deg, rgba(8,47,73,.78), rgba(15,23,42,.78)) !important;
+}
+
+.dashboard-panel:hover {
+  box-shadow: 0 20px 50px rgba(0,0,0,.34), 0 0 0 1px rgba(56,189,248,.12);
+}
+
+.dashboard-title-wrap h2 {
+  text-shadow: 0 5px 22px rgba(56,189,248,.18);
+}
+
+.weather-location {
+  font-weight: 600;
+}
+
+.live-pill {
+  box-shadow: 0 0 24px rgba(16,185,129,.08);
+}
+
 </style>
 </head> 
 <body>
@@ -171,14 +509,104 @@
       <div class="main-content">
         <!-- Dashboard Tab -->
         <div id="dashboard-tab" class="tab-content active">
-          <div class="card">
-            <h3>📊 Your Activity Dashboard</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">List of all QR codes generated through your ID</p>
-            <div class="history-list" id="dashboard-history-list"><p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">No records found.</p></div>
+  <div class="dashboard-shell">
+
+    <div class="dashboard-topbar">
+      <div class="dashboard-title-wrap">
+        <h2><i class="fa-solid fa-chart-line" style="color:#38bdf8;"></i> Dashboard</h2>
+        <p>Live overview of your portal activity, time and local weather.</p>
+      </div>
+      <div class="live-pill"><span class="live-dot"></span> LIVE</div>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- LIVE WEATHER -->
+      <div class="dashboard-panel weather-panel">
+        <div class="weather-head">
+          <div>
+            <div class="panel-label">Live Weather</div>
+            <div class="weather-location" id="weather-location">Detecting your location...</div>
           </div>
+          <button class="weather-refresh" onclick="loadDashboardWeather(true)">
+            <i class="fa-solid fa-rotate"></i> Refresh
+          </button>
         </div>
 
-        <!-- QR Generator & OCR Tab -->
+        <div class="weather-main">
+          <div>
+            <div id="weather-temp" class="weather-temp weather-loading">--<span class="weather-unit">°C</span></div>
+            <div id="weather-condition" class="weather-condition">Getting current conditions...</div>
+          </div>
+          <div id="weather-icon" class="weather-icon">🌤️</div>
+        </div>
+
+        <div class="weather-meta">
+          <div><small>Feels like</small><b id="weather-feels">-- °C</b></div>
+          <div><small>Wind</small><b id="weather-wind">-- km/h</b></div>
+          <div><small>Humidity</small><b id="weather-humidity">--%</b></div>
+        </div>
+      </div>
+
+      <!-- TIME -->
+      <div class="dashboard-panel">
+        <div class="panel-head">
+          <div class="panel-label">Local Time</div>
+          <div class="metric-icon"><i class="fa-regular fa-clock"></i></div>
+        </div>
+        <div id="dashboard-clock" class="dashboard-clock">--:--:--</div>
+        <div id="dashboard-date" class="dashboard-date">Loading date...</div>
+      </div>
+
+      <!-- QR ACTIVITY -->
+      <div class="dashboard-panel">
+        <div class="panel-head">
+          <div class="panel-label">QR Activity</div>
+          <div class="metric-icon"><i class="fa-solid fa-qrcode"></i></div>
+        </div>
+        <div id="dashboard-qr-count" class="metric-value">0</div>
+        <div class="metric-caption">Records generated with your ID</div>
+      </div>
+
+      <!-- QUICK STATUS -->
+      <div class="dashboard-panel">
+        <div class="panel-head">
+          <div class="panel-label">Account Status</div>
+          <div class="metric-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        </div>
+        <div class="metric-value" style="font-size:21px;">Protected</div>
+        <div class="metric-caption">Secure session is active</div>
+      </div>
+
+      <!-- WEATHER UPDATE -->
+      <div class="dashboard-panel">
+        <div class="panel-head">
+          <div class="panel-label">Weather Update</div>
+          <div class="metric-icon"><i class="fa-solid fa-cloud-sun"></i></div>
+        </div>
+        <div id="weather-updated" class="metric-value" style="font-size:18px;">Auto</div>
+        <div class="metric-caption">Updates automatically</div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="dashboard-panel dashboard-history-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-label">Recent Activity</div>
+            <div style="color:#cbd5e1;font-size:13px;margin-top:4px;">Your latest QR records</div>
+          </div>
+          <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i>
+        </div>
+        <div class="history-list" id="dashboard-history-list">
+          <p style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px;">No records found.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- QR Generator & OCR Tab -->
         <div id="qr-tab" class="tab-content">
           <div class="card">
             <h3>🪪 CNIC OCR</h3>
@@ -3979,6 +4407,162 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });
 
+
+</script>
+
+<script>
+
+/* =========================================================
+   DASHBOARD LIVE CLOCK + WEATHER
+   ========================================================= */
+function updateDashboardClock() {
+  const now = new Date();
+  const clock = document.getElementById('dashboard-clock');
+  const date = document.getElementById('dashboard-date');
+  if (clock) {
+    clock.textContent = now.toLocaleTimeString([], {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  }
+  if (date) {
+    date.textContent = now.toLocaleDateString([], {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+}
+
+function weatherDescription(code) {
+  const map = {
+    0:['Clear Sky','☀️'], 1:['Mainly Clear','🌤️'], 2:['Partly Cloudy','⛅'],
+    3:['Overcast','☁️'], 45:['Foggy','🌫️'], 48:['Rime Fog','🌫️'],
+    51:['Light Drizzle','🌦️'], 53:['Drizzle','🌦️'], 55:['Heavy Drizzle','🌧️'],
+    56:['Freezing Drizzle','🌧️'], 57:['Freezing Drizzle','🌧️'],
+    61:['Light Rain','🌦️'], 63:['Rain','🌧️'], 65:['Heavy Rain','🌧️'],
+    66:['Freezing Rain','🌧️'], 67:['Freezing Rain','🌧️'],
+    71:['Light Snow','🌨️'], 73:['Snow','🌨️'], 75:['Heavy Snow','❄️'],
+    77:['Snow Grains','❄️'], 80:['Rain Showers','🌦️'], 81:['Rain Showers','🌧️'],
+    82:['Heavy Rain Showers','⛈️'], 85:['Snow Showers','🌨️'], 86:['Snow Showers','❄️'],
+    95:['Thunderstorm','⛈️'], 96:['Thunderstorm + Hail','⛈️'], 99:['Thunderstorm + Hail','⛈️']
+  };
+  return map[code] || ['Current Conditions','🌤️'];
+}
+
+async function fetchWeather(lat, lon) {
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' +
+    encodeURIComponent(lat) +
+    '&longitude=' + encodeURIComponent(lon) +
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m' +
+    '&timezone=auto';
+
+  const response = await fetch(url, {cache:'no-store'});
+  if (!response.ok) throw new Error('Weather service unavailable');
+  return response.json();
+}
+
+async function loadDashboardWeather(force = false) {
+  const locationEl = document.getElementById('weather-location');
+  const tempEl = document.getElementById('weather-temp');
+  const conditionEl = document.getElementById('weather-condition');
+  const iconEl = document.getElementById('weather-icon');
+  const feelsEl = document.getElementById('weather-feels');
+  const windEl = document.getElementById('weather-wind');
+  const humidityEl = document.getElementById('weather-humidity');
+  const updatedEl = document.getElementById('weather-updated');
+
+  if (!locationEl) return;
+
+  try {
+    const cached = JSON.parse(localStorage.getItem('dashboard_weather_location') || 'null');
+    let position;
+
+    if (cached && !force) {
+      position = cached;
+    } else {
+      position = await new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('Geolocation unavailable'));
+        navigator.geolocation.getCurrentPosition(
+          p => resolve({lat:p.coords.latitude, lon:p.coords.longitude}),
+          reject,
+          {enableHighAccuracy:false, timeout:8000, maximumAge:600000}
+        );
+      });
+      localStorage.setItem('dashboard_weather_location', JSON.stringify(position));
+    }
+
+    const lat = position.lat ?? position.coords.latitude;
+    const lon = position.lon ?? position.coords.longitude;
+
+    const data = await fetchWeather(lat, lon);
+
+    // Convert GPS coordinates into a readable city/area name.
+    try {
+      const geoResp = await fetch(
+        'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' +
+        encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon) +
+        '&zoom=10&addressdetails=1',
+        {cache:'no-store', headers:{'Accept':'application/json'}}
+      );
+      if (geoResp.ok) {
+        const geo = await geoResp.json();
+        const a = geo.address || {};
+        data._placeName =
+          a.city || a.town || a.village || a.municipality ||
+          a.county || 'Your Current Location';
+      }
+    } catch (geoErr) {
+      console.warn('Location name lookup:', geoErr);
+      data._placeName = 'Your Current Location';
+    }
+
+    const c = data.current;
+    const [description, icon] = weatherDescription(c.weather_code);
+
+    tempEl.classList.remove('weather-loading');
+    tempEl.innerHTML = Math.round(c.temperature_2m) +
+      '<span class="weather-unit">°C</span>';
+    conditionEl.textContent = description;
+    iconEl.textContent = icon;
+    feelsEl.textContent = Math.round(c.apparent_temperature) + ' °C';
+    windEl.textContent = Math.round(c.wind_speed_10m) + ' km/h';
+    humidityEl.textContent = Math.round(c.relative_humidity_2m) + '%';
+
+    const tz = data.timezone || 'local';
+    locationEl.textContent = (data._placeName || 'Your Current Location');
+    updatedEl.textContent = new Date().toLocaleTimeString([], {
+      hour:'2-digit', minute:'2-digit'
+    });
+  } catch (err) {
+    console.warn('Dashboard weather:', err);
+    locationEl.textContent = 'Location permission required';
+    tempEl.classList.remove('weather-loading');
+    tempEl.innerHTML = '--<span class="weather-unit">°C</span>';
+    conditionEl.textContent = 'Allow location access to show live weather';
+    iconEl.textContent = '🌍';
+    feelsEl.textContent = '-- °C';
+    windEl.textContent = '-- km/h';
+    humidityEl.textContent = '--%';
+    updatedEl.textContent = 'Waiting';
+  }
+}
+
+function updateDashboardQRCount() {
+  const list = document.getElementById('dashboard-history-list');
+  const count = document.getElementById('dashboard-qr-count');
+  if (!count || !list) return;
+  const items = list.querySelectorAll('.history-card-item');
+  count.textContent = items.length;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateDashboardClock();
+  setInterval(updateDashboardClock, 1000);
+  loadDashboardWeather(false);
+  setInterval(() => loadDashboardWeather(false), 15 * 60 * 1000);
+
+  // Give the existing QR history renderer time to populate, then count it.
+  setTimeout(updateDashboardQRCount, 1200);
+  setInterval(updateDashboardQRCount, 3000);
+});
 
 </script>
 </body>
