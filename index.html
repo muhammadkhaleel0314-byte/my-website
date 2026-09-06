@@ -3000,11 +3000,13 @@ function checkUserAccess(tabId, btnElement) {
     nano:          {label:'Nano Report', icon:'📊'},
     telehealth:    {label:'Telehealth Report', icon:'🩺'},
     mdp:           {label:'MDP Report', icon:'📋'}
+	pdfEditor: { label: 'PDF Editor', icon: '🪟' }
   };
 
   // Keep old name available for existing code.
   const MY_LINKS_ACCESS = USER_ACCESS_OPTIONS;
   const TAB_ACCESS_MAP = {
+	'pdf-editor-tab': 'pdfEditor',
     'qr-tab':'qrTab',
     'merge-tools-tab':'mergeTools',
     'recovery-tab':'recoveryPdf',
