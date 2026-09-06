@@ -438,9 +438,65 @@
   box-shadow: 0 0 24px rgba(16,185,129,.08);
 }
 
+
+/* MOBILE APP-LIKE SECTION NAVIGATION */
+.mobile-back-btn{display:none;}
+@media(max-width:767px){
+  body.mobile-section-open .sidebar{display:none!important;}
+  body.mobile-section-open .main-content{width:100%!important;max-width:100%!important;padding:12px!important;}
+  body.mobile-section-open .mobile-back-btn{display:flex!important;}
+  .mobile-back-btn{position:fixed;top:10px;left:10px;z-index:99999;width:42px;height:42px;border:1px solid rgba(148,163,184,.28);border-radius:12px;background:rgba(15,23,42,.95);color:#fff;align-items:center;justify-content:center;font-size:18px;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;}
+  body.mobile-section-open .tab-content.active{padding-top:48px!important;}
+}
 </style>
+
+<style id="mobile-navigation-final-fix">
+@media (max-width:700px){
+  body.mobile-section-open .sidebar,
+  body.mobile-section-open .side-menu,
+  body.mobile-section-open .navigation,
+  body.mobile-section-open .nav-menu,
+  body.mobile-section-open nav,
+  body.mobile-section-open .menu,
+  body.mobile-section-open .sidebar-menu {
+    display:none !important;
+  }
+
+  body.mobile-section-open #dashboard-tab:not(.active),
+  body.mobile-section-open .tab-content:not(.active) {
+    display:none !important;
+  }
+
+  body.mobile-section-open .tab-content.active {
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+  }
+
+  body.mobile-section-open .dashboard-shell {
+    margin-top:0 !important;
+  }
+
+  body.mobile-section-open #mobileBackBtn,
+  body.mobile-section-open .mobile-back-btn {
+    display:grid !important;
+    place-items:center !important;
+  }
+
+  /* When menu is visible, don't leave a second dashboard underneath it. */
+  body:not(.mobile-section-open) .tab-content {
+    display:none !important;
+  }
+  body:not(.mobile-section-open) #dashboard-tab {
+    display:block !important;
+  }
+}
+</style>
+
 </head> 
 <body>
+<button id="mobile-back-btn" class="mobile-back-btn" onclick="mobileBackToMenu()" aria-label="Back"><i class="fa-solid fa-arrow-left"></i></button>
 
   <!-- Audio element for clicking sound -->
   <audio id="click-sound" preload="auto">
@@ -1465,6 +1521,10 @@ let resetTimerInterval = null;
 
     function handleLogout() { localStorage.removeItem('logged_user'); localStorage.removeItem('active_session_id'); location.reload(); }
 
+    window.addEventListener('resize', function(){
+      if (window.innerWidth > 767) document.body.classList.remove('mobile-section-open');
+    });
+
     window.onload = function() {
       const existingLoggedUser = localStorage.getItem('logged_user');
       if (existingLoggedUser) startExistingSessionMonitor(existingLoggedUser);
@@ -1484,8 +1544,31 @@ let resetTimerInterval = null;
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+      playSound();
+
+      // Mobile: behave like an app. Hide the menu after opening any section.
+      if (window.innerWidth <= 767 && tabId !== 'dashboard-tab') {
+        document.body.classList.add('mobile-section-open');
+        window.scrollTo(0, 0);
+      } else if (window.innerWidth <= 767 && tabId === 'dashboard-tab') {
+        document.body.classList.remove('mobile-section-open');
+        window.scrollTo(0, 0);
+      }
+    }
+
+    function mobileBackToMenu() {
+      if (window.innerWidth > 767) return;
+      document.body.classList.remove('mobile-section-open');
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
+      const dash = document.getElementById('dashboard-tab');
+      const dashBtn = document.querySelector('.nav-sub-btn[onclick*="dashboard-tab"]');
+      if (dash) dash.classList.add('active');
+      if (dashBtn) dashBtn.classList.add('active');
+      window.scrollTo(0, 0);
       playSound();
     }
 
@@ -4601,6 +4684,87 @@ document.addEventListener('DOMContentLoaded', function() {
   // Give the existing QR history renderer time to populate, then count it.
   setTimeout(updateDashboardQRCount, 1200);
   setInterval(updateDashboardQRCount, 3000);
+});
+
+</script>
+<script>
+
+/* =========================================================
+   MOBILE NAVIGATION CONTROLLER — FINAL
+   ========================================================= */
+function mobileShowMenu() {
+  if (window.innerWidth > 700) return;
+
+  document.body.classList.remove('mobile-section-open');
+
+  document.querySelectorAll('.tab-content').forEach(function(tab) {
+    tab.style.display = '';
+  });
+
+  const dashboard = document.getElementById('dashboard-tab');
+  if (dashboard) {
+    dashboard.style.display = 'block';
+    dashboard.classList.add('active');
+  }
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function mobileOpenSection(tabId) {
+  if (window.innerWidth > 700 || !tabId) return;
+
+  document.body.classList.add('mobile-section-open');
+
+  document.querySelectorAll('.tab-content').forEach(function(tab) {
+    const selected = tab.id === tabId;
+    tab.style.display = selected ? 'block' : 'none';
+    tab.classList.toggle('active', selected);
+  });
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.addEventListener('click', function(e) {
+  if (window.innerWidth > 700) return;
+
+  const clicked = e.target.closest(
+    '.sidebar button, .sidebar a, .side-menu button, .side-menu a, ' +
+    '.navigation button, .navigation a, .nav-menu button, .nav-menu a, ' +
+    '.menu-item, .nav-btn, .tab-btn'
+  );
+
+  if (!clicked) return;
+
+  // Existing application navigation executes first.
+  setTimeout(function() {
+    const active = document.querySelector('.tab-content.active');
+    if (active && active.id !== 'dashboard-tab') {
+      mobileOpenSection(active.id);
+    } else if (active && active.id === 'dashboard-tab') {
+      document.body.classList.remove('mobile-section-open');
+      document.querySelectorAll('.tab-content').forEach(function(tab) {
+        tab.style.display = '';
+      });
+      active.style.display = 'block';
+    }
+  }, 120);
+}, false);
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.innerWidth <= 700) {
+    document.body.classList.remove('mobile-section-open');
+    const dashboard = document.getElementById('dashboard-tab');
+    if (dashboard) dashboard.style.display = 'block';
+  }
+});
+
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 700) {
+    document.body.classList.remove('mobile-section-open');
+    document.querySelectorAll('.tab-content').forEach(function(tab) {
+      tab.style.display = '';
+    });
+  }
 });
 
 </script>
