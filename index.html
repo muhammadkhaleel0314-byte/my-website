@@ -4982,7 +4982,19 @@ document.addEventListener('DOMContentLoaded', function() {
     try{
       if(!window.PDFLib){await new Promise((resolve,reject)=>{let done=false;const urls=['https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js','https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'];const tryNext=(n)=>{if(n>=urls.length){reject(new Error('PDF library could not be loaded. Please check your internet connection or allow cdn.jsdelivr.net/cdnjs.cloudflare.com.'));return;}const sc=document.createElement('script');sc.src=urls[n];sc.onload=()=>{if(window.PDFLib){done=true;resolve();}else tryNext(n+1);};sc.onerror=()=>tryNext(n+1);document.head.appendChild(sc);};tryNext(0);});}
       if(!window.PDFLib||!window.PDFLib.PDFDocument)throw new Error('PDF library is unavailable. Check your internet connection and reload the page.');
-      status('Creating edited PDF...');const PDFLib=window.PDFLib,doc=await PDFLib.PDFDocument.load(state.pdfBytes),font=await doc.embedFont(PDFLib.StandardFonts.Helvetica),pages=doc.getPages();
+      status('Preparing fonts...');const PDFLib=window.PDFLib,doc=await PDFLib.PDFDocument.load(state.pdfBytes);
+      const hasArabicText=Object.values(state.pages||{}).some(pg=>((pg&&pg.objects)||[]).some(a=>/^[\s\S]*[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(a.text||'')));
+      let font;
+      if(hasArabicText){
+        if(!window.fontkit){await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js';sc.onload=()=>window.fontkit?resolve():reject(new Error('Arabic font support could not be loaded.'));sc.onerror=()=>reject(new Error('Arabic font support could not be loaded.'));document.head.appendChild(sc);});}
+        doc.registerFontkit(window.fontkit);
+        const fontUrl='https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io/fonts/NotoNaskhArabic/hinted/ttf/NotoNaskhArabic-Regular.ttf';
+        const fontBytes=new Uint8Array(await (await fetch(fontUrl,{mode:'cors',cache:'force-cache'})).arrayBuffer());
+        font=await doc.embedFont(fontBytes,{subset:false});
+      }else{
+        font=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+      }
+      status('Creating edited PDF...');const pages=doc.getPages();
       for(let i=0;i<pages.length;i++){const pg=pages[i],o=state.pages[i+1];if(!o)continue;const {width,height}=pg.getSize();const pdfpg=await state.pdf.getPage(i+1),vp=pdfpg.getViewport({scale:state.scale}),sx=width/vp.width,sy=height/vp.height;
         for(const a of o.objects){const x=a.x*sx,y=height-(a.y+(a.h||20))*sy,w=(a.w||0)*sx,h=(a.h||0)*sy;
           if(a.type==='redactText')pg.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,1,1),borderWidth:0});
