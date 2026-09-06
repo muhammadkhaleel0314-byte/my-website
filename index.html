@@ -458,6 +458,10 @@
 .pdf-editor-toolbar button:hover,.pdf-editor-toolbar label:hover{border-color:#38bdf8;background:#172554;}
 .pdf-editor-toolbar .pdf-file-label{background:#0284c7;border-color:#0284c7;}
 .pdf-editor-toolbar input[type=file]{display:none;}
+.pdf-editor-toolbar .pdf-color-control,
+.pdf-editor-toolbar .pdf-size-control{padding:6px 8px;gap:6px;}
+.pdf-editor-toolbar input[type=color]{width:30px;height:26px;padding:0;border:0;background:transparent;cursor:pointer;}
+.pdf-editor-toolbar select{background:#0f172a;color:#f8fafc;border:1px solid #475569;border-radius:6px;padding:4px 6px;font-size:11px;font-weight:700;cursor:pointer;}
 .pdf-editor-toolbar .pdf-page-info{margin-left:auto;color:#94a3b8;font-size:12px;padding:0 5px;white-space:nowrap;}
 .pdf-editor-stage{background:#020617;min-height:70vh;padding:18px;overflow:auto;display:flex;justify-content:center;}
 .pdf-page-wrap{position:relative;background:#fff;box-shadow:0 12px 35px rgba(0,0,0,.45);flex:0 0 auto;}
@@ -594,7 +598,7 @@ window.pdfjsLib = pdfjsLib;
           <button class="nav-sub-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
           <button class="nav-sub-btn" onclick="checkUserAccess('qr-tab', this)"><i class="fa-solid fa-qrcode"></i> CNIC OCR & QR</button>
           <button class="nav-sub-btn" onclick="switchTab('links-tab', this)"><i class="fa-solid fa-link"></i> My Link's</button>
-          <button class="nav-sub-btn" onclick="switchTab('pdf-editor-tab', this)"><i class="fa-solid fa-file-pen"></i> PDF Editor</button>
+          <button class="nav-sub-btn" onclick="checkUserAccess('pdf-editor-tab', this)"><i class="fa-solid fa-file-pen"></i> PDF Editor</button>
           <button id="user-access-nav-btn" class="nav-sub-btn" style="display:none;" onclick="openUserAccessPanel(this)"><i class="fa-solid fa-user-shield"></i> User Access</button>
 	      <button class="nav-sub-btn" onclick="checkUserAccess('merge-tools-tab', this)"><i class="fa-solid fa-file-excel"></i> Merge Tools</button>
           <button class="nav-sub-btn" onclick="checkUserAccess('recovery-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery PDF Report</button>
@@ -1073,6 +1077,20 @@ window.pdfjsLib = pdfjsLib;
         <input type="file" id="pdf-editor-file" accept="application/pdf">
       </label>
       <button type="button" onclick="pdfEditorAddText()"><i class="fa-solid fa-font"></i> Add Text</button>
+      <label class="pdf-color-control"><i class="fa-solid fa-font"></i> Text Color
+        <input type="color" id="pdf-text-color" value="#111827" title="Text color">
+      </label>
+      <label class="pdf-color-control"><i class="fa-solid fa-highlighter"></i> Highlight Color
+        <input type="color" id="pdf-highlight-color" value="#ffe600" title="Highlight color">
+      </label>
+      <label class="pdf-size-control"><i class="fa-solid fa-ruler-vertical"></i> Highlighter
+        <select id="pdf-highlight-size" title="Highlighter thickness">
+          <option value="12">Small</option>
+          <option value="24" selected>Medium</option>
+          <option value="40">Large</option>
+        </select>
+      </label>
+      <button type="button" onclick="pdfEditorApplyColor()"><i class="fa-solid fa-palette"></i> Apply Color</button>
       <label><i class="fa-solid fa-image"></i> Image
         <input type="file" id="pdf-editor-image" accept="image/*">
       </label>
@@ -1090,7 +1108,7 @@ window.pdfjsLib = pdfjsLib;
     <div class="pdf-editor-stage" id="pdf-editor-stage">
       <div class="pdf-empty-editor" id="pdf-editor-empty">📄 Choose a PDF to start editing.</div>
     </div>
-    <div class="pdf-editor-status" id="pdf-editor-status">Text edit: click existing PDF text, then enter the replacement. Added objects can be moved.</div>
+    <div class="pdf-editor-status" id="pdf-editor-status">Text: select/add/edit and choose Text Color. Highlight: choose color + Small/Medium/Large thickness, then drag across the page.</div>
   </div>
 </div>
 
@@ -1099,7 +1117,7 @@ window.pdfjsLib = pdfjsLib;
   <div class="card" style="text-align:left;max-width:100%;width:100%;">
     <h3 style="text-align:center;">👥 User Access Control</h3>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;text-align:center;">
-      Real-time Firebase permissions for My Links + all portal tools. Select exactly which options each user is allowed to use.
+      Real-time Firebase permissions for My Links + all portal tools, including PDF Editor. Select exactly which options each user is allowed to use.
     </p>
     <div id="user-access-status" style="font-size:12px;text-align:center;margin-bottom:12px;color:var(--text-muted);"></div>
 
@@ -1627,6 +1645,10 @@ let resetTimerInterval = null;
     };
 
     function switchTab(tabId, btn) {
+      if(tabId==='pdf-editor-tab' && typeof getUserLinkAccess==='function' && !getUserLinkAccess('pdfEditor')){
+        alert('You cannot use this option');
+        return false;
+      }
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-sub-btn').forEach(b => b.classList.remove('active'));
       const target = document.getElementById(tabId);
@@ -3000,13 +3022,12 @@ function checkUserAccess(tabId, btnElement) {
     nano:          {label:'Nano Report', icon:'📊'},
     telehealth:    {label:'Telehealth Report', icon:'🩺'},
     mdp:           {label:'MDP Report', icon:'📋'},
-	pdfEditor: { label: 'PDF Editor', icon: '🪟' }
+    pdfEditor:     {label:'PDF Editor', icon:'📝'}
   };
 
   // Keep old name available for existing code.
   const MY_LINKS_ACCESS = USER_ACCESS_OPTIONS;
   const TAB_ACCESS_MAP = {
-	'pdf-editor-tab': 'pdfEditor',
     'qr-tab':'qrTab',
     'merge-tools-tab':'mergeTools',
     'recovery-tab':'recoveryPdf',
@@ -3015,7 +3036,8 @@ function checkUserAccess(tabId, btnElement) {
     'excel-pdf-adj-tab':'excelPdf',
     'nano-tab':'nano',
     'telehealth-tab':'telehealth',
-    'mdp-tab':'mdp'
+    'mdp-tab':'mdp',
+    'pdf-editor-tab':'pdfEditor'
   };
 
   let currentUserAccess = {};
@@ -4784,6 +4806,28 @@ document.addEventListener('DOMContentLoaded', function() {
   const ps=()=>{if(!state.pages[state.page])state.pages[state.page]={objects:[],drawings:[]};return state.pages[state.page];};
   const clone=o=>JSON.parse(JSON.stringify(o));
   function status(t){const e=$('pdf-editor-status');if(e)e.textContent=t;}
+  function hexToRgb01(hex){
+    const h=String(hex||'').replace('#','');
+    if(h.length!==6)return {r:1,g:0.85,b:0.1};
+    return {r:parseInt(h.slice(0,2),16)/255,g:parseInt(h.slice(2,4),16)/255,b:parseInt(h.slice(4,6),16)/255};
+  }
+  function getPdfTextColor(){return $('pdf-text-color')?.value||'#111827';}
+  function getPdfHighlightColor(){return $('pdf-highlight-color')?.value||'#ffe600';}
+  function getPdfHighlightSize(){return Math.max(4,parseInt($('pdf-highlight-size')?.value||'24',10));}
+  function pdfEditorApplyColor(){
+    if(state.selected===null){status('Select a text or highlight object first.');return;}
+    const o=ps().objects[state.selected]; if(!o)return;
+    snap();
+    if(o.type==='text'||o.type==='redactText'){
+      o.color=getPdfTextColor();
+      renderObjects(); status('Text color applied.');
+    }else if(o.type==='highlight'){
+      o.color=getPdfHighlightColor();
+      renderObjects(); status('Highlight color applied.');
+    }else{
+      status('Color can be applied to text or highlight objects.');
+    }
+  }
   function snap(){state.undo.push(clone(state.pages));if(state.undo.length>40)state.undo.shift();state.redo=[];}
   function pageMetrics(){const wrap=document.querySelector('#pdf-editor-stage .pdf-page-wrap');if(!wrap)return null;return {w:wrap.clientWidth,h:wrap.clientHeight};}
   function autoFitTextObject(o){
@@ -4841,7 +4885,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if(o.type==='highlight'){
         el.style.width=Math.max(1,o.w||1)+'px';
         el.style.height=Math.max(1,o.h||1)+'px';
-        el.style.background='rgba(255,230,0,.38)';
+        el.style.background=(o.color||getPdfHighlightColor())+'66';
         el.style.border='0';
         el.style.pointerEvents='auto';
         el.style.cursor='move';
@@ -4861,9 +4905,13 @@ document.addEventListener('DOMContentLoaded', function() {
         el.style.overflow='visible';
         el.style.padding='0';
         el.style.background=o.type==='redactText'?'rgba(255,255,255,.96)':'transparent';
-        el.style.color='#111827';
+        el.style.color=o.color||getPdfTextColor();
       }
-      if(state.selected===i)el.classList.add('selected');
+      if(state.selected===i){
+        el.classList.add('selected');
+        if(o.type==='text'||o.type==='redactText'){const c=$('pdf-text-color');if(c&&o.color)c.value=o.color;}
+        if(o.type==='highlight'){const c=$('pdf-highlight-color');if(c&&o.color)c.value=o.color;}
+      }
 
       el.addEventListener('pointerdown',e=>{
         if(e.target.closest('.pdf-resize-handle'))return;
@@ -4908,7 +4956,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const wrap=document.createElement('div');wrap.className='pdf-page-wrap';wrap.style.width=vp.width+'px';wrap.style.height=vp.height+'px';
     const c=document.createElement('canvas');c.className='pdf-page-canvas';c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);c.style.width=vp.width+'px';c.style.height=vp.height+'px';wrap.appendChild(c);
     const ov=document.createElement('div');ov.className='pdf-overlay';ov.id='pdf-editor-overlay';wrap.appendChild(ov);st.appendChild(wrap);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
-    try{const tl=document.createElement('div');tl.className='pdf-text-layer';const tc=await pg.getTextContent();tc.items.forEach(item=>{const txt=item.str||'';if(!txt.trim())return;const sp=document.createElement('span');sp.textContent=txt;const tx=pdfjsLib.Util.transform(vp.transform,item.transform),fh=Math.max(8,Math.hypot(tx[2],tx[3])||12);sp.style.left=tx[4]+'px';sp.style.top=(tx[5]-fh)+'px';sp.style.fontSize=fh+'px';sp.style.width=Math.max(2,(item.width||0)*state.scale)+'px';sp.dataset.text=txt;sp.dataset.x=tx[4];sp.dataset.y=tx[5]-fh;sp.dataset.h=fh;sp.title='Double-click to edit';sp.ondblclick=e=>{e.stopPropagation();const old=txt,repl=prompt('Edit PDF text:',old);if(repl===null||repl===old)return;snap();ps().objects.push({type:'redactText',x:+sp.dataset.x,y:+sp.dataset.y,w:Math.max(30,+sp.style.width.replace('px','')),h:+sp.dataset.h,text:repl,fontSize:+sp.dataset.h});state.selected=ps().objects.length-1;renderObjects();status('Text changed. Download to save.');};tl.appendChild(sp);});wrap.appendChild(tl);updateTextLayerInteraction();}catch(e){console.warn(e);}
+    try{const tl=document.createElement('div');tl.className='pdf-text-layer';const tc=await pg.getTextContent();tc.items.forEach(item=>{const txt=item.str||'';if(!txt.trim())return;const sp=document.createElement('span');sp.textContent=txt;const tx=pdfjsLib.Util.transform(vp.transform,item.transform),fh=Math.max(8,Math.hypot(tx[2],tx[3])||12);sp.style.left=tx[4]+'px';sp.style.top=(tx[5]-fh)+'px';sp.style.fontSize=fh+'px';sp.style.width=Math.max(2,(item.width||0)*state.scale)+'px';sp.dataset.text=txt;sp.dataset.x=tx[4];sp.dataset.y=tx[5]-fh;sp.dataset.h=fh;sp.title='Double-click to edit';sp.ondblclick=e=>{e.stopPropagation();const old=txt,repl=prompt('Edit PDF text:',old);if(repl===null||repl===old)return;snap();ps().objects.push({type:'redactText',x:+sp.dataset.x,y:+sp.dataset.y,w:Math.max(30,+sp.style.width.replace('px','')),h:+sp.dataset.h,text:repl,fontSize:+sp.dataset.h,color:getPdfTextColor()});state.selected=ps().objects.length-1;renderObjects();status('Text changed. Download to save.');};tl.appendChild(sp);});wrap.appendChild(tl);updateTextLayerInteraction();}catch(e){console.warn(e);}
     wrap.onpointerdown=e=>{
       if(state.tool==='select'){
         if(e.target.closest('.pdf-object'))return;
@@ -4921,10 +4969,10 @@ document.addEventListener('DOMContentLoaded', function() {
     wrap.onpointermove=e=>{if(!state.drawing)return;const r=wrap.getBoundingClientRect();state.drawPoints.push([e.clientX-r.left,e.clientY-r.top]);if(state.tool==='draw')drawTemp();};wrap.onpointerup=endDraw;wrap.onpointercancel=endDraw;renderObjects();$('pdf-editor-page-info').textContent='Page '+state.page+' / '+state.pdf.numPages;
   }
   function drawTemp(){drawAll();const c=document.querySelector('.pdf-draw-layer');if(!c)return;const x=c.getContext('2d');x.lineWidth=3;x.lineCap='round';x.strokeStyle='#ef4444';if(state.drawPoints.length>1){x.beginPath();x.moveTo(...state.drawPoints[0]);state.drawPoints.slice(1).forEach(p=>x.lineTo(...p));x.stroke();}}
-  function endDraw(){if(!state.drawing)return;state.drawing=false;if(state.tool==='draw'){if(state.drawPoints.length>1){snap();ps().drawings.push(state.drawPoints.slice());}}else if(state.tool==='highlight'){const a=state.drawPoints[0],b=state.drawPoints[state.drawPoints.length-1],x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]),w=Math.abs(a[0]-b[0]),h=Math.abs(a[1]-b[1]);if(w>3&&h>3){snap();ps().objects.push({type:'highlight',x,y,w,h});}}state.drawPoints=[];renderObjects();}
+  function endDraw(){if(!state.drawing)return;state.drawing=false;if(state.tool==='draw'){if(state.drawPoints.length>1){snap();ps().drawings.push(state.drawPoints.slice());}}else if(state.tool==='highlight'){const a=state.drawPoints[0],b=state.drawPoints[state.drawPoints.length-1],x=Math.min(a[0],b[0]),w=Math.abs(a[0]-b[0]),size=getPdfHighlightSize(),mid=(a[1]+b[1])/2,y=Math.max(0,mid-size/2),h=size;if(w>3){snap();ps().objects.push({type:'highlight',x,y,w,h,color:getPdfHighlightColor()});}}state.drawPoints=[];renderObjects();}
   async function load(file){if(!file)return;try{status('Loading PDF...');state.pdfBytes=new Uint8Array(await file.arrayBuffer());state.pdf=await pdfjsLib.getDocument({data:state.pdfBytes.slice()}).promise;state.page=1;state.pages={};state.undo=[];state.redo=[];await renderPage();status('PDF loaded. Double-click existing text to edit.');}catch(e){console.error(e);status('Could not open PDF.');alert('PDF open failed: '+e.message);}}
   window.pdfEditorSetTool=t=>{state.tool=t;state.selected=null;updateTextLayerInteraction();status(t==='draw'?'Draw: drag on page.':t==='highlight'?'Highlight: drag a rectangle.':'Select: drag objects. Double-click text to edit.');renderObjects();};
-  window.pdfEditorAddText=()=>{if(!state.pdf)return alert('Choose a PDF first.');const m=pageMetrics();if(!m)return;const t=prompt('Enter text:');if(t===null||!t.trim())return;snap();const o={type:'text',x:Math.max(10,(m.w-180)/2),y:40,w:0,h:0,text:t,fontSize:18};autoFitTextObject(o);ps().objects.push(o);state.selected=ps().objects.length-1;state.tool='select';renderObjects();status('Text added. Drag the text box anywhere on the PDF. Double-click to edit; drag blue corner to resize.');};
+  window.pdfEditorAddText=()=>{if(!state.pdf)return alert('Choose a PDF first.');const m=pageMetrics();if(!m)return;const t=prompt('Enter text:');if(t===null||!t.trim())return;snap();const o={type:'text',x:Math.max(10,(m.w-180)/2),y:40,w:0,h:0,text:t,fontSize:18,color:getPdfTextColor()};autoFitTextObject(o);ps().objects.push(o);state.selected=ps().objects.length-1;state.tool='select';renderObjects();status('Text added. Drag the text box anywhere on the PDF. Double-click to edit; drag blue corner to resize.');};
   window.pdfEditorDeleteSelected=()=>{if(state.selected===null)return;snap();ps().objects.splice(state.selected,1);state.selected=null;renderObjects();status('Object deleted.');};
   window.pdfEditorUndo=()=>{if(!state.undo.length)return;state.redo.push(clone(state.pages));state.pages=state.undo.pop();state.selected=null;renderPage();};
   window.pdfEditorRedo=()=>{if(!state.redo.length)return;state.undo.push(clone(state.pages));state.pages=state.redo.pop();state.selected=null;renderPage();};
@@ -4938,8 +4986,8 @@ document.addEventListener('DOMContentLoaded', function() {
       for(let i=0;i<pages.length;i++){const pg=pages[i],o=state.pages[i+1];if(!o)continue;const {width,height}=pg.getSize();const pdfpg=await state.pdf.getPage(i+1),vp=pdfpg.getViewport({scale:state.scale}),sx=width/vp.width,sy=height/vp.height;
         for(const a of o.objects){const x=a.x*sx,y=height-(a.y+(a.h||20))*sy,w=(a.w||0)*sx,h=(a.h||0)*sy;
           if(a.type==='redactText')pg.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,1,1),borderWidth:0});
-          if(a.type==='text'||a.type==='redactText')pg.drawText(a.text||'',{x:x+2*sx,y:y+2*sy,size:(a.fontSize||18)*sy,font,color:PDFLib.rgb(.05,.08,.12),maxWidth:Math.max(10,w),lineHeight:(a.fontSize||18)*sy});
-          if(a.type==='highlight')pg.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,.85,.1),opacity:.35,borderOpacity:0});
+          if(a.type==='text'||a.type==='redactText')pg.drawText(a.text||'',{x:x+2*sx,y:y+2*sy,size:(a.fontSize||18)*sy,font,color:(()=>{const c=hexToRgb01(a.color||getPdfTextColor());return PDFLib.rgb(c.r,c.g,c.b);})(),maxWidth:Math.max(10,w),lineHeight:(a.fontSize||18)*sy});
+          if(a.type==='highlight')pg.drawRectangle({x,y,width:w,height:h,color:(()=>{const c=hexToRgb01(a.color||getPdfHighlightColor());return PDFLib.rgb(c.r,c.g,c.b);})(),opacity:.35,borderOpacity:0});
           if(a.type==='image'){try{const b64=a.src.split(',')[1],bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)),im=a.src.toLowerCase().startsWith('data:image/png')?await doc.embedPng(bytes):await doc.embedJpg(bytes);pg.drawImage(im,{x,y,width:w,height:h});}catch(e){console.warn('Image export skipped',e);}}
         }
         for(const pts of o.drawings)for(let k=1;k<pts.length;k++)pg.drawLine({start:{x:pts[k-1][0]*sx,y:height-pts[k-1][1]*sy},end:{x:pts[k][0]*sx,y:height-pts[k][1]*sy},thickness:2*sx,color:PDFLib.rgb(.94,.27,.27)});
