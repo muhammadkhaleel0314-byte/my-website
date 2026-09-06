@@ -4994,11 +4994,52 @@ document.addEventListener('DOMContentLoaded', function() {
       }else{
         font=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
       }
-      status('Creating edited PDF...');const pages=doc.getPages();
+      async function renderUrduTextToPng(text,color,fontSize,targetWidth,targetHeight){
+        const fontUrl='https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonastaliqurdu/NotoNastaliqUrdu-Regular.ttf';
+        if(!window.__urduFontLoaded){
+          try{
+            const ff=new FontFace('NotoNastaliqUrdu',`url(${fontUrl})`);
+            await ff.load(); document.fonts.add(ff); window.__urduFontLoaded=true;
+          }catch(e){console.warn('Noto Nastaliq Urdu font load failed; falling back to system Urdu font.',e);}
+        }
+        const scale=2,pad=8;
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(80,Math.ceil(targetWidth*scale));
+        canvas.height=Math.max(50,Math.ceil(targetHeight*scale));
+        const ctx=canvas.getContext('2d');
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        const px=Math.max(10,(fontSize||18)*scale);
+        ctx.font=`${px}px NotoNastaliqUrdu, "Noto Naskh Arabic", serif`;
+        ctx.fillStyle=color||'#111827';
+        ctx.textAlign='right';ctx.textBaseline='top';ctx.direction='rtl';
+        const lines=String(text||'').split(/\r?\n/);
+        const lineH=px*1.65;
+        lines.forEach((line,i)=>ctx.fillText(line,canvas.width-pad*scale,i*lineH));
+        return canvas.toDataURL('image/png');
+      }
+      function isUrduArabicText(t){return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(String(t||''));}
+            status('Creating edited PDF...');const pages=doc.getPages();
       for(let i=0;i<pages.length;i++){const pg=pages[i],o=state.pages[i+1];if(!o)continue;const {width,height}=pg.getSize();const pdfpg=await state.pdf.getPage(i+1),vp=pdfpg.getViewport({scale:state.scale}),sx=width/vp.width,sy=height/vp.height;
         for(const a of o.objects){const x=a.x*sx,y=height-(a.y+(a.h||20))*sy,w=(a.w||0)*sx,h=(a.h||0)*sy;
           if(a.type==='redactText')pg.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,1,1),borderWidth:0});
-          if(a.type==='text'||a.type==='redactText')pg.drawText(a.text||'',{x:x+2*sx,y:y+2*sy,size:(a.fontSize||18)*sy,font,color:(()=>{const c=hexToRgb01(a.color||getPdfTextColor());return PDFLib.rgb(c.r,c.g,c.b);})(),maxWidth:Math.max(10,w),lineHeight:(a.fontSize||18)*sy});
+          if(a.type==='text'||a.type==='redactText'){
+            const tc=a.color||getPdfTextColor();
+            if(isUrduArabicText(a.text||'')){
+              try{
+                const dataUrl=await renderUrduTextToPng(a.text||'',tc,(a.fontSize||18)*sy,Math.max(20,w),Math.max(30,h||((a.fontSize||18)*sy*2)));
+                const ib=Uint8Array.from(atob(dataUrl.split(',')[1]),c=>c.charCodeAt(0));
+                const uim=await doc.embedPng(ib);
+                pg.drawImage(uim,{x:x+2*sx,y:y+2*sy,width:Math.max(10,w),height:Math.max(20,h||((a.fontSize||18)*sy*1.8))});
+              }catch(e){
+                console.warn('Urdu text image export failed; using embedded Arabic font.',e);
+                const c=hexToRgb01(tc);
+                pg.drawText(a.text||'',{x:x+2*sx,y:y+2*sy,size:(a.fontSize||18)*sy,font,color:PDFLib.rgb(c.r,c.g,c.b),maxWidth:Math.max(10,w),lineHeight:(a.fontSize||18)*sy});
+              }
+            }else{
+              const c=hexToRgb01(tc);
+              pg.drawText(a.text||'',{x:x+2*sx,y:y+2*sy,size:(a.fontSize||18)*sy,font,color:PDFLib.rgb(c.r,c.g,c.b),maxWidth:Math.max(10,w),lineHeight:(a.fontSize||18)*sy});
+            }
+          }
           if(a.type==='highlight')pg.drawRectangle({x,y,width:w,height:h,color:(()=>{const c=hexToRgb01(a.color||getPdfHighlightColor());return PDFLib.rgb(c.r,c.g,c.b);})(),opacity:.35,borderOpacity:0});
           if(a.type==='image'){try{const b64=a.src.split(',')[1],bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)),im=a.src.toLowerCase().startsWith('data:image/png')?await doc.embedPng(bytes):await doc.embedJpg(bytes);pg.drawImage(im,{x,y,width:w,height:h});}catch(e){console.warn('Image export skipped',e);}}
         }
