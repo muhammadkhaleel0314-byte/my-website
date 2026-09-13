@@ -858,41 +858,42 @@ window.pdfjsLib = pdfjsLib;
       .card-2 .u-icon { background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.25); }
       .card-2 .u-action { color: #34d399; }
 
-      /* --- 3. ACAG Batch (Amber / Orange Theme) --- */
-      .card-3 { background: linear-gradient(135deg, #33210c 0%, #0f172a 100%); }
-      .card-3:hover { border-color: #fbbf24; box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.25); }
-      .card-3 .u-icon { background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.25); }
-      .card-3 .u-action { color: #fbbf24; }
-
-      /* --- 4. PMY Apply (Purple / Violet Theme) --- */
+     
+      /* --- 3. PMY Apply (Purple / Violet Theme) --- */
       .card-4 { background: linear-gradient(135deg, #23113b 0%, #0f172a 100%); }
       .card-4:hover { border-color: #c084fc; box-shadow: 0 10px 25px -5px rgba(192, 132, 252, 0.25); }
       .card-4 .u-icon { background: rgba(192, 132, 252, 0.12); border: 1px solid rgba(192, 132, 252, 0.25); }
       .card-4 .u-action { color: #c084fc; }
 
-      /* --- 5. ACAG Apply (Rose / Pink Theme) --- */
+      /* --- 4. ACAG Apply (Rose / Pink Theme) --- */
       .card-5 { background: linear-gradient(135deg, #38121f 0%, #0f172a 100%); }
       .card-5:hover { border-color: #fb7185; box-shadow: 0 10px 25px -5px rgba(251, 113, 133, 0.25); }
       .card-5 .u-icon { background: rgba(251, 113, 133, 0.12); border: 1px solid rgba(251, 113, 133, 0.25); }
       .card-5 .u-action { color: #fb7185; }
 
-      /* --- 6. QR Generator (Indigo / Blue Theme) --- */
+      /* --- 5. QR Generator (Indigo / Blue Theme) --- */
       .card-6 { background: linear-gradient(135deg, #111d4a 0%, #0f172a 100%); }
       .card-6:hover { border-color: #818cf8; box-shadow: 0 10px 25px -5px rgba(129, 140, 248, 0.25); }
       .card-6 .u-icon { background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.25); }
       .card-6 .u-action { color: #818cf8; }
 
-      /* --- 7. New Service (Teal Theme) --- */
+      /* --- 6. New Service (Teal Theme) --- */
       .card-7 { background: linear-gradient(135deg, #082f33 0%, #0f172a 100%); }
       .card-7:hover { border-color: #2dd4bf; box-shadow: 0 10px 25px -5px rgba(45, 212, 191, 0.25); }
       .card-7 .u-icon { background: rgba(45, 212, 191, 0.12); border: 1px solid rgba(45, 212, 191, 0.25); }
       .card-7 .u-action { color: #2dd4bf; }
 
-      /* --- 8. Bop Verify List (Sky / Blue Theme) --- */
+      /* --- 7. Bop Verify List (Sky / Blue Theme) --- */
       .card-8 { background: linear-gradient(135deg, #0c2a38 0%, #0f172a 100%); }
       .card-8:hover { border-color: #38bdf8; box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.25); }
       .card-8 .u-icon { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); }
-      .card-8 .u-action { color: #38bdf8; }
+      .card-8 .u-action { color: #38bdf8; 
+	
+	 /* --- 8. ACAG Batch (Amber / Orange Theme) --- */
+      .card-3 { background: linear-gradient(135deg, #33210c 0%, #0f172a 100%); }
+      .card-3:hover { border-color: #fbbf24; box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.25); }
+      .card-3 .u-icon { background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.25); }
+      .card-3 .u-action { color: #fbbf24; }
 
       /* --- 9. Apni Chhat Mahfooz Chhat (Gold / Yellow Theme) --- */
       .card-9 { background: linear-gradient(135deg, #382d08 0%, #0f172a 100%); }
@@ -949,22 +950,9 @@ window.pdfjsLib = pdfjsLib;
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 3. ACAG Batch - Secure One-Time Access -->
-      <a href="#" onclick="return openACAGBatch(event)" class="u-card card-3">
-        <div>
-          <div class="u-top">
-            <div class="u-icon">📁</div>
-            <div>
-              <div class="u-title">ACAG Batch</div>
-              <div class="u-desc">Track ACAG batch processing data.</div>
-            </div>
-          </div>
-        </div>
-        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
-      </a>
 
 
-      <!-- 4. PMY Apply -->
+      <!-- 3. PMY Apply -->
       <a href="#" onclick="return openMyLink(event,'pmyApply','https://pmybals.pmyp.gov.pk/')" class="u-card card-4">
         <div>
           <div class="u-top">
@@ -978,7 +966,7 @@ window.pdfjsLib = pdfjsLib;
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 5. ACAG Apply -->
+      <!-- 4. ACAG Apply -->
       <a href="#" onclick="return openMyLink(event,'acagApply','https://acag.punjab.gov.pk/')" class="u-card card-5">
         <div>
           <div class="u-top">
@@ -992,7 +980,7 @@ window.pdfjsLib = pdfjsLib;
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 6. QR Generator -->
+      <!-- 5. QR Generator -->
       <a href="#" onclick="return openMyLink(event,'qrGenerator','https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/')" class="u-card card-6">
         <div>
           <div class="u-top">
@@ -1006,7 +994,7 @@ window.pdfjsLib = pdfjsLib;
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 7. New Service -->
+      <!-- 6. New Service -->
       <a href="#" onclick="return openMyLink(event,'newService','https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec')" class="u-card card-7">
         <div>
           <div class="u-top">
@@ -1020,7 +1008,7 @@ window.pdfjsLib = pdfjsLib;
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 8. Bop Verify List -->
+      <!-- 7. Bop Verify List -->
       <a href="#" onclick="return openMyLink(event,'bopVerifyList','https://script.google.com/macros/s/AKfycbwsfdMBIK3tOQcXDmjszNP39jduuR2MiZnBI1zE3o_CKHtLrEhNyNBmV2cdQdKMC9Fd/exec')" class="u-card card-8">
         <div>
           <div class="u-top">
@@ -1028,6 +1016,19 @@ window.pdfjsLib = pdfjsLib;
             <div>
               <div class="u-title">Bop Verify List</div>
               <div class="u-desc">Access additional features securely.</div>
+            </div>
+          </div>
+        </div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
+      </a>
+      <!-- 8. ACAG Batch - Secure One-Time Access -->
+      <a href="#" onclick="return openACAGBatch(event)" class="u-card card-3">
+        <div>
+          <div class="u-top">
+            <div class="u-icon">📁</div>
+            <div>
+              <div class="u-title">ACAG Batch</div>
+              <div class="u-desc">Track ACAG batch processing data.</div>
             </div>
           </div>
         </div>
@@ -3277,7 +3278,7 @@ function checkUserAccess(tabId, btnElement) {
    ========================================================= */
 
 const APNI_CHHAT_SECURE_URL =
-"https://script.google.com/macros/s/AKfycby6pXKCLf3JRoYn321xz3BS-UHXaAGkLaTYf_9ipZofjEGnqxR8OxtW5Y9scMxQFkg/exec";
+"https://script.google.com/macros/s/AKfycbzzGhEoNFSMujV8E0adDb6WOMqac4ZzI02MuL2vg-zJt-C1r5bI1b19Lxk0coWzEro/exec";
 
 
 /* =========================================================
