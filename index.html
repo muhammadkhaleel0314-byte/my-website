@@ -2853,21 +2853,69 @@ function executeManualDelete() {
 }
 
 function downloadAdjustedPDF() {
+    const selectedHeader = document.getElementById('adj-column-select').value;
     const selectedBranch = document.getElementById('adj-branch-select').value;
+    const orientation = document.getElementById('adj-orientation-select').value;
     
-    // اگر فائل کا نام گلوبل ویری ایبل میں ہے تو وہ لے لیں، ورنہ ان پٹ سے
-    let cleanFileName = "Report";
-    if (typeof uploadedFileName !== 'undefined' && uploadedFileName) {
-        cleanFileName = uploadedFileName.replace(/\.[^/.]+$/, ""); // ایکسٹینشن (.xlsx) ہٹا دے گا
+    // Sr No کا چیک باکس ویلیو چیک کریں
+    const includeSrNoInput = document.getElementById('include-sr-no');
+    const includeSrNo = includeSrNoInput ? includeSrNoInput.checked : true;
+
+    if (!selectedBranch) {
+        alert("براہ کرم برانچ منتخب کریں!");
+        return;
     }
 
-    // فائنل نام: [برانچ کا نام] - [اصل فائل کا نام]
+    const filteredData = adjFileRows.filter(row => String(row[selectedHeader]) === String(selectedBranch));
+    if (filteredData.length === 0) {
+        alert("اس برانچ کا کوئی ڈیٹا نہیں ملا!");
+        return;
+    }
+
+    // جو فائل آپ نے اپ لوڈ کی ہے اس کا نام اور برانچ کا نام ملا کر فائنل نام بنانا
+    let cleanFileName = (typeof uploadedFileName !== 'undefined' && uploadedFileName) ? uploadedFileName : "Excel Report";
     const finalFileName = `${selectedBranch} - ${cleanFileName}.pdf`;
 
-    // باقی آپ کا پی ڈی ایف جنریٹ کرنے کا سارا کوڈ...
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    // ...
+    const doc = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
+    
+    doc.setFontSize(14);
+    doc.text(`Branch Report: ${selectedBranch}`, 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 21);
+
+    // کالمز میں "Sr No" کا اضافہ یا اخراج کرنا
+    let tableColumns = [...adjFileHeaders];
+    if (includeSrNo) {
+        if (!tableColumns.includes('Sr No')) {
+            tableColumns.unshift('Sr No');
+        }
+    } else {
+        tableColumns = tableColumns.filter(h => h !== 'Sr No');
+    }
+
+    // ڈیٹا روز تیار کرنا اور خودکار سیریل نمبر لگانا
+    const tableRows = filteredData.map((row, index) => {
+        let rowData = includeSrNo ? [index + 1] : [];
+        
+        adjFileHeaders.forEach(header => {
+            rowData.push(row[header] !== undefined ? String(row[header]) : '');
+        });
+        
+        return rowData;
+    });
+
+    doc.autoTable({
+        head: [tableColumns],
+        body: tableRows,
+        startY: 25,
+        theme: 'grid',
+        styles: { fontSize: 6.5, cellPadding: 1.8, overflow: 'linebreak', halign: 'left' },
+        headStyles: { fillColor: [56, 189, 248], textColor: 255, fontStyle: 'bold', halign: 'center' },
+        columnStyles: {}
+    });
+
+    // ڈائنامک نام کے ساتھ پی ڈی ایف ڈاؤن لوڈ کریں
     doc.save(finalFileName);
 }
 /* =========================================================
