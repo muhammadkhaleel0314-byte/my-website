@@ -2857,9 +2857,9 @@ function downloadAdjustedPDF() {
     const selectedBranch = document.getElementById('adj-branch-select').value;
     const orientation = document.getElementById('adj-orientation-select').value;
     
-    // Sr No کا چیک باکس ویلیو چیک کریں (اگر آپ نے HTML میں چیک باکس بنایا ہے)
+    // Sr No کا چیک باکس ویلیو چیک کریں
     const includeSrNoInput = document.getElementById('include-sr-no');
-    const includeSrNo = includeSrNoInput ? includeSrNoInput.checked : true; // بائی ڈیفالٹ ٹرو رکھ سکتے ہیں
+    const includeSrNo = includeSrNoInput ? includeSrNoInput.checked : true;
 
     if (!selectedBranch) {
         alert("براہ کرم برانچ منتخب کریں!");
@@ -2872,6 +2872,24 @@ function downloadAdjustedPDF() {
         return;
     }
 
+    // اپ لوڈ کی گئی اصل ایکسل فائل کا نام حاصل کرنا
+    let originalName = "Excel Report";
+    const fileUploadElement = document.querySelector('input[type="file"]');
+    if (fileUploadElement && fileUploadElement.files.length > 0) {
+        originalName = fileUploadElement.files[0].name;
+    } else {
+        const fileStatusEl = document.getElementById('adj-preview-status');
+        if (fileStatusEl && fileStatusEl.innerText) {
+            // اگر نام کہیں اور محفوظ ہے تو وہاں سے لے سکتے ہیں
+        }
+    }
+
+    // فائل کے نام سے آخر والا ایکسٹینشن (.csv یا .xlsx) ہٹانا
+    let cleanFileName = originalName.replace(/\.[^/.]+$/, "");
+    
+    // فائنل نام: [برانچ کا نام] - [اصل فائل کا نام].pdf
+    const finalFileName = `${selectedBranch} - ${cleanFileName}.pdf`;
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
     
@@ -2880,23 +2898,19 @@ function downloadAdjustedPDF() {
     doc.setFontSize(9);
     doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 21);
 
-    // 1. برانچ کا نام اور فائل کا نام (مثلاً: Munara - 3. Completed house.pdf)
-    const customFileName = "3. Completed house"; 
-    const finalFileName = `${selectedBranch} - ${customFileName}.pdf`;
-
-    // 2. کالمز میں "Sr No" کا اضافہ کرنا (اگر صارف نے ہاں کیا ہو)
+    // کالمز میں "Sr No" کا اضافہ یا اخراج کرنا
     let tableColumns = [...adjFileHeaders];
     if (includeSrNo) {
         if (!tableColumns.includes('Sr No')) {
-            tableColumns.unshift('Sr No'); // فہرست کے شروع میں Sr No ایڈ کر دیں
+            tableColumns.unshift('Sr No');
         }
     } else {
         tableColumns = tableColumns.filter(h => h !== 'Sr No');
     }
 
-    // 3. ڈیٹا روز تیار کرنا (اور اگر Sr No ہو تو آٹو نمبر دینا)
+    // ڈیٹا روز تیار کرنا اور خودکار سیریل نمبر لگانا
     const tableRows = filteredData.map((row, index) => {
-        let rowData = includeSrNo ? [index + 1] : []; // خودکار سیریل نمبر (1, 2, 3...)
+        let rowData = includeSrNo ? [index + 1] : [];
         
         adjFileHeaders.forEach(header => {
             rowData.push(row[header] !== undefined ? String(row[header]) : '');
@@ -2915,10 +2929,9 @@ function downloadAdjustedPDF() {
         columnStyles: {}
     });
 
-    // فائل کو ڈائنامک نام کے ساتھ ڈاؤن لوڈ کریں
+    // ڈائنامک نام کے ساتھ پی ڈی ایف ڈاؤن لوڈ کریں
     doc.save(finalFileName);
 }
-
 /* =========================================================
    FULL USER ACCESS CONTROL
    My Links + OUTSIDE OPTIONS
