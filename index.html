@@ -2856,6 +2856,10 @@ function downloadAdjustedPDF() {
     const selectedHeader = document.getElementById('adj-column-select').value;
     const selectedBranch = document.getElementById('adj-branch-select').value;
     const orientation = document.getElementById('adj-orientation-select').value;
+    
+    // Sr No کا چیک باکس ویلیو چیک کریں (اگر آپ نے HTML میں چیک باکس بنایا ہے)
+    const includeSrNoInput = document.getElementById('include-sr-no');
+    const includeSrNo = includeSrNoInput ? includeSrNoInput.checked : true; // بائی ڈیفالٹ ٹرو رکھ سکتے ہیں
 
     if (!selectedBranch) {
         alert("براہ کرم برانچ منتخب کریں!");
@@ -2863,54 +2867,57 @@ function downloadAdjustedPDF() {
     }
 
     const filteredData = adjFileRows.filter(row => String(row[selectedHeader]) === String(selectedBranch));
-
     if (filteredData.length === 0) {
         alert("اس برانچ کا کوئی ڈیٹا نہیں ملا!");
         return;
     }
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-        orientation: orientation,
-        unit: 'mm',
-        format: 'a4'
-    });
-
+    const doc = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
+    
     doc.setFontSize(14);
     doc.text(`Branch Report: ${selectedBranch}`, 14, 15);
     doc.setFontSize(9);
     doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 21);
 
-    const tableColumns = adjFileHeaders;
-    const tableRows = filteredData.map(row => adjFileHeaders.map(header => row[header] !== undefined ? String(row[header]) : ''));
+    // 1. برانچ کا نام اور فائل کا نام (مثلاً: Munara - 3. Completed house.pdf)
+    const customFileName = "3. Completed house"; 
+    const finalFileName = `${selectedBranch} - ${customFileName}.pdf`;
+
+    // 2. کالمز میں "Sr No" کا اضافہ کرنا (اگر صارف نے ہاں کیا ہو)
+    let tableColumns = [...adjFileHeaders];
+    if (includeSrNo) {
+        if (!tableColumns.includes('Sr No')) {
+            tableColumns.unshift('Sr No'); // فہرست کے شروع میں Sr No ایڈ کر دیں
+        }
+    } else {
+        tableColumns = tableColumns.filter(h => h !== 'Sr No');
+    }
+
+    // 3. ڈیٹا روز تیار کرنا (اور اگر Sr No ہو تو آٹو نمبر دینا)
+    const tableRows = filteredData.map((row, index) => {
+        let rowData = includeSrNo ? [index + 1] : []; // خودکار سیریل نمبر (1, 2, 3...)
+        
+        adjFileHeaders.forEach(header => {
+            rowData.push(row[header] !== undefined ? String(row[header]) : '');
+        });
+        
+        return rowData;
+    });
 
     doc.autoTable({
         head: [tableColumns],
         body: tableRows,
         startY: 25,
         theme: 'grid',
-        styles: { 
-            fontSize: 6.5,       
-            cellPadding: 1.8,    
-            overflow: 'linebreak',
-            halign: 'left'
-        },
-        headStyles: { 
-            fillColor: [56, 189, 248], 
-            textColor: 255, 
-            fontStyle: 'bold',
-            halign: 'center'
-        },
-        columnStyles: {},
-        horizontalPageBreak: false, 
-        margin: { top: 25, right: 10, bottom: 15, left: 10 }
+        styles: { fontSize: 6.5, cellPadding: 1.8, overflow: 'linebreak', halign: 'left' },
+        headStyles: { fillColor: [56, 189, 248], textColor: 255, fontStyle: 'bold', halign: 'center' },
+        columnStyles: {}
     });
 
-    // 📥 Yeh line update ki gayi hai taake original Excel/CSV file ka naam use ho
-    const finalName = uploadedFileName ? `${uploadedFileName}.pdf` : `Branch_${selectedBranch}_Adjusted.pdf`;
-    doc.save(finalName);
+    // فائل کو ڈائنامک نام کے ساتھ ڈاؤن لوڈ کریں
+    doc.save(finalFileName);
 }
-
 
 /* =========================================================
    FULL USER ACCESS CONTROL
