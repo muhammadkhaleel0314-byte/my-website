@@ -2877,11 +2877,6 @@ function downloadAdjustedPDF() {
     const fileUploadElement = document.querySelector('input[type="file"]');
     if (fileUploadElement && fileUploadElement.files.length > 0) {
         originalName = fileUploadElement.files[0].name;
-    } else {
-        const fileStatusEl = document.getElementById('adj-preview-status');
-        if (fileStatusEl && fileStatusEl.innerText) {
-            // اگر نام کہیں اور محفوظ ہے تو وہاں سے لے سکتے ہیں
-        }
     }
 
     // فائل کے نام سے آخر والا ایکسٹینشن (.csv یا .xlsx) ہٹانا
@@ -2929,7 +2924,6 @@ function downloadAdjustedPDF() {
         columnStyles: {}
     });
 
-    // ڈائنامک نام کے ساتھ پی ڈی ایف ڈاؤن لوڈ کریں
     doc.save(finalFileName);
 }
 /* =========================================================
