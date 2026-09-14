@@ -3128,16 +3128,47 @@ function checkUserAccess(tabId, btnElement) {
   }
 
   function applyLinkAccessToCards(){
-    Object.keys(USER_ACCESS_OPTIONS).forEach(key=>{
-      const cards=document.querySelectorAll(`[onclick*="'${key}'"]`);
-      cards.forEach(card=>{
+    // Hide My Links that the logged-in user does NOT have access to.
+    // Only options with TRUE permission remain visible.
+    const cardAccessMap = {
+      'card-1':'pmyVerify',
+      'card-2':'bopAccount',
+      'card-3':'acagBatch',
+      'card-4':'pmyApply',
+      'card-5':'acagApply',
+      'card-6':'qrGenerator',
+      'card-7':'newService',
+      'card-8':'bopVerifyList',
+      'card-9':'apniChhat',
+      'card-10':'acmcAccount'
+    };
+
+    Object.keys(cardAccessMap).forEach(cardClass=>{
+      const key=cardAccessMap[cardClass];
+      document.querySelectorAll('.u-card.'+cardClass).forEach(card=>{
         const allowed=getUserLinkAccess(key);
-        card.style.opacity=allowed?'1':'0.55';
-        card.style.filter=allowed?'none':'grayscale(.35)';
-        const action=card.querySelector('.u-action span:first-child');
-        if(action) action.textContent=allowed?'Open Portal':'🔒 No Access';
-        card.title=allowed?'Open '+USER_ACCESS_OPTIONS[key].label:'You cannot use this option';
+        card.style.display=allowed ? 'flex' : 'none';
+        card.style.opacity='1';
+        card.style.filter='none';
+        card.title=allowed ? 'Open '+USER_ACCESS_OPTIONS[key].label : '';
       });
+    });
+
+    // Hide sidebar/tool options without permission.
+    document.querySelectorAll('.sidebar .nav-sub-btn').forEach(btn=>{
+      if(btn.id === 'user-access-nav-btn') return;
+
+      const onclick = btn.getAttribute('onclick') || '';
+      const match = onclick.match(/checkUserAccess\(['"]([^'"]+)['"]/);
+      if(!match) {
+        // Dashboard and any non-access-controlled button stay visible.
+        return;
+      }
+
+      const tabId = match[1];
+      const key = TAB_ACCESS_MAP[tabId];
+      const allowed = key ? getUserLinkAccess(key) : false;
+      btn.style.display = allowed ? 'flex' : 'none';
     });
   }
 
@@ -3256,6 +3287,12 @@ function checkUserAccess(tabId, btnElement) {
     const user=getCurrentLoggedUser();
     const adminBtn=document.getElementById('user-access-nav-btn');
     if(adminBtn)adminBtn.style.display=isAdminUser(user)?'flex':'none';
+
+    // Reset sidebar visibility before Firebase permissions arrive.
+    document.querySelectorAll('.sidebar .nav-sub-btn').forEach(btn=>{
+      if(btn.id !== 'user-access-nav-btn') btn.style.display='flex';
+    });
+
     listenCurrentUserAccess(user);
     applyLinkAccessToCards();
   }
