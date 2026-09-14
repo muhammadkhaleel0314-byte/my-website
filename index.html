@@ -1327,6 +1327,31 @@ window.pdfjsLib = pdfjsLib;
                     <input type="number" id="adj-target-pages" class="input-field" value="1" min="1" max="10" style="width: 100%; padding: 6px;">
                 </div>
             </div>
+			<!-- پیج اور سائز سیٹنگز -->
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Orientation</label>
+                <select id="adj-orientation-select" class="input-field" style="width: 100%; padding: 6px;">
+                    <option value="portrait">Portrait (سیدھا)</option>
+                    <option value="landscape" selected>Landscape (چوڑا)</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Target Pages Limit</label>
+                <input type="number" id="adj-target-pages" class="input-field" value="1" min="1" max="10" style="width: 100%; padding: 6px;">
+            </div>
+        </div>
+
+        <!-- یہاں یہ نیا آپشن پیسٹ کر دیں -->
+        <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+            <label style="color: #cbd5e1; font-size: 13px; font-weight: 600;">سیریل نمبر (Sr No):</label>
+            <select id="adj-sr-no-option" style="background: #0f172a; color: #f8fafc; border: 1px solid #475569; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">
+                <option value="yes">Yes (شامل کریں)</option>
+                <option value="no">No (نہ کریں)</option>
+            </select>
+        </div>
+
+        <button class="action-btn" onclick="downloadAdjustedPDF()" style="background: var(--btn-green); width: 100%; margin-top: 5px;">📥 Download Adjusted PDF Report</button>
 
             <button class="action-btn" onclick="downloadAdjustedPDF()" style="background: var(--btn-green); width: 100%; margin-top: 5px;">
                 📥 Download Adjusted PDF Report
@@ -2857,9 +2882,9 @@ function downloadAdjustedPDF() {
     const selectedBranch = document.getElementById('adj-branch-select').value;
     const orientation = document.getElementById('adj-orientation-select').value;
     
-    // Sr No کا چیک باکس ویلیو چیک کریں
-    const includeSrNoInput = document.getElementById('include-sr-no');
-    const includeSrNo = includeSrNoInput ? includeSrNoInput.checked : true;
+    // صارف کا منتخب کردہ Yes یا No چیک کریں
+    const srNoOptionEl = document.getElementById('adj-sr-no-option');
+    const includeSrNo = srNoOptionEl ? srNoOptionEl.value === 'yes' : true;
 
     if (!selectedBranch) {
         alert("براہ کرم برانچ منتخب کریں!");
@@ -2872,7 +2897,7 @@ function downloadAdjustedPDF() {
         return;
     }
 
-    // جو فائل آپ نے اپ لوڈ کی ہے اس کا نام اور برانچ کا نام ملا کر فائنل نام بنانا
+    // فائل کا نام: [برانچ کا نام] - [اپ لوڈ کردہ اصل فائل کا نام]
     let cleanFileName = (typeof uploadedFileName !== 'undefined' && uploadedFileName) ? uploadedFileName : "Excel Report";
     const finalFileName = `${selectedBranch} - ${cleanFileName}.pdf`;
 
@@ -2884,7 +2909,7 @@ function downloadAdjustedPDF() {
     doc.setFontSize(9);
     doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 21);
 
-    // کالمز میں "Sr No" کا اضافہ یا اخراج کرنا
+    // کالمز میں "Sr No" کا اضافہ یا اخراج (صارف کی مرضی کے مطابق)
     let tableColumns = [...adjFileHeaders];
     if (includeSrNo) {
         if (!tableColumns.includes('Sr No')) {
@@ -2894,7 +2919,7 @@ function downloadAdjustedPDF() {
         tableColumns = tableColumns.filter(h => h !== 'Sr No');
     }
 
-    // ڈیٹا روز تیار کرنا اور خودکار سیریل نمبر لگانا
+    // ڈیٹا روز تیار کرنا (Yes پر نمبر آئیں گے، No پر نہیں آئیں گے)
     const tableRows = filteredData.map((row, index) => {
         let rowData = includeSrNo ? [index + 1] : [];
         
@@ -2915,7 +2940,6 @@ function downloadAdjustedPDF() {
         columnStyles: {}
     });
 
-    // ڈائنامک نام کے ساتھ پی ڈی ایف ڈاؤن لوڈ کریں
     doc.save(finalFileName);
 }
 /* =========================================================
