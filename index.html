@@ -1097,7 +1097,7 @@ window.pdfjsLib = pdfjsLib;
 
       <!-- 11. Property Document Receiving -->
       <!-- YAHAN APNA LINK PASTE KAREN: PASTE_YOUR_LINK_HERE -->
-      <a href="#" id="propertyDocumentReceivingLink" data-access-key="propertyDocumentReceiving" onclick="return openMyLink(event,'propertyDocumentReceiving','https://script.google.com/macros/s/AKfycbwY8gcQ753n2qZffsE92iKezHYPIk6LuJqVoh_BulPou4OhSxv5RU9AMXPAzC2RzrYRjw/exec')" class="u-card card-11" style="display:none;">
+      <a href="#" onclick="return openMyLink(event,'propertyDocumentReceiving','https://script.google.com/macros/s/AKfycbwY8gcQ753n2qZffsE92iKezHYPIk6LuJqVoh_BulPou4OhSxv5RU9AMXPAzC2RzrYRjw/exec')" class="u-card card-11">
         <div>
           <div class="u-top">
             <div class="u-icon">🏠</div>
@@ -3083,6 +3083,7 @@ function checkUserAccess(tabId, btnElement) {
     bopVerifyList: {label:'Bop Verify List', icon:'🌐'},
     apniChhat:     {label:'Apni Chhat Mahfooz Chhat', icon:'✨'},
     acmcAccount:   {label:'ACMC Account', icon:'👤'},
+    propertyDocumentReceiving: {label:'Property doucoumt reciving', icon:'🏠'},
 
     // Outside My Links / Sidebar tools
     qrTab:         {label:'CNIC OCR & QR', icon:'🔳'},
@@ -3162,7 +3163,8 @@ function checkUserAccess(tabId, btnElement) {
       'card-7':'newService',
       'card-8':'bopVerifyList',
       'card-9':'apniChhat',
-      'card-10':'acmcAccount'
+      'card-10':'acmcAccount',
+      'card-11':'propertyDocumentReceiving'
     };
 
     Object.keys(cardAccessMap).forEach(cardClass=>{
@@ -5245,68 +5247,7 @@ window.addEventListener('resize', function() {
 
 </script>
 
-<script>
-/* Property Document Receiving: hide when access is not granted */
-(function () {
-  function syncPropertyDocumentReceiving() {
-    const el = document.getElementById("propertyDocumentReceivingLink");
-    if (!el) return;
 
-    let hasAccess = false;
-
-    try {
-      const keys = [
-        "propertyDocumentReceiving",
-        "property_document_receiving",
-        "Property doucoumt reciving"
-      ];
-
-      const sources = [
-        window.linkAccess,
-        window.access,
-        window.permissions,
-        window.userAccess,
-        window.allowedLinks
-      ];
-
-      for (const source of sources) {
-        if (!source) continue;
-
-        if (Array.isArray(source)) {
-          if (keys.some(k => source.includes(k))) {
-            hasAccess = true;
-            break;
-          }
-        } else if (typeof source === "object") {
-          if (keys.some(k => source[k] === true || source[k] === 1 || source[k] === "true" || source[k] === "yes")) {
-            hasAccess = true;
-            break;
-          }
-        }
-      }
-
-      /* Also support an existing access checker if the page already defines one. */
-      if (!hasAccess && typeof window.hasLinkAccess === "function") {
-        hasAccess = keys.some(k => {
-          try { return !!window.hasLinkAccess(k); } catch (e) { return false; }
-        });
-      }
-    } catch (e) {
-      hasAccess = false;
-    }
-
-    el.style.display = hasAccess ? "" : "none";
-  }
-
-  document.addEventListener("DOMContentLoaded", syncPropertyDocumentReceiving);
-  window.addEventListener("load", syncPropertyDocumentReceiving);
-
-  /* Re-check after existing page scripts finish loading/updating permissions. */
-  setTimeout(syncPropertyDocumentReceiving, 300);
-  setTimeout(syncPropertyDocumentReceiving, 1000);
-  setTimeout(syncPropertyDocumentReceiving, 2000);
-})();
-</script>
 
 </body>
 </html>
