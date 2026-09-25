@@ -1109,6 +1109,20 @@ window.pdfjsLib = pdfjsLib;
         </div>
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
+      
+      <!-- 12. KLP Data -->
+      <a href="#" onclick="return openMyLink(event,'klpData','https://script.google.com/macros/s/AKfycbzMk1U9yZ-RzxAIQWTp8aB8nwa2pG6-AZbVpwnjnq6XRXYKlGX27qf0qpY9C2w6umA/exec')" class="u-card card-12">
+        <div>
+          <div class="u-top">
+            <div class="u-icon">📊</div>
+            <div>
+              <div class="u-title">KLP Data</div>
+              <div class="u-desc">KLP Data portal.</div>
+            </div>
+          </div>
+        </div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
+      </a>
 
 		</div> <!-- unique-grid کا بند ہونا -->
 </div> <!-- unique-container کا بند ہونا -->
@@ -3084,6 +3098,7 @@ function checkUserAccess(tabId, btnElement) {
     apniChhat:     {label:'Apni Chhat Mahfooz Chhat', icon:'✨'},
     acmcAccount:   {label:'ACMC Account', icon:'👤'},
     propertyDocumentReceiving: {label:'Property doucoumt reciving', icon:'🏠'},
+    klpData:                  {label:'KLP Data', icon:'📊'},
 
     // Outside My Links / Sidebar tools
     qrTab:         {label:'CNIC OCR & QR', icon:'🔳'},
@@ -3164,7 +3179,8 @@ function checkUserAccess(tabId, btnElement) {
       'card-8':'bopVerifyList',
       'card-9':'apniChhat',
       'card-10':'acmcAccount',
-      'card-11':'propertyDocumentReceiving'
+      'card-11':'propertyDocumentReceiving',
+      'card-12':'klpData'
     };
 
     Object.keys(cardAccessMap).forEach(cardClass=>{
