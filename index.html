@@ -1111,7 +1111,7 @@ window.pdfjsLib = pdfjsLib;
       </a>
       
       <!-- 12. KLP Data -->
-      <a href="#" onclick="return openMyLink(event,'klpData','https://script.google.com/macros/s/AKfycbwS8ZHSSuX7aefumLwZVmwLYwGCgm1I038zKup6nx5h0FPDtnC-hDWzdN-nTWWF35M/exec')" class="u-card card-12">
+      <a href="#" onclick="return openKLPData(event)" class="u-card card-12">
         <div>
           <div class="u-top">
             <div class="u-icon">📊</div>
@@ -3056,6 +3056,81 @@ function checkUserAccess(tabId, btnElement) {
 ];
 
   
+  /* ==========================================
+     KLP DATA - SECURE TOKEN LINK
+     ========================================== */
+  const KLP_DATA_SECURE_URL =
+    "https://script.google.com/macros/s/AKfycbzMk1U9yZ-RzxAIQWTp8aB8nwa2pG6-AZbVpwnjnq6XRXYKlGX27qf0qpY9C2w6umA/exec";
+
+  function getKLPDeviceId() {
+    let id = localStorage.getItem("klp_data_device_id");
+
+    if (!id) {
+      if (window.crypto && crypto.randomUUID) {
+        id = "KLP-" + crypto.randomUUID();
+      } else {
+        id = "KLP-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+      }
+      localStorage.setItem("klp_data_device_id", id);
+    }
+
+    return id;
+  }
+
+  function openKLPData(event) {
+    if (event) event.preventDefault();
+    playSound();
+
+    if (!getUserLinkAccess('klpData')) {
+      alert('You cannot use this option');
+      return false;
+    }
+
+    const deviceId = getKLPDeviceId();
+    const callbackName = "klpTokenCallback_" + Date.now();
+    const script = document.createElement("script");
+
+    window[callbackName] = function(result) {
+      try { script.remove(); } catch (e) {}
+      try { delete window[callbackName]; } catch (e) {}
+
+      if (!result || result.success !== true || !result.token) {
+        alert(
+          (result && result.message)
+            ? result.message
+            : "Unable to create secure KLP Data link."
+        );
+        return;
+      }
+
+      const secureUrl =
+        KLP_DATA_SECURE_URL +
+        "?token=" + encodeURIComponent(result.token);
+
+      const w = window.open(secureUrl, "_blank");
+
+      if (!w) {
+        alert("Please allow pop-ups for this website.");
+      }
+    };
+
+    script.onerror = function() {
+      try { script.remove(); } catch (e) {}
+      try { delete window[callbackName]; } catch (e) {}
+      alert("Unable to connect with KLP Data portal.");
+    };
+
+    script.src =
+      KLP_DATA_SECURE_URL +
+      "?action=createToken" +
+      "&deviceId=" + encodeURIComponent(deviceId) +
+      "&callback=" + encodeURIComponent(callbackName);
+
+    document.head.appendChild(script);
+
+    return false;
+  }
+
   /* ==========================================
      ACAG BATCH - SECURE ONE-TIME LINK
      ========================================== */
