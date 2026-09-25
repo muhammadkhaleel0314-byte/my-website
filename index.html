@@ -3060,7 +3060,7 @@ function checkUserAccess(tabId, btnElement) {
      KLP DATA - SECURE TOKEN LINK
      ========================================== */
   const KLP_DATA_SECURE_URL =
-    "https://script.google.com/macros/s/AKfycbxm06oPGrLIX8L-XFkyf07QzyV8S2gWzDBwrnYbLv9BroOdaceqc1lpW5_ILyEcbes/exec";
+    "https://script.google.com/macros/s/AKfycbxgRo5PAuEQy0GExRnHRgZvTedNXGLWP8kV6QdoKAVZ_bVSTZQqsrce7KvzjqI9Tlk/exec";
 
   function getKLPDeviceId() {
     let id = localStorage.getItem("klp_data_device_id");
@@ -3077,6 +3077,12 @@ function checkUserAccess(tabId, btnElement) {
     return id;
   }
 
+  /*
+   * KLP DATA - MOBILE SAFE OPEN
+   * JSONP was removed because some mobile browsers block the
+   * dynamic script request to Google Apps Script.
+   * This opens the createToken endpoint as a normal user action.
+   */
   function openKLPData(event) {
     if (event) event.preventDefault();
     playSound();
@@ -3087,51 +3093,28 @@ function checkUserAccess(tabId, btnElement) {
     }
 
     const deviceId = getKLPDeviceId();
-    const callbackName = "klpTokenCallback_" + Date.now();
-    const script = document.createElement("script");
 
-    window[callbackName] = function(result) {
-      try { script.remove(); } catch (e) {}
-      try { delete window[callbackName]; } catch (e) {}
-
-      if (!result || result.success !== true || !result.token) {
-        alert(
-          (result && result.message)
-            ? result.message
-            : "Unable to create secure KLP Data link."
-        );
-        return;
-      }
-
-      const secureUrl =
-        KLP_DATA_SECURE_URL +
-        "?token=" + encodeURIComponent(result.token);
-
-      const w = window.open(secureUrl, "_blank");
-
-      if (!w) {
-        alert("Please allow pop-ups for this website.");
-      }
-    };
-
-    script.onerror = function() {
-      try { script.remove(); } catch (e) {}
-      try { delete window[callbackName]; } catch (e) {}
-      alert("Unable to connect with KLP Data portal.");
-    };
-
-    script.src =
+    const tokenUrl =
       KLP_DATA_SECURE_URL +
       "?action=createToken" +
-      "&deviceId=" + encodeURIComponent(deviceId) +
-      "&callback=" + encodeURIComponent(callbackName);
+      "&deviceId=" + encodeURIComponent(deviceId);
 
-    document.head.appendChild(script);
+    const newWindow = window.open(tokenUrl, "_blank");
+
+    if (!newWindow) {
+      // Mobile/browser popup fallback
+      window.location.href = tokenUrl;
+    } else {
+      try {
+        newWindow.focus();
+      } catch (e) {}
+    }
 
     return false;
   }
 
-  /* ==========================================
+
+/* ==========================================
      ACAG BATCH - SECURE ONE-TIME LINK
      ========================================== */
   const ACAG_BATCH_SECURE_URL =
