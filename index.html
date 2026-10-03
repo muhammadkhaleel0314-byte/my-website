@@ -942,11 +942,17 @@ window.pdfjsLib = pdfjsLib;
       .card-11 .u-icon { background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.25); }
       .card-11 .u-action { color: #fbbf24; }
 
-      /* --- 13. New My Link --- */
-      .card-13 { background: linear-gradient(135deg, #102a43 0%, #0f172a 100%); }
-      .card-13:hover { border-color: #60a5fa; box-shadow: 0 10px 25px -5px rgba(96, 165, 250, 0.25); }
-      .card-13 .u-icon { background: rgba(96, 165, 250, 0.12); border: 1px solid rgba(96, 165, 250, 0.25); }
-      .card-13 .u-action { color: #60a5fa; }
+      /* --- 12. KLP Data --- */
+      .card-12 { background: linear-gradient(135deg, #12372a 0%, #0f172a 100%); }
+      .card-12:hover { border-color: #34d399; box-shadow: 0 10px 25px -5px rgba(52, 211, 153, 0.28); }
+      .card-12 .u-icon { background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.28); }
+      .card-12 .u-action { color: #34d399; }
+
+      /* --- 13. Name Status Report --- */
+      .card-13 { background: linear-gradient(135deg, #312e81 0%, #0f172a 100%); }
+      .card-13:hover { border-color: #a78bfa; box-shadow: 0 10px 25px -5px rgba(167, 139, 250, 0.30); }
+      .card-13 .u-icon { background: rgba(167, 139, 250, 0.14); border: 1px solid rgba(167, 139, 250, 0.30); }
+      .card-13 .u-action { color: #c4b5fd; }
 
       .u-card:hover .u-action span:last-child { transform: translateX(4px); transition: transform 0.2s ease; }
       #user-access-tab input[type="checkbox"]{width:18px;height:18px;accent-color:#38bdf8;cursor:pointer;}
@@ -1117,7 +1123,7 @@ window.pdfjsLib = pdfjsLib;
       </a>
       
       <!-- 12. KLP Data -->
-      <a href="https://script.google.com/macros/s/AKfycby9tAFcUUdvWIVebyx2-RmThEXdyS-35oo3pY30mkiDJJ_pbq0O0TaMscnw3dtmew4FeA/exec" onclick="return openKLPData(event)" class="u-card card-12">
+      <a href="#" onclick="return openKLPData(event)" class="u-card card-12">
         <div>
           <div class="u-top">
             <div class="u-icon">📊</div>
@@ -1130,14 +1136,14 @@ window.pdfjsLib = pdfjsLib;
         <div class="u-action"><span>Open Portal</span> <span>→</span></div>
       </a>
 
-      <!-- 13. New My Link -->
-      <a href="https://script.google.com/macros/s/AKfycby9tAFcUUdvWIVebyx2-RmThEXdyS-35oo3pY30mkiDJJ_pbq0O0TaMscnw3dtmew4FeA/exec" onclick="return newMyLink(event)" class="u-card card-13">
+      <!-- 13. Name Status Report -->
+      <a href="#" onclick="return openMyLink(event,'newMyLink','https://script.google.com/macros/s/AKfycby9tAFcUUdvWIVebyx2-RmThEXdyS-35oo3pY30mkiDJ_pbq0O0TaMscnw3dtmew4FeA/exec')" class="u-card card-13">
         <div>
           <div class="u-top">
-            <div class="u-icon">🔗</div>
+            <div class="u-icon">📋</div>
             <div>
-              <div class="u-title">New My Link</div>
-              <div class="u-desc">Secure portal access.</div>
+              <div class="u-title">Name Status Report</div>
+              <div class="u-desc">Name Status Report portal.</div>
             </div>
           </div>
         </div>
@@ -3233,15 +3239,20 @@ function checkUserAccess(tabId, btnElement) {
   }
 
   function openMyLink(event,linkKey,url){
-    if(event) event.preventDefault();
     playSound();
     if(!getUserLinkAccess(linkKey)){
+      if(event) event.preventDefault();
       alert('You cannot use this option');
       return false;
     }
-    const w=window.open(url,'_blank');
-    if(!w) alert('Please allow pop-ups for this website.');
-    return false;
+    // Open the portal in a NEW TAB using the browser's normal link behavior.
+    // This is more reliable than relying only on window.open().
+    if(event && event.currentTarget){
+      event.currentTarget.href = url;
+      event.currentTarget.target = '_blank';
+      event.currentTarget.rel = 'noopener noreferrer';
+    }
+    return true;
   }
 
   function applyLinkAccessToCards(){
