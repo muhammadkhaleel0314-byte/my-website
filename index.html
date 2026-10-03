@@ -942,6 +942,12 @@ window.pdfjsLib = pdfjsLib;
       .card-11 .u-icon { background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.25); }
       .card-11 .u-action { color: #fbbf24; }
 
+      /* --- 13. New My Link --- */
+      .card-13 { background: linear-gradient(135deg, #102a43 0%, #0f172a 100%); }
+      .card-13:hover { border-color: #60a5fa; box-shadow: 0 10px 25px -5px rgba(96, 165, 250, 0.25); }
+      .card-13 .u-icon { background: rgba(96, 165, 250, 0.12); border: 1px solid rgba(96, 165, 250, 0.25); }
+      .card-13 .u-action { color: #60a5fa; }
+
       .u-card:hover .u-action span:last-child { transform: translateX(4px); transition: transform 0.2s ease; }
       #user-access-tab input[type="checkbox"]{width:18px;height:18px;accent-color:#38bdf8;cursor:pointer;}
       #user-access-tab button{cursor:pointer;}
@@ -1118,6 +1124,20 @@ window.pdfjsLib = pdfjsLib;
             <div>
               <div class="u-title">KLP Data</div>
               <div class="u-desc">KLP Data portal.</div>
+            </div>
+          </div>
+        </div>
+        <div class="u-action"><span>Open Portal</span> <span>→</span></div>
+      </a>
+
+      <!-- 13. New My Link -->
+      <a href="#" onclick="return openMyLink(event,'newMyLink','https://script.google.com/macros/s/AKfycby9tAFcUUdvWIVebyx2-RmThEXdyS-35oo3pY30mkiDJ_pbq0O0TaMscnw3dtmew4FeA/exec')" class="u-card card-13">
+        <div>
+          <div class="u-top">
+            <div class="u-icon">🔗</div>
+            <div>
+              <div class="u-title">New My Link</div>
+              <div class="u-desc">Secure portal access.</div>
             </div>
           </div>
         </div>
@@ -3157,6 +3177,7 @@ function checkUserAccess(tabId, btnElement) {
     acmcAccount:   {label:'ACMC Account', icon:'👤'},
     propertyDocumentReceiving: {label:'Property doucoumt reciving', icon:'🏠'},
     klpData:                  {label:'KLP Data', icon:'📊'},
+    newMyLink:                 {label:'New My Link', icon:'🔗'},
 
     // Outside My Links / Sidebar tools
     qrTab:         {label:'CNIC OCR & QR', icon:'🔳'},
@@ -3238,7 +3259,8 @@ function checkUserAccess(tabId, btnElement) {
       'card-9':'apniChhat',
       'card-10':'acmcAccount',
       'card-11':'propertyDocumentReceiving',
-      'card-12':'klpData'
+      'card-12':'klpData',
+      'card-13':'newMyLink'
     };
 
     Object.keys(cardAccessMap).forEach(cardClass=>{
