@@ -2968,15 +2968,9 @@ function downloadAdjustedPDF() {
     doc.setFontSize(9);
     doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 21);
 
-    // کالمز میں "Sr No" کا اضافہ یا اخراج (صارف کی مرضی کے مطابق)
-    let tableColumns = [...adjFileHeaders];
-    if (includeSrNo) {
-        if (!tableColumns.includes('Sr No')) {
-            tableColumns.unshift('Sr No');
-        }
-    } else {
-        tableColumns = tableColumns.filter(h => h !== 'Sr No');
-    }
+    // Keep PDF headings and row values aligned, even if the uploaded Excel already has a Sr No column.
+    const sourceHeaders = adjFileHeaders.filter(h => String(h).trim().toLowerCase() !== 'sr no' && String(h).trim().toLowerCase() !== 'sr. no.');
+    const tableColumns = includeSrNo ? ['Sr No', ...sourceHeaders] : [...sourceHeaders];
 
     // Format date columns in this PDF only as 06-June-26.
     function formatAdjPdfDate(value) {
@@ -3015,8 +3009,8 @@ function downloadAdjustedPDF() {
     }
 
     const tableRows = filteredData.map((row, index) => {
-        let rowData = includeSrNo ? [index + 1] : [];
-        adjFileHeaders.forEach(header => {
+        const rowData = includeSrNo ? [index + 1] : [];
+        sourceHeaders.forEach(header => {
             const value = row[header];
             const isDateColumn = /date|dob|dated|approval|disbursement/i.test(String(header));
             rowData.push(isDateColumn ? formatAdjPdfDate(value) : (value !== undefined && value !== null ? String(value) : ''));
