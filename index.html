@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Website</title>
-	<<script>
+	<script>
   // 5 ghante = 18000000 milliseconds
   setTimeout(function() {
       location.reload();
@@ -606,6 +606,7 @@ window.pdfjsLib = pdfjsLib;
 	     <button class="nav-sub-btn" onclick="checkUserAccess('loan-disbursement-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Loan Disbursement Tab</button>
 		<button class="nav-sub-btn" onclick="checkUserAccess('recovery-range-tab', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Recovery Range Wise</button>
 		<button class="nav-sub-btn" onclick="checkUserAccess('excel-pdf-adj-tab', this)"><i class="fa-solid fa-file-pdf"></i> Excel to PDF Adjustment</button>
+        <button class="nav-sub-btn" onclick="checkUserAccess('second-tranch-detail-tab', this)"><i class="fa-solid fa-money-check-dollar"></i> 2nd Tranch Detail</button>
 			<button class="nav-sub-btn" onclick="checkUserAccess('nano-tab', this)"><i class="fa-solid fa-chart-line"></i> Nano Report</button>
 			<button class="nav-sub-btn" onclick="checkUserAccess('telehealth-tab', this)"><i class="fa-solid fa-chart-line"></i> Telehealth Report</button>
 			<button class="nav-sub-btn" onclick="checkUserAccess('mdp-tab', this)"><i class="fa-solid fa-table-columns"></i> MDP Report</button>
@@ -1109,7 +1110,7 @@ window.pdfjsLib = pdfjsLib;
 
       <!-- 11. Property Document Receiving -->
       <!-- YAHAN APNA LINK PASTE KAREN: PASTE_YOUR_LINK_HERE -->
-      <a href="#" onclick="return openMyLink(event,'propertyDocumentReceiving','https://script.google.com/macros/s/AKfycbxP6zEujfslMBphCYzDagCUdeDUkZVPtXPYUXYh4sPA8dFkGukxEkDkQB-cMhFyx-TnxQ/exec')" class="u-card card-11">
+      <a href="#" onclick="return openMyLink(event,'propertyDocumentReceiving','https://script.google.com/macros/s/AKfycbyvW43zUxzvwaLdSyF_Cwo5L5RanCq4gJDVA-I7W7Dfo4inIjxtXSQQ6jFn_kzqHtvkhQ/exec')" class="u-card card-11">
         <div>
           <div class="u-top">
             <div class="u-icon">🏠</div>
@@ -1326,6 +1327,28 @@ window.pdfjsLib = pdfjsLib;
         </div>
     </div>
 </div>
+
+<style>@keyframes secondTranchSpin { to { transform: rotate(360deg); } }</style>
+
+<!-- 2nd Tranch Detail Tab -->
+<div id="second-tranch-detail-tab" class="tab-content">
+  <div class="card" style="margin:0 auto;width:100%;text-align:left;">
+    <h3 style="text-align:center;">💳 2nd Tranch Detail</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;text-align:center;">
+      Upload one CSV file. Tranch 1 records will be checked against Tranch 2 records in the same file and Remarks will be generated.
+    </p>
+    <div style="margin-bottom:15px;">
+      <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:5px;">Upload CSV File</label>
+      <input type="file" id="second-tranch-file" accept=".csv,text/csv" onchange="secondTranchFileSelected(event)" style="font-size:13px;color:#fff;width:100%;padding:8px;background:rgba(15,23,42,.6);border:1px solid #334155;border-radius:8px;">
+      <div id="second-tranch-file-name" style="font-size:12px;margin-top:7px;color:var(--text-muted);">No file selected</div>
+      <button type="button" id="second-tranch-process" class="action-btn" onclick="processSecondTranchFile()" style="background:var(--primary);margin-top:10px;">Process Selected CSV</button>
+    </div>
+    <div id="second-tranch-status" role="status" aria-live="polite" style="font-size:13px;margin:12px 0;color:var(--text-muted);"></div>
+    <div id="second-tranch-results" style="max-height:420px;overflow:auto;overscroll-behavior:contain;border:1px solid #475569;border-radius:8px;margin-top:12px;display:none;"></div>
+    <button id="second-tranch-download" class="action-btn" onclick="downloadSecondTranchExcel()" style="display:none;background:var(--primary);margin-top:15px;">📥 Download Excel</button>
+  </div>
+</div>
+
 <!-- Excel to PDF Adjustment Tab -->
 <div id="excel-pdf-adj-tab" class="tab-content">
     <div class="card" style="margin: 0 auto; width: 100%; text-align: left;">
@@ -3221,6 +3244,7 @@ function checkUserAccess(tabId, btnElement) {
     loanDisbursement:{label:'Loan Disbursement PDF', icon:'💰'},
     recoveryRange: {label:'Recovery Range Wise', icon:'📈'},
     excelPdf:      {label:'Excel to PDF Adjustment', icon:'🧾'},
+    secondTranchDetail: {label:'2nd Tranch Detail', icon:'💳'},
     nano:          {label:'Nano Report', icon:'📊'},
     telehealth:    {label:'Telehealth Report', icon:'🩺'},
     mdp:           {label:'MDP Report', icon:'📋'},
@@ -3236,6 +3260,7 @@ function checkUserAccess(tabId, btnElement) {
     'loan-disbursement-tab':'loanDisbursement',
     'recovery-range-tab':'recoveryRange',
     'excel-pdf-adj-tab':'excelPdf',
+    'second-tranch-detail-tab':'secondTranchDetail',
     'nano-tab':'nano',
     'telehealth-tab':'telehealth',
     'mdp-tab':'mdp',
@@ -5381,9 +5406,267 @@ window.addEventListener('resize', function() {
   }
 });
 
+
+/* =========================
+   2nd Tranch Detail
+   ========================= */
+let secondTranchOutputRows = [];
+let secondTranchSelectedFile = null;
+let secondTranchIsProcessing = false;
+const SECOND_TRANCH_HEADERS = [
+  'sanction_no', 'branch_id', 'member_cnic', 'member_name',
+  'project_id', 'date_disbursed', 'cheque_no', 'tranch_no', 'Remarks'
+];
+
+function secondTranchFileSelected(event) {
+  if (event) event.__secondTranchHandled = true;
+  const input = document.getElementById('second-tranch-file');
+  const file = (event && event.target && event.target.files && event.target.files[0]) ||
+               (input && input.files && input.files[0]) || null;
+  const nameBox = document.getElementById('second-tranch-file-name');
+  const status = document.getElementById('second-tranch-status');
+  if (!file) {
+    if (nameBox) nameBox.textContent = 'No file selected';
+    if (status) status.innerHTML = '<div style="padding:10px;border:1px solid #f59e0b;border-radius:8px;background:rgba(245,158,11,.10);">File select nahi hui. Upload button par dobara click karke CSV choose karein.</div>';
+    return;
+  }
+  // Save the File object itself. Some mobile file pickers may clear input.files after a UI change.
+  secondTranchSelectedFile = file;
+  if (nameBox) nameBox.textContent = 'Selected file: ' + file.name + ' (' + Math.ceil(file.size / 1024) + ' KB)';
+  if (status) status.innerHTML = '<div style="padding:10px;border:1px solid #38bdf8;border-radius:8px;background:rgba(56,189,248,.10);">CSV select ho gayi. Processing abhi shuru ho rahi hai...</div>';
+  // Start automatically as soon as a file is selected.
+  processSecondTranchFile(file);
+}
+
+function setSecondTranchProcessing(message) {
+  secondTranchIsProcessing = true;
+  const status = document.getElementById('second-tranch-status');
+  const processBtn = document.getElementById('second-tranch-process');
+  if (processBtn) {
+    processBtn.disabled = true;
+    processBtn.style.opacity = '0.65';
+    processBtn.textContent = 'Processing...';
+  }
+  if (status) status.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #3b82f6;border-radius:8px;background:rgba(59,130,246,.10);">' +
+      '<span aria-hidden="true" style="display:inline-block;width:22px;height:22px;flex:0 0 22px;border:3px solid rgba(148,163,184,.35);border-top-color:#3b82f6;border-radius:50%;animation:secondTranchSpin .75s linear infinite;"></span>' +
+      '<span><strong style="display:block;color:var(--text-color,#fff);">Processing is in progress...</strong><span id="second-tranch-progress-text">' + escapeSecondTranchHTML(message) + '</span></span>' +
+    '</div>';
+}
+
+function setSecondTranchFinished(message, isError) {
+  secondTranchIsProcessing = false;
+  const status = document.getElementById('second-tranch-status');
+  const processBtn = document.getElementById('second-tranch-process');
+  if (processBtn) {
+    processBtn.disabled = false;
+    processBtn.style.opacity = '1';
+    processBtn.textContent = 'Process Selected CSV';
+  }
+  if (status) {
+    status.innerHTML = '<div style="padding:10px 12px;border:1px solid ' + (isError ? '#ef4444' : '#22c55e') + ';border-radius:8px;background:' + (isError ? 'rgba(239,68,68,.10)' : 'rgba(34,197,94,.10)') + ';">' +
+      '<strong>' + (isError ? 'Processing failed' : 'Processing finished') + '</strong><br>' + escapeSecondTranchHTML(message) + '</div>';
+  }
+}
+
+function processSecondTranchFile(fileOverride) {
+  const input = document.getElementById('second-tranch-file');
+  const file = fileOverride || secondTranchSelectedFile || (input && input.files ? input.files[0] : null);
+  const status = document.getElementById('second-tranch-status');
+  const results = document.getElementById('second-tranch-results');
+  const downloadBtn = document.getElementById('second-tranch-download');
+  secondTranchOutputRows = [];
+  results.innerHTML = '';
+  results.style.display = 'none';
+  downloadBtn.style.display = 'none';
+  if (!file) {
+    const nameBox = document.getElementById('second-tranch-file-name');
+    if (nameBox) nameBox.textContent = 'No file selected';
+    if (status) status.textContent = 'CSV file select nahi hui. Dobara file choose karein.';
+    return;
+  }
+  const nameBox = document.getElementById('second-tranch-file-name');
+  if (nameBox) nameBox.textContent = 'Selected file: ' + file.name;
+  if (!/\.csv$/i.test(file.name)) {
+    if (status) status.textContent = 'Please upload a CSV file.';
+    return;
+  }
+  if (typeof XLSX === 'undefined') {
+    setSecondTranchFinished('CSV reader library load nahi hui. Internet on karein, page refresh karein, phir dobara CSV select karein.', true);
+    return;
+  }
+
+  if (secondTranchIsProcessing) return;
+  setSecondTranchProcessing('CSV file read ki ja rahi hai...');
+  // Let the browser paint the spinner before reading/parsing a potentially large CSV.
+  setTimeout(function() {
+    if (typeof FileReader === 'undefined') {
+      setSecondTranchFinished('Is browser mein file reader support nahi ho raha. Chrome ko update karke dobara try karein.', true);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const progressText = document.getElementById('second-tranch-progress-text');
+      if (progressText) progressText.textContent = 'File read ho gayi. Ab records check aur filter ho rahe hain...';
+      // Yield once more so the user can see the current processing message.
+      setTimeout(function() {
+        try {
+          const workbook = XLSX.read(evt.target.result, { type: 'string', raw: false, cellDates: true });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+          if (!rawRows.length) {
+            setSecondTranchFinished('CSV file mein data nahi mila.', true);
+            return;
+          }
+
+          const normalizeHeader = key => String(key).trim().toLowerCase()
+            .replace(/[\s\-]+/g, '_').replace(/[^a-z0-9_]/g, '').replace(/^_+|_+$/g, '');
+          const norm = v => String(v == null ? '' : v).trim().toLowerCase();
+          const sanctionKey = v => norm(v).replace(/\s+/g, '');
+          const chequeDigits = v => String(v == null ? '' : v).trim().replace(/\D/g, '');
+          // Format Remarks dates as 10-JUNE-2026. Handles common CSV date formats.
+          const formatRemarksDate = value => {
+            const raw = String(value == null ? '' : value).trim();
+            if (!raw) return '';
+            let d = null;
+            let m = raw.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T].*)?$/);
+            if (m) d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            if (!d) {
+              m = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})(?:[ T].*)?$/);
+              if (m) {
+                const a = Number(m[1]), b = Number(m[2]), y = Number(m[3]);
+                // Prefer DD-MM-YYYY; if first number cannot be a day, interpret as MM-DD-YYYY.
+                d = a > 12 ? new Date(y, b - 1, a) : (b > 12 ? new Date(y, a - 1, b) : new Date(y, b - 1, a));
+              }
+            }
+            if (!d && !isNaN(Date.parse(raw))) d = new Date(raw);
+            if (!d || isNaN(d.getTime())) return raw;
+            const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+            return String(d.getDate()).padStart(2, '0') + '-' + months[d.getMonth()] + '-' + d.getFullYear();
+          };
+
+          const rows = rawRows.map(original => {
+            const row = {};
+            Object.keys(original).forEach(k => { row[normalizeHeader(k)] = original[k]; });
+            if (!('tranch_no' in row) && 'tranch' in row) row.tranch_no = row.tranch;
+            if (!('date_disbursed' in row) && 'date_disburse' in row) row.date_disbursed = row.date_disburse;
+            if (!('sanction_no' in row) && 'sanction_number' in row) row.sanction_no = row.sanction_number;
+            if (!('member_cnic' in row) && 'applicant_cnic' in row) row.member_cnic = row.applicant_cnic;
+            if (!('member_name' in row) && 'name' in row) row.member_name = row.name;
+            if (!('project_id' in row) && 'project' in row) row.project_id = row.project;
+            if (!('cheque_no' in row) && 'cheque_number' in row) row.cheque_no = row.cheque_number;
+            return row;
+          });
+
+          const required = ['sanction_no', 'branch_id', 'member_cnic', 'member_name', 'project_id', 'date_disbursed', 'cheque_no', 'tranch_no'];
+          const missing = required.filter(k => !rows.some(r => Object.prototype.hasOwnProperty.call(r, k)));
+          if (missing.length) {
+            setSecondTranchFinished('Required columns missing: ' + missing.join(', '), true);
+            return;
+          }
+
+          const isValidSanction = value => {
+            const raw = String(value == null ? '' : value).trim();
+            return !!raw && !raw.includes(',') && !raw.includes(';');
+          };
+          const tranche2BySanction = new Map();
+          rows.forEach(r => {
+            if (norm(r.tranch_no) === '2' && isValidSanction(r.sanction_no)) {
+              const key = sanctionKey(r.sanction_no);
+              if (key) {
+                if (!tranche2BySanction.has(key)) tranche2BySanction.set(key, []);
+                tranche2BySanction.get(key).push(r);
+              }
+            }
+          });
+
+          const output = [];
+          rows.forEach(r => {
+            const tranche = norm(r.tranch_no);
+            const chequeRaw = String(r.cheque_no == null ? '' : r.cheque_no).trim();
+            const cheque = chequeDigits(chequeRaw);
+            let remarks = '';
+            if (tranche === '1' && cheque === '1234') return;
+            if (tranche === '2' && cheque === '1234') {
+              remarks = 'Fund Transfer Pending';
+            } else if (tranche === '1' && cheque.length > 4) {
+              const key = isValidSanction(r.sanction_no) ? sanctionKey(r.sanction_no) : '';
+              const matches = key ? (tranche2BySanction.get(key) || []) : [];
+              if (!matches.length) {
+                remarks = '2nd Tranch Fund Request Pending';
+              } else {
+                const matchingDate = matches.find(t => String(t.date_disbursed == null ? '' : t.date_disbursed).trim() !== '');
+                remarks = matchingDate ? (formatRemarksDate(matchingDate.date_disbursed) || 'Fund Transfer') : 'Fund Transfer';
+              }
+            } else if ((tranche === '1' || tranche === '2') && cheque.length === 4) {
+              remarks = 'Fund Transfer Pending';
+            } else {
+              return;
+            }
+            const out = {};
+            SECOND_TRANCH_HEADERS.forEach(header => {
+              out[header] = header === 'Remarks' ? remarks : (r[normalizeHeader(header)] == null ? '' : r[normalizeHeader(header)]);
+            });
+            output.push(out);
+          });
+
+          secondTranchOutputRows = output;
+          if (!output.length) {
+            setSecondTranchFinished('Koi matching record nahi mila. File mein ' + rows.length + ' rows check ki gayin.', false);
+            return;
+          }
+
+          let html = '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>' +
+            SECOND_TRANCH_HEADERS.map(h => '<th style="position:sticky;top:0;z-index:2;padding:8px;border:1px solid #475569;background:#1e3a5f;text-align:left;white-space:nowrap;">' + escapeSecondTranchHTML(h) + '</th>').join('') +
+            '</tr></thead><tbody>';
+          output.forEach(row => {
+            html += '<tr>' + SECOND_TRANCH_HEADERS.map(h => '<td style="padding:7px;border:1px solid #475569;white-space:nowrap;">' + escapeSecondTranchHTML(row[h] == null ? '' : row[h]) + '</td>').join('') + '</tr>';
+          });
+          html += '</tbody></table>';
+          results.innerHTML = html;
+          results.style.display = 'block';
+          downloadBtn.style.display = 'inline-block';
+          setSecondTranchFinished('Completed! Total CSV rows checked: ' + rows.length + '. Matching records found: ' + output.length + '.', false);
+        } catch (err) {
+          console.error(err);
+          setSecondTranchFinished('CSV process nahi ho saki: ' + (err && err.message ? err.message : err), true);
+        }
+      }, 60);
+    };
+    reader.onerror = function() { setSecondTranchFinished('File read nahi ho saki. Dobara try karein.', true); };
+    reader.readAsText(file, 'UTF-8');
+  }, 60);
+}
+
+function escapeSecondTranchHTML(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function downloadSecondTranchExcel() {
+  if (!secondTranchOutputRows.length) {
+    alert('Pehle CSV upload karke result generate karein.');
+    return;
+  }
+  const worksheet = XLSX.utils.json_to_sheet(secondTranchOutputRows, { header: SECOND_TRANCH_HEADERS });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '2nd Tranch Detail');
+  XLSX.writeFile(workbook, '2nd_Tranch_Detail.xlsx');
+}
+
+// Extra reliable binding for mobile Chrome: keep the selected File object and auto-start processing.
+(function bindSecondTranchUpload() {
+  function bind() {
+    const input = document.getElementById('second-tranch-file');
+    if (!input || input.dataset.secondTranchBound === '1') return;
+    input.dataset.secondTranchBound = '1';
+    input.addEventListener('change', function(event) {
+      // Inline onchange also calls this function; this listener is only a fallback if inline handlers fail.
+      if (event.__secondTranchHandled) return;
+      event.__secondTranchHandled = true;
+      secondTranchFileSelected(event);
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
 </script>
-
-
-
-</body>
-</html>
