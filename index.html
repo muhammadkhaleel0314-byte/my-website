@@ -1462,6 +1462,15 @@ window.pdfjsLib = pdfjsLib;
 <button class="action-btn" style="background:#ec4899;width:auto;padding:10px 15px;margin-top:0;" onclick="downloadNanoImage('jpg')">📷 Download JPEG</button>
 </div>
 
+<div style="display:flex;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap;margin:0 0 15px;padding:10px;background:rgba(15,23,42,.65);border:1px solid #475569;border-radius:8px;">
+<label style="display:flex;align-items:center;gap:7px;color:#fff;font-size:13px;font-weight:bold;cursor:pointer;">
+<input type="checkbox" id="nanoShowCloseLoan" checked onchange="toggleNanoReportColumn('close',this.checked)" style="width:17px;height:17px;"> Show Loan Close Column
+</label>
+<label style="display:flex;align-items:center;gap:7px;color:#fff;font-size:13px;font-weight:bold;cursor:pointer;">
+<input type="checkbox" id="nanoShowActive" checked onchange="toggleNanoReportColumn('active',this.checked)" style="width:17px;height:17px;"> Show Active Column
+</label>
+</div>
+
 <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;">
 <select id="nanoResetColumn" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:9px;border-radius:5px;">
 <option value="">Select Column to Reset</option>
@@ -1485,8 +1494,8 @@ window.pdfjsLib = pdfjsLib;
 <th style="padding:10px;border:1px solid #475569;">Sr #</th>
 <th style="padding:10px;border:1px solid #475569;text-align:left;">Staff / Role</th>
 <th style="padding:10px;border:1px solid #475569;text-align:left;">Branch Name</th>
-<th style="padding:10px;border:1px solid #475569;">Close Loan<br><span style="font-size:10px;">Today | Total</span></th>
-<th style="padding:10px;border:1px solid #475569;">Total Active<br><span style="font-size:10px;">Today | Total</span></th>
+<th class="nano-col-close" style="padding:10px;border:1px solid #475569;">Close Loan<br><span style="font-size:10px;">Today | Total</span></th>
+<th class="nano-col-active" style="padding:10px;border:1px solid #475569;">Total Active<br><span style="font-size:10px;">Today | Total</span></th>
 <th style="padding:10px;border:1px solid #475569;">Target<br><span style="font-size:10px;">Today | Total</span></th>
 <th style="padding:10px;border:1px solid #475569;">Achievement<br><span style="font-size:10px;">Today | Total</span></th>
 <th style="padding:10px;border:1px solid #475569;font-size:16px;">Difference Today</th>
@@ -1497,8 +1506,8 @@ window.pdfjsLib = pdfjsLib;
 <tfoot style="font-weight:bold;background:#1e293b;color:#38bdf8;font-size:13px;">
 <tr>
 <td colspan="3" style="padding:12px;border:1px solid #475569;text-align:right;">OVERALL GRAND TOTAL:</td>
-<td id="nanoSumCloseLoan" style="padding:12px;border:1px solid #475569;">0</td>
-<td id="nanoSumTotalActive" style="padding:12px;border:1px solid #475569;">0</td>
+<td class="nano-col-close" id="nanoSumCloseLoan" style="padding:12px;border:1px solid #475569;">0</td>
+<td class="nano-col-active" id="nanoSumTotalActive" style="padding:12px;border:1px solid #475569;">0</td>
 <td id="nanoSumTotalTarget" style="padding:12px;border:1px solid #475569;">0</td>
 <td id="nanoSumTotalAchievement" style="padding:12px;border:1px solid #475569;">0</td>
 <td id="nanoSumDiffToday" style="padding:12px;border:1px solid #475569;font-size:16px;">0</td>
@@ -3945,14 +3954,14 @@ function renderReport(config){
             calcReport(x);
 
             branchCloseLoan+=x.totalCloseLoan;
-            ba+=x.totalActive;
+            ba=config.isNano?Math.max(ba,x.totalActive):ba+x.totalActive;
             bt+=x.totalTarget;
             bach+=x.achievement;
             bd+=x.diffToday;
             btd+=x.totalDiff;
 
             grandCloseLoan+=x.totalCloseLoan;
-            grandActive+=x.totalActive;
+            if(!config.isNano)grandActive+=x.totalActive;
             grandTarget+=x.totalTarget;
             grandAchievement+=x.achievement;
             grandDiffToday+=x.diffToday;
@@ -3979,13 +3988,13 @@ onchange="${config.prefix}SaveText('${reportEscA(key)}')"
 style="width:130px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;padding:0 8px;border-radius:4px;">
 </td>
 
-${config.isNano ? `<td style="padding:7px;border:1px solid #334155;min-width:145px;">
+${config.isNano ? `<td class="nano-col-close" style="padding:7px;border:1px solid #334155;min-width:145px;">
 <div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
 <input type="number" id="nanoCloseLoan_${reportEscA(key)}" value="${x.todayCloseLoan}" oninput="nanoCloseLoanChanged('${reportEscA(key)}')" style="width:65px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;">
 <div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="nanoTotalCloseLoanDisp_${reportEscA(key)}">${x.totalCloseLoan}</span></div>
 </td>` : ''}
 
-<td style="padding:7px;border:1px solid #334155;min-width:155px;">
+<td class="${config.isNano ? 'nano-col-active' : ''}" style="padding:7px;border:1px solid #334155;min-width:155px;">
 ${config.isNano ? '' : `<div style="font-size:10px;color:#94a3b8;">Previous</div><div style="font-size:12px;">${x.previousActive}</div>`}
 <div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
 <input type="number" id="${config.prefix}TodayActive_${reportEscA(key)}" value="${x.todayActive}"
@@ -4029,11 +4038,13 @@ ${totalDiffText}
 </tr>`;
         });
 
+        if(config.isNano) grandActive+=ba;
+
         tbody.innerHTML+=`
 <tr id="${config.prefix}BranchTotalRow_${reportEscA(branch)}" style="background:rgba(51,65,85,.5);font-weight:bold;color:#f8fafc;">
 <td colspan="3" style="padding:8px;border:1px solid #475569;text-align:right;">${reportEsc(branch)} Branch Total:</td>
-${config.isNano ? `<td id="${config.prefix}BranchClose_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${branchCloseLoan}</td>` : ``}
-<td id="${config.prefix}BranchActive_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${ba}</td>
+${config.isNano ? `<td class="nano-col-close" id="${config.prefix}BranchClose_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${branchCloseLoan}</td>` : ``}
+<td class="${config.isNano ? 'nano-col-active' : ''}" id="${config.prefix}BranchActive_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${ba}</td>
 <td id="${config.prefix}BranchTarget_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${bt}</td>
 <td id="${config.prefix}BranchAchievement_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${bach}</td>
 <td id="${config.prefix}BranchDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(bd):'#f8fafc'};">${config.isNano?nanoDiffLabel(bd):reportDiff(bd)}</td>
@@ -4097,17 +4108,21 @@ function updateReportGrand(config){
         if(!branchTotals[branch])branchTotals[branch]={close:0,active:0,target:0,achievement:0,diff:0,totalDiff:0};
         const b=branchTotals[branch];
         b.close+=x.totalCloseLoan;
-        b.active+=x.totalActive;
+        b.active=config.isNano?Math.max(b.active,x.totalActive):b.active+x.totalActive;
         b.target+=x.totalTarget;
         b.achievement+=x.achievement;
         b.diff+=x.diffToday;
         b.totalDiff+=x.totalDiff;
         close+=x.totalCloseLoan;
-        a+=x.totalActive;
+        if(!config.isNano)a+=x.totalActive;
         t+=x.totalTarget;
         ach+=x.achievement;
         d+=x.diffToday;
         td+=x.totalDiff;
+    }
+
+    if(config.isNano){
+        for(const branch in branchTotals) a+=branchTotals[branch].active;
     }
 
     for(const branch in branchTotals){
@@ -4306,7 +4321,7 @@ function downloadReportExcel(config){
             const b=branches[branch];
             b.items.push(x);
             b.close+=x.totalCloseLoan;
-            b.active+=x.totalActive;
+            b.active=Math.max(b.active,x.totalActive);
             b.target+=x.totalTarget;
             b.achievement+=x.achievement;
             b.diff+=x.diffToday;
@@ -4318,12 +4333,13 @@ function downloadReportExcel(config){
             b.items.forEach(x=>{
                 rows.push(makeStaffRow(x));
                 close+=x.totalCloseLoan;
-                a+=x.totalActive;
                 t+=x.totalTarget;
                 ach+=x.achievement;
                 d+=x.diffToday;
                 td+=x.totalDiff;
             });
+
+            a+=b.active;
 
             rows.push({
                 'Sr #':'',
@@ -4480,6 +4496,13 @@ function downloadReportImage(config,format='png'){
     }
 }
 
+
+function toggleNanoReportColumn(column,show){
+    const cls=column==='close'?'nano-col-close':'nano-col-active';
+    document.querySelectorAll('#nanoTable .'+cls).forEach(el=>{
+        el.style.display=show?'':'none';
+    });
+}
 
 // ================= NANO WRAPPERS =================
 
