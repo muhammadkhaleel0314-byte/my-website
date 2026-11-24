@@ -3842,6 +3842,19 @@ function safeWriteStorage(key, backupKey, data){
     }
 }
 function reportDiff(v){ v=reportNum(v); return v>=0 ? '+'+v : String(v); }
+
+// Nano difference status: below target = red, equal = black,
+// above target = green and marked Excellent.
+function nanoDiffLabel(v){
+    v=reportNum(v);
+    if(v<0) return String(v);
+    if(v===0) return '0';
+    return '+'+v+' Excellent';
+}
+function nanoDiffColor(v){
+    v=reportNum(v);
+    return v<0 ? '#ef4444' : (v===0 ? '#000000' : '#16a34a');
+}
 function reportEsc(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function reportEscA(v){ return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
@@ -3945,8 +3958,10 @@ function renderReport(config){
             grandDiffToday+=x.diffToday;
             grandTotalDiff+=x.totalDiff;
 
-            const diffColor=x.diffToday>=0?'#38bdf8':'#ef4444';
-            const totalDiffColor=x.totalDiff>=0?'#38bdf8':'#ef4444';
+            const diffColor=config.isNano ? nanoDiffColor(x.diffToday) : (x.diffToday>=0?'#38bdf8':'#ef4444');
+            const totalDiffColor=config.isNano ? nanoDiffColor(x.totalDiff) : (x.totalDiff>=0?'#38bdf8':'#ef4444');
+            const diffText=config.isNano ? nanoDiffLabel(x.diffToday) : reportDiff(x.diffToday);
+            const totalDiffText=config.isNano ? nanoDiffLabel(x.totalDiff) : reportDiff(x.totalDiff);
 
             tbody.innerHTML+=`
 <tr>
@@ -3999,12 +4014,12 @@ style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#ff
 
 <td id="${config.prefix}DiffToday_${reportEscA(key)}"
 style="padding:8px;border:1px solid #334155;font-weight:bold;font-size:16px;color:${diffColor};">
-${reportDiff(x.diffToday)}
+${diffText}
 </td>
 
 <td id="${config.prefix}TotalDiff_${reportEscA(key)}"
 style="padding:8px;border:1px solid #334155;font-weight:bold;font-size:16px;color:${totalDiffColor};">
-${reportDiff(x.totalDiff)}
+${totalDiffText}
 </td>
 
 <td style="padding:8px;border:1px solid #334155;white-space:nowrap;">
@@ -4015,14 +4030,14 @@ ${reportDiff(x.totalDiff)}
         });
 
         tbody.innerHTML+=`
-<tr style="background:rgba(51,65,85,.5);font-weight:bold;color:#f8fafc;">
+<tr id="${config.prefix}BranchTotalRow_${reportEscA(branch)}" style="background:rgba(51,65,85,.5);font-weight:bold;color:#f8fafc;">
 <td colspan="3" style="padding:8px;border:1px solid #475569;text-align:right;">${reportEsc(branch)} Branch Total:</td>
-${config.isNano ? `<td style="padding:8px;border:1px solid #475569;">${branchCloseLoan}</td>` : ``}
-<td style="padding:8px;border:1px solid #475569;">${ba}</td>
-<td style="padding:8px;border:1px solid #475569;">${bt}</td>
-<td style="padding:8px;border:1px solid #475569;">${bach}</td>
-<td style="padding:8px;border:1px solid #475569;font-size:16px;">${reportDiff(bd)}</td>
-<td style="padding:8px;border:1px solid #475569;font-size:16px;">${reportDiff(btd)}</td>
+${config.isNano ? `<td id="${config.prefix}BranchClose_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${branchCloseLoan}</td>` : ``}
+<td id="${config.prefix}BranchActive_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${ba}</td>
+<td id="${config.prefix}BranchTarget_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${bt}</td>
+<td id="${config.prefix}BranchAchievement_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${bach}</td>
+<td id="${config.prefix}BranchDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(bd):'#f8fafc'};">${config.isNano?nanoDiffLabel(bd):reportDiff(bd)}</td>
+<td id="${config.prefix}BranchTotalDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(btd):'#f8fafc'};">${config.isNano?nanoDiffLabel(btd):reportDiff(btd)}</td>
 <td style="border:1px solid #475569;text-align:center;">
 <button onclick="${config.prefix}AddBranch('${reportEscA(branch)}')" style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">+</button>
 </td>
@@ -4034,8 +4049,14 @@ ${config.isNano ? `<td style="padding:8px;border:1px solid #475569;">${branchClo
     set(config.sumActiveId,grandActive);
     set(config.sumTargetId,grandTarget);
     set(config.sumAchievementId,grandAchievement);
-    set(config.sumDiffId,reportDiff(grandDiffToday));
-    set(config.sumTotalDiffId,reportDiff(grandTotalDiff));
+    set(config.sumDiffId,config.isNano?nanoDiffLabel(grandDiffToday):reportDiff(grandDiffToday));
+    set(config.sumTotalDiffId,config.isNano?nanoDiffLabel(grandTotalDiff):reportDiff(grandTotalDiff));
+    if(config.isNano){
+        const diffEl=document.getElementById(config.sumDiffId);
+        const totalDiffEl=document.getElementById(config.sumTotalDiffId);
+        if(diffEl)diffEl.style.color=nanoDiffColor(grandDiffToday);
+        if(totalDiffEl)totalDiffEl.style.color=nanoDiffColor(grandTotalDiff);
+    }
 }
 
 function updateReportRow(config,key){
@@ -4053,13 +4074,13 @@ function updateReportRow(config,key){
     set(`${config.prefix}TotalActiveDisp_${key}`,x.totalActive);
     set(`${config.prefix}TotalTargetDisp_${key}`,x.totalTarget);
     set(`${config.prefix}TotalAchievementDisp_${key}`,x.achievement);
-    set(`${config.prefix}DiffToday_${key}`,reportDiff(x.diffToday));
-    set(`${config.prefix}TotalDiff_${key}`,reportDiff(x.totalDiff));
+    set(`${config.prefix}DiffToday_${key}`,config.isNano?nanoDiffLabel(x.diffToday):reportDiff(x.diffToday));
+    set(`${config.prefix}TotalDiff_${key}`,config.isNano?nanoDiffLabel(x.totalDiff):reportDiff(x.totalDiff));
 
     const d=document.getElementById(`${config.prefix}DiffToday_${key}`);
     const td=document.getElementById(`${config.prefix}TotalDiff_${key}`);
-    if(d)d.style.color=x.diffToday>=0?'#38bdf8':'#ef4444';
-    if(td)td.style.color=x.totalDiff>=0?'#38bdf8':'#ef4444';
+    if(d)d.style.color=config.isNano?nanoDiffColor(x.diffToday):(x.diffToday>=0?'#38bdf8':'#ef4444');
+    if(td)td.style.color=config.isNano?nanoDiffColor(x.totalDiff):(x.totalDiff>=0?'#38bdf8':'#ef4444');
 
     config.saveReports(reports);
     updateReportGrand(config);
@@ -4068,15 +4089,43 @@ function updateReportRow(config,key){
 function updateReportGrand(config){
     const reports=normalizeReportData(config.getReports());
     let close=0,a=0,t=0,ach=0,d=0,td=0;
+    const branchTotals={};
 
     for(const k in reports){
-        calcReport(reports[k]);
-        close+=reports[k].totalCloseLoan;
-        a+=reports[k].totalActive;
-        t+=reports[k].totalTarget;
-        ach+=reports[k].achievement;
-        d+=reports[k].diffToday;
-        td+=reports[k].totalDiff;
+        const x=calcReport(reports[k]);
+        const branch=x.branch||'Other';
+        if(!branchTotals[branch])branchTotals[branch]={close:0,active:0,target:0,achievement:0,diff:0,totalDiff:0};
+        const b=branchTotals[branch];
+        b.close+=x.totalCloseLoan;
+        b.active+=x.totalActive;
+        b.target+=x.totalTarget;
+        b.achievement+=x.achievement;
+        b.diff+=x.diffToday;
+        b.totalDiff+=x.totalDiff;
+        close+=x.totalCloseLoan;
+        a+=x.totalActive;
+        t+=x.totalTarget;
+        ach+=x.achievement;
+        d+=x.diffToday;
+        td+=x.totalDiff;
+    }
+
+    for(const branch in branchTotals){
+        const b=branchTotals[branch];
+        const key=reportEscA(branch);
+        const put=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
+        put(`${config.prefix}BranchClose_${key}`,b.close);
+        put(`${config.prefix}BranchActive_${key}`,b.active);
+        put(`${config.prefix}BranchTarget_${key}`,b.target);
+        put(`${config.prefix}BranchAchievement_${key}`,b.achievement);
+        put(`${config.prefix}BranchDiff_${key}`,config.isNano?nanoDiffLabel(b.diff):reportDiff(b.diff));
+        put(`${config.prefix}BranchTotalDiff_${key}`,config.isNano?nanoDiffLabel(b.totalDiff):reportDiff(b.totalDiff));
+        const bd=document.getElementById(`${config.prefix}BranchDiff_${key}`);
+        const btd=document.getElementById(`${config.prefix}BranchTotalDiff_${key}`);
+        if(config.isNano){
+            if(bd)bd.style.color=nanoDiffColor(b.diff);
+            if(btd)btd.style.color=nanoDiffColor(b.totalDiff);
+        }
     }
 
     config.saveReports(reports);
@@ -4086,8 +4135,14 @@ function updateReportGrand(config){
     set(config.sumActiveId,a);
     set(config.sumTargetId,t);
     set(config.sumAchievementId,ach);
-    set(config.sumDiffId,reportDiff(d));
-    set(config.sumTotalDiffId,reportDiff(td));
+    set(config.sumDiffId,config.isNano?nanoDiffLabel(d):reportDiff(d));
+    set(config.sumTotalDiffId,config.isNano?nanoDiffLabel(td):reportDiff(td));
+    if(config.isNano){
+        const diffEl=document.getElementById(config.sumDiffId);
+        const totalDiffEl=document.getElementById(config.sumTotalDiffId);
+        if(diffEl)diffEl.style.color=nanoDiffColor(d);
+        if(totalDiffEl)totalDiffEl.style.color=nanoDiffColor(td);
+    }
 }
 
 function saveReportText(config,key){
@@ -4217,34 +4272,90 @@ function downloadReportExcel(config){
     const rows=[];
     let close=0,a=0,t=0,ach=0,d=0,td=0,sr=1;
 
-    for(const k in reports){
-        const x=calcReport(reports[k]);
+    const makeStaffRow=(x)=>({
+        'Sr #':sr++,
+        'Staff / Role':x.staff||'Staff',
+        'Branch Name':x.branch||'',
+        ...(config.isNano ? {
+            'Previous Close Loan':x.previousCloseLoan,
+            'Today Close Loan':x.todayCloseLoan,
+            'Total Close Loan':x.totalCloseLoan
+        } : {}),
+        'Previous Active':x.previousActive,
+        'Today Active':x.todayActive,
+        'Total Active':x.totalActive,
+        'Previous Target':x.previousTarget,
+        'Today Target':x.todayTarget,
+        'Total Target':x.totalTarget,
+        'Previous Achievement':x.previousAchievement,
+        'Today Achievement':x.todayAchievement,
+        'Total Achievement':x.achievement,
+        'Difference Today':config.isNano?nanoDiffLabel(x.diffToday):x.diffToday,
+        'Previous Difference':x.previousDifference,
+        'Total Difference':config.isNano?nanoDiffLabel(x.totalDiff):x.totalDiff
+    });
 
-        rows.push({
-            'Sr #':sr++,
-            'Staff / Role':x.staff||'Staff',
-            'Branch Name':x.branch||'',
-            ...(config.isNano ? {'Previous Close Loan':x.previousCloseLoan,'Today Close Loan':x.todayCloseLoan,'Total Close Loan':x.totalCloseLoan} : {}),
-            'Previous Active':x.previousActive,
-            'Today Active':x.todayActive,
-            'Total Active':x.totalActive,
-            'Previous Target':x.previousTarget,
-            'Today Target':x.todayTarget,
-            'Total Target':x.totalTarget,
-            'Previous Achievement':x.previousAchievement,
-            'Today Achievement':x.todayAchievement,
-            'Total Achievement':x.achievement,
-            'Difference Today':x.diffToday,
-            'Previous Difference':x.previousDifference,
-            'Total Difference':x.totalDiff
-        });
+    if(config.isNano){
+        const branches={};
+        for(const key in reports){
+            const x=calcReport(reports[key]);
+            const branch=x.branch||'Other';
+            if(!branches[branch])branches[branch]={
+                items:[],close:0,active:0,target:0,achievement:0,diff:0,totalDiff:0
+            };
+            const b=branches[branch];
+            b.items.push(x);
+            b.close+=x.totalCloseLoan;
+            b.active+=x.totalActive;
+            b.target+=x.totalTarget;
+            b.achievement+=x.achievement;
+            b.diff+=x.diffToday;
+            b.totalDiff+=x.totalDiff;
+        }
 
-        close+=x.closeLoan;
-        a+=x.totalActive;
-        t+=x.totalTarget;
-        ach+=x.achievement;
-        d+=x.diffToday;
-        td+=x.totalDiff;
+        for(const branch in branches){
+            const b=branches[branch];
+            b.items.forEach(x=>{
+                rows.push(makeStaffRow(x));
+                close+=x.totalCloseLoan;
+                a+=x.totalActive;
+                t+=x.totalTarget;
+                ach+=x.achievement;
+                d+=x.diffToday;
+                td+=x.totalDiff;
+            });
+
+            rows.push({
+                'Sr #':'',
+                'Staff / Role':branch+' BRANCH TOTAL:',
+                'Branch Name':'',
+                'Previous Close Loan':'',
+                'Today Close Loan':'',
+                'Total Close Loan':b.close,
+                'Previous Active':'',
+                'Today Active':'',
+                'Total Active':b.active,
+                'Previous Target':'',
+                'Today Target':'',
+                'Total Target':b.target,
+                'Previous Achievement':'',
+                'Today Achievement':'',
+                'Total Achievement':b.achievement,
+                'Difference Today':nanoDiffLabel(b.diff),
+                'Previous Difference':'',
+                'Total Difference':nanoDiffLabel(b.totalDiff)
+            });
+        }
+    }else{
+        for(const k in reports){
+            const x=calcReport(reports[k]);
+            rows.push(makeStaffRow(x));
+            a+=x.totalActive;
+            t+=x.totalTarget;
+            ach+=x.achievement;
+            d+=x.diffToday;
+            td+=x.totalDiff;
+        }
     }
 
     rows.push({
@@ -4261,17 +4372,16 @@ function downloadReportExcel(config){
         'Previous Achievement':'',
         'Today Achievement':'',
         'Total Achievement':ach,
-        'Difference Today':d,
+        'Difference Today':config.isNano?nanoDiffLabel(d):d,
         'Previous Difference':'',
-        'Total Difference':td
+        'Total Difference':config.isNano?nanoDiffLabel(td):td
     });
 
     const ws=XLSX.utils.json_to_sheet(rows);
-
     ws['!cols']=config.isNano ? [
-        {wch:7},{wch:22},{wch:18},{wch:18},{wch:16},{wch:14},{wch:14},
+        {wch:7},{wch:25},{wch:18},{wch:18},{wch:16},{wch:14},{wch:14},
         {wch:16},{wch:14},{wch:14},{wch:21},{wch:18},{wch:18},
-        {wch:18},{wch:20},{wch:18}
+        {wch:22},{wch:20},{wch:22},{wch:18},{wch:22}
     ] : [
         {wch:7},{wch:22},{wch:18},
         {wch:16},{wch:14},{wch:14},
@@ -4279,17 +4389,29 @@ function downloadReportExcel(config){
         {wch:21},{wch:18},{wch:18},
         {wch:18},{wch:20},{wch:18}
     ];
-
     ws['!freeze']={xSplit:0,ySplit:1};
     ws['!autofilter']={ref:`A1:${config.isNano?'R':'O'}${rows.length-1}`};
 
+    // Bold branch subtotal and grand total rows in the exported workbook.
+    if(config.isNano){
+        for(let r=1;r<rows.length;r++){
+            const label=String(rows[r]['Staff / Role']||'').toUpperCase();
+            if(label.includes('BRANCH TOTAL')||label.includes('GRAND TOTAL')){
+                for(let c=0;c<18;c++){
+                    const cell=ws[XLSX.utils.encode_cell({r,c})];
+                    if(cell)cell.s={
+                        font:{bold:true,color:'000000'},
+                        fill:{patternType:'solid',fgColor:{rgb:'DCE7F3'}},
+                        alignment:{vertical:'center'}
+                    };
+                }
+            }
+        }
+    }
+
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,config.title+' Report');
-
-    XLSX.writeFile(
-        wb,
-        config.title.replace(/\s+/g,'_')+'_Staff_Wise_Report.xlsx'
-    );
+    XLSX.writeFile(wb,config.title.replace(/\s+/g,'_')+'_Staff_Wise_Report.xlsx');
 }
 
 function downloadReportImage(config,format='png'){
@@ -4447,6 +4569,14 @@ function downloadReportImageWhite(config){
         x.style.backgroundColor='#ffffff';
         x.style.color='#000000';
     });
+
+    if(config.isNano){
+        clone.querySelectorAll('[id^="nanoDiffToday_"],[id^="nanoTotalDiff_"],.nano-diff-cell').forEach(cell=>{
+            const txt=String(cell.textContent||'').trim();
+            cell.style.color=/Excellent/.test(txt)?'#16a34a':(/^[-−]/.test(txt)?'#ef4444':'#000000');
+            cell.style.fontWeight='bold';
+        });
+    }
 
     clone.querySelectorAll('tr').forEach(row=>{
         if(row.lastElementChild)row.lastElementChild.remove();
