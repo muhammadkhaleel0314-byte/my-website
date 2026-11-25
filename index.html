@@ -1469,6 +1469,12 @@ window.pdfjsLib = pdfjsLib;
 <label style="display:flex;align-items:center;gap:7px;color:#fff;font-size:13px;font-weight:bold;cursor:pointer;">
 <input type="checkbox" id="nanoShowActive" checked onchange="toggleNanoReportColumn('active',this.checked)" style="width:17px;height:17px;"> Show Active Column
 </label>
+<label style="display:flex;align-items:center;gap:7px;color:#fff;font-size:13px;font-weight:bold;">
+Active Mode:
+<select id="nanoActiveMode" onchange="setNanoActiveMode(this.value)" style="background:#0f172a;color:#fff;border:1px solid #475569;padding:7px;border-radius:5px;">
+<option value="auto">Auto</option><option value="manual">Manual</option>
+</select>
+</label>
 </div>
 
 <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;">
@@ -3928,6 +3934,32 @@ function normalizeReportData(reports){
     return reports;
 }
 
+function getNanoActiveMode(){return localStorage.getItem('nanoActiveMode')||'auto';}
+function setNanoActiveMode(mode){
+    mode=mode==='manual'?'manual':'auto';
+    const reports=nanoReports();
+    for(const key in reports){
+        const x=reports[key];
+        if(mode==='manual'){
+            if(x.manualActiveValue===undefined) x.manualActiveValue=reportNum(x.activeAutoBase!==undefined?x.activeAutoBase:x.previousActive);
+            x.todayActive=reportNum(x.manualActiveValue);
+        }else{
+            if(x.activeAutoBase===undefined) x.activeAutoBase=reportNum(x.manualActiveValue!==undefined?x.manualActiveValue:x.previousActive);
+        }
+        calcReport(x);
+    }
+    localStorage.setItem('nanoActiveMode',mode);
+    saveNanoReports(reports);
+    const selector=document.getElementById('nanoActiveMode');
+    if(selector)selector.value=mode;
+    renderReport(NANO_CONFIG);
+}
+function nanoNetActive(x){
+    if(getNanoActiveMode()==='manual') return reportNum(x.manualActiveValue!==undefined?x.manualActiveValue:x.todayActive);
+    const base=reportNum(x.activeAutoBase!==undefined?x.activeAutoBase:x.previousActive);
+    return base+reportNum(x.todayAchievement)-reportNum(x.todayCloseLoan);
+}
+
 function renderReport(config){
     const reports=normalizeReportData(config.getReports());
     const tbody=document.getElementById(config.bodyId);
@@ -3954,7 +3986,7 @@ function renderReport(config){
             calcReport(x);
 
             branchCloseLoan+=x.totalCloseLoan;
-            ba=config.isNano?Math.max(ba,x.totalActive):ba+x.totalActive;
+            ba=config.isNano?Math.max(ba,nanoNetActive(x)):ba+x.totalActive;
             bt+=x.totalTarget;
             bach+=x.achievement;
             bd+=x.diffToday;
@@ -3997,10 +4029,11 @@ ${config.isNano ? `<td class="nano-col-close" style="padding:7px;border:1px soli
 <td class="${config.isNano ? 'nano-col-active' : ''}" style="padding:7px;border:1px solid #334155;min-width:155px;">
 ${config.isNano ? '' : `<div style="font-size:10px;color:#94a3b8;">Previous</div><div style="font-size:12px;">${x.previousActive}</div>`}
 <div style="font-size:10px;color:#94a3b8;margin-top:3px;">Today</div>
-<input type="number" id="${config.prefix}TodayActive_${reportEscA(key)}" value="${x.todayActive}"
+<input type="number" id="${config.prefix}TodayActive_${reportEscA(key)}" value="${config.isNano ? nanoNetActive(x) : x.todayActive}"
+${config.isNano && getNanoActiveMode()==='auto'?'disabled':''}
 oninput="${config.prefix}ActiveChanged('${reportEscA(key)}')"
 style="width:60px;height:32px;box-sizing:border-box;background:#0f172a;color:#fff;border:1px solid #475569;text-align:center;border-radius:4px;">
-<div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="${config.prefix}TotalActiveDisp_${reportEscA(key)}">${x.totalActive}</span></div>
+<div style="font-size:11px;color:#38bdf8;margin-top:3px;">Total: <span id="${config.prefix}TotalActiveDisp_${reportEscA(key)}">${config.isNano ? nanoNetActive(x) : x.totalActive}</span></div>
 </td>
 
 <td style="padding:7px;border:1px solid #334155;min-width:155px;">
@@ -4082,7 +4115,8 @@ function updateReportRow(config,key){
         set(`nanoTotalCloseLoanDisp_${key}`,x.totalCloseLoan);
     }
 
-    set(`${config.prefix}TotalActiveDisp_${key}`,x.totalActive);
+    set(`${config.prefix}TotalActiveDisp_${key}`,config.isNano?nanoNetActive(x):x.totalActive);
+    if(config.isNano){const activeInput=document.getElementById(`nanoTodayActive_${key}`);if(activeInput){activeInput.value=getNanoActiveMode()==='auto'?nanoNetActive(x):reportNum(x.manualActiveValue!==undefined?x.manualActiveValue:x.todayActive);activeInput.disabled=getNanoActiveMode()==='auto';}}
     set(`${config.prefix}TotalTargetDisp_${key}`,x.totalTarget);
     set(`${config.prefix}TotalAchievementDisp_${key}`,x.achievement);
     set(`${config.prefix}DiffToday_${key}`,config.isNano?nanoDiffLabel(x.diffToday):reportDiff(x.diffToday));
@@ -4108,7 +4142,7 @@ function updateReportGrand(config){
         if(!branchTotals[branch])branchTotals[branch]={close:0,active:0,target:0,achievement:0,diff:0,totalDiff:0};
         const b=branchTotals[branch];
         b.close+=x.totalCloseLoan;
-        b.active=config.isNano?Math.max(b.active,x.totalActive):b.active+x.totalActive;
+        b.active=config.isNano?Math.max(b.active,nanoNetActive(x)):b.active+x.totalActive;
         b.target+=x.totalTarget;
         b.achievement+=x.achievement;
         b.diff+=x.diffToday;
@@ -4298,7 +4332,7 @@ function downloadReportExcel(config){
         } : {}),
         'Previous Active':x.previousActive,
         'Today Active':x.todayActive,
-        'Total Active':x.totalActive,
+        'Total Active':config.isNano?nanoNetActive(x):x.totalActive,
         'Previous Target':x.previousTarget,
         'Today Target':x.todayTarget,
         'Total Target':x.totalTarget,
@@ -4321,7 +4355,7 @@ function downloadReportExcel(config){
             const b=branches[branch];
             b.items.push(x);
             b.close+=x.totalCloseLoan;
-            b.active=Math.max(b.active,x.totalActive);
+            b.active=Math.max(b.active,nanoNetActive(x));
             b.target+=x.totalTarget;
             b.achievement+=x.achievement;
             b.diff+=x.diffToday;
@@ -4524,8 +4558,8 @@ const NANO_CONFIG={
     load:loadNanoData
 };
 
-function loadNanoData(){renderReport(NANO_CONFIG);}
-function nanoActiveChanged(key){const r=nanoReports();if(!r[key])return;r[key].todayActive=reportNum(document.getElementById(`nanoTodayActive_${key}`).value);calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
+function loadNanoData(){const m=document.getElementById('nanoActiveMode');if(m)m.value=getNanoActiveMode();renderReport(NANO_CONFIG);}
+function nanoActiveChanged(key){const r=nanoReports();if(!r[key])return;const v=reportNum(document.getElementById(`nanoTodayActive_${key}`).value);r[key].todayActive=v;r[key].manualActiveValue=v;r[key].activeAutoBase=v;calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
 function nanoTargetChanged(key){const r=nanoReports();if(!r[key])return;r[key].todayTarget=reportNum(document.getElementById(`nanoTodayTarget_${key}`).value);calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
 function nanoAchievementChanged(key){const r=nanoReports();if(!r[key])return;r[key].todayAchievement=reportNum(document.getElementById(`nanoTodayAchievement_${key}`).value);calcReport(r[key]);saveNanoReports(r);updateReportRow(NANO_CONFIG,key);}
 
