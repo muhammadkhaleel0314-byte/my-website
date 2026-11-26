@@ -3980,14 +3980,17 @@ function renderReport(config){
     let grandCloseLoan=0,grandCloseLoanOverall=0,grandActive=0,grandTarget=0,grandTargetOverall=0,grandAchievement=0,grandTodayAchievement=0,grandDiffToday=0,grandTotalDiff=0,sr=1;
 
     for(const branch in branches){
-        let branchCloseLoan=0,ba=0,bt=0,bach=0,bd=0,btd=0;
+        let branchCloseLoan=0,branchTodayClose=0,ba=0,bt=0,branchTodayTarget=0,branchTodayAchievement=0,bach=0,bd=0,btd=0;
 
         branches[branch].forEach(({key,item:x})=>{
             calcReport(x);
 
             branchCloseLoan+=x.totalCloseLoan;
+            branchTodayClose+=x.todayCloseLoan;
             ba=config.isNano?Math.max(ba,nanoNetActive(x)):ba+x.totalActive;
             bt+=x.totalTarget;
+            branchTodayTarget+=x.todayTarget;
+            branchTodayAchievement+=x.todayAchievement;
             bach+=x.achievement;
             bd+=x.diffToday;
             btd+=x.totalDiff;
@@ -4079,12 +4082,12 @@ ${totalDiffText}
         tbody.innerHTML+=`
 <tr id="${config.prefix}BranchTotalRow_${reportEscA(branch)}" style="background:rgba(51,65,85,.5);font-weight:bold;color:#f8fafc;">
 <td colspan="3" style="padding:8px;border:1px solid #475569;text-align:right;">${reportEsc(branch)} Branch Total:</td>
-${config.isNano ? `<td class="nano-col-close" id="${config.prefix}BranchClose_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${branchCloseLoan}</td>` : ``}
-<td class="${config.isNano ? 'nano-col-active' : ''}" id="${config.prefix}BranchActive_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${ba}</td>
-<td id="${config.prefix}BranchTarget_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${bt}</td>
-<td id="${config.prefix}BranchAchievement_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${bach}</td>
-<td id="${config.prefix}BranchDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(bd):'#f8fafc'};">${config.isNano?nanoDiffLabel(bd):reportDiff(bd)}</td>
-<td id="${config.prefix}BranchTotalDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(btd):'#f8fafc'};">${config.isNano?nanoDiffLabel(btd):reportDiff(btd)}</td>
+${config.isNano ? `<td class="nano-col-close" id="${config.prefix}BranchClose_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;"><div style="font-size:10px;color:#94a3b8;">Today: ${branchTodayClose}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${branchCloseLoan}</div></td>` : ``}
+<td class="${config.isNano ? 'nano-col-active' : ''}" id="${config.prefix}BranchActive_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${config.isNano?`<div style="font-size:10px;color:#94a3b8;">Today: ${ba}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${ba}</div>`:ba}</td>
+<td id="${config.prefix}BranchTarget_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${config.isNano?`<div style="font-size:10px;color:#94a3b8;">Today: ${branchTodayTarget}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${bt}</div>`:bt}</td>
+<td id="${config.prefix}BranchAchievement_${reportEscA(branch)}" style="padding:8px;border:1px solid #475569;">${config.isNano?`<div style="font-size:10px;color:#94a3b8;">Today: ${branchTodayAchievement}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${bach}</div>`:bach}</td>
+<td id="${config.prefix}BranchDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(bd):'#f8fafc'};">${config.isNano?`<div style="font-size:10px;color:#94a3b8;">Today: ${nanoDiffLabel(bd)}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${nanoDiffLabel(bd)}</div>`:reportDiff(bd)}</td>
+<td id="${config.prefix}BranchTotalDiff_${reportEscA(branch)}" class="nano-diff-cell" style="padding:8px;border:1px solid #475569;font-size:16px;color:${config.isNano?nanoDiffColor(btd):'#f8fafc'};">${config.isNano?`<div style="font-size:10px;color:#94a3b8;">Today: ${nanoDiffLabel(bd)}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${nanoDiffLabel(btd)}</div>`:reportDiff(btd)}</td>
 <td style="border:1px solid #475569;text-align:center;">
 <button onclick="${config.prefix}AddBranch('${reportEscA(branch)}')" style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">+</button>
 </td>
@@ -4150,12 +4153,15 @@ function updateReportGrand(config){
     for(const k in reports){
         const x=calcReport(reports[k]);
         const branch=x.branch||'Other';
-        if(!branchTotals[branch])branchTotals[branch]={close:0,active:0,target:0,achievement:0,diff:0,totalDiff:0};
+        if(!branchTotals[branch])branchTotals[branch]={close:0,todayClose:0,active:0,target:0,todayTarget:0,achievement:0,todayAchievement:0,diff:0,totalDiff:0};
         const b=branchTotals[branch];
         b.close+=x.totalCloseLoan;
+        b.todayClose+=x.todayCloseLoan;
         b.active=config.isNano?Math.max(b.active,nanoNetActive(x)):b.active+x.totalActive;
         b.target+=x.totalTarget;
+        b.todayTarget+=x.todayTarget;
         b.achievement+=x.achievement;
+        b.todayAchievement+=x.todayAchievement;
         b.diff+=x.diffToday;
         b.totalDiff+=x.totalDiff;
         close+=config.isNano?x.todayCloseLoan:x.totalCloseLoan;
@@ -4177,12 +4183,13 @@ function updateReportGrand(config){
         const b=branchTotals[branch];
         const key=reportEscA(branch);
         const put=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
-        put(`${config.prefix}BranchClose_${key}`,b.close);
-        put(`${config.prefix}BranchActive_${key}`,b.active);
-        put(`${config.prefix}BranchTarget_${key}`,b.target);
-        put(`${config.prefix}BranchAchievement_${key}`,b.achievement);
-        put(`${config.prefix}BranchDiff_${key}`,config.isNano?nanoDiffLabel(b.diff):reportDiff(b.diff));
-        put(`${config.prefix}BranchTotalDiff_${key}`,config.isNano?nanoDiffLabel(b.totalDiff):reportDiff(b.totalDiff));
+        const setCell=(id,today,overall)=>{const e=document.getElementById(id);if(e)e.innerHTML=config.isNano?`<div style="font-size:10px;color:#94a3b8;">Today: ${today}</div><div style="font-size:11px;color:#38bdf8;">Overall: ${overall}</div>`:overall;};
+        setCell(`${config.prefix}BranchClose_${key}`,b.todayClose,b.close);
+        setCell(`${config.prefix}BranchActive_${key}`,b.active,b.active);
+        setCell(`${config.prefix}BranchTarget_${key}`,b.todayTarget,b.target);
+        setCell(`${config.prefix}BranchAchievement_${key}`,b.todayAchievement,b.achievement);
+        setCell(`${config.prefix}BranchDiff_${key}`,nanoDiffLabel(b.diff),nanoDiffLabel(b.diff));
+        setCell(`${config.prefix}BranchTotalDiff_${key}`,nanoDiffLabel(b.diff),nanoDiffLabel(b.totalDiff));
         const bd=document.getElementById(`${config.prefix}BranchDiff_${key}`);
         const btd=document.getElementById(`${config.prefix}BranchTotalDiff_${key}`);
         if(config.isNano){
